@@ -1,7 +1,7 @@
 # 01 — REQUIREMENTS
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.14  
+**Phiên bản:** 0.15  
 **Trạng thái:** Đang thảo luận
 
 ## 1. Bối cảnh và đặt vấn đề
@@ -1227,9 +1227,7 @@ Không đưa đăng ký tài khoản, quản lý lớp học, chấm điểm h�
 
 Dự án phải phù hợp với khả năng triển khai, thời gian và ngân sách của một sinh viên phát triển cá nhân.
 
-### 10.2. Ràng buộc triển khai đề xuất
-
-Các ràng buộc sau đang chờ xác nhận:
+### 10.2. Ràng buộc triển khai và nghiên cứu (Constraints)
 
 | ID | Ràng buộc |
 |---|---|
@@ -1243,8 +1241,52 @@ Các ràng buộc sau đang chờ xác nhận:
 | C08 | Kiểm soát ngân sách API, số lần gọi mô hình và số vòng lặp suy luận. |
 | C09 | Không đặt mục tiêu phục vụ người dùng quy mô lớn trong MVP. |
 | C10 | Ưu tiên hoàn thành và đánh giá các chức năng P0 trước khi mở rộng P1 và P2. |
+| C11 | Phạm vi đánh giá chính tập trung vào toán THCS lớp 6–9. |
+| C12 | Dữ liệu nghiên cứu phải có nguồn gốc rõ ràng và quyền sử dụng phù hợp. |
+| C13 | Không phụ thuộc bắt buộc vào duy nhất một nhà cung cấp LLM. |
+| C14 | Các mô hình và phương pháp thực nghiệm phải phù hợp với nguồn lực thực tế của dự án. |
+
+C07 không loại trừ Fine-tuning hoặc sử dụng mô hình mã nguồn mở nếu cần thiết cho nghiên cứu. C13 không yêu cầu tích hợp nhiều nhà cung cấp ngay từ đầu; kiến trúc cần cho phép thay thế nhà cung cấp.
 
 Ngân sách cụ thể chưa cần xác định tại giai đoạn Requirements. Việc phân bổ ngân sách sẽ được xem xét trong quá trình thiết kế, triển khai và xây dựng thực nghiệm.
+
+### 10.3. Giả định (Assumptions)
+
+Các giả định cần được kiểm chứng trong quá trình phát triển.
+
+| ID | Giả định |
+|---|---|
+| A01 | Có thể tiếp cận ít nhất một LLM hỗ trợ Multimodal Understanding và Tool Calling. |
+| A02 | Có kết nối Internet khi cần sử dụng API mô hình bên ngoài. |
+| A03 | Máy tính cá nhân đủ khả năng chạy các thành phần xử lý local. |
+| A04 | Có thể thu thập hoặc xây dựng tập dữ liệu benchmark toán THCS phù hợp. |
+| A05 | Có thể xây dựng kho tri thức toán học với nguồn tham chiếu đáng tin cậy. |
+| A06 | Các công cụ Symbolic Mathematics đáp ứng phần lớn nhu cầu tính toán trong phạm vi MVP. |
+| A07 | Người dùng có thể bổ sung dữ kiện khi cần Human-in-the-loop. |
+| A08 | Có thể thực hiện kiểm tra thủ công đối với một phần dữ liệu và lời giải thực nghiệm. |
+| A09 | Nhà cung cấp LLM duy trì khả năng truy cập API trong thời gian thực nghiệm. |
+| A10 | Có thể tiếp cận tài liệu nghiên cứu để xây dựng baseline và đối chiếu phương pháp. |
+
+### 10.4. Rủi ro và phương án xử lý
+
+| Rủi ro | Phương án xử lý |
+|---|---|
+| Chi phí API quá cao | Adaptive Routing, giới hạn token, giảm số lượt gọi không cần thiết. |
+| API thay đổi hoặc ngừng hoạt động | Model Adapter, thay thế Provider. |
+| Thiếu dataset phù hợp | Xây dựng benchmark có kiểm soát. |
+| Thiếu dữ liệu đa phương thức | Thu thập và chú thích hình ảnh có chọn lọc. |
+| LLM suy luận hình học kém | Structured Representation và Verification. |
+| SymPy không kiểm chứng được chứng minh | Hybrid Verification, rubric, đánh giá thủ công. |
+| Thời gian phát triển không đủ | Hoàn thành P0, trì hoãn P1/P2. |
+| Kết quả nghiên cứu không vượt baseline | Phân tích nguyên nhân và báo cáo giới hạn trung thực. |
+
+Không cam kết kết quả vượt baseline trước thực nghiệm.
+
+### 10.5. Định hướng triển khai Local-first
+
+Ưu tiên chạy giao diện, Mathematical Reasoning Engine, Agents, Routing, Shared State, Knowledge Retrieval, SymPy/Calculator, Evaluation, Logs và Benchmark trên máy tính cá nhân khi khả thi. Chỉ sử dụng dịch vụ LLM bên ngoài khi cần thiết, trong giới hạn tài nguyên và quyền riêng tư đã quy định.
+
+Không yêu cầu duy trì máy chủ 24/7. Technology Stack cụ thể được quyết định tại System Design; ngân sách cụ thể được xem xét trong thiết kế, triển khai và thực nghiệm.
 
 ## 11. Phạm vi MVP và mở rộng
 
