@@ -1,8 +1,8 @@
 # 01 — REQUIREMENTS
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.16  
-**Trạng thái:** Đang thảo luận
+**Phiên bản:** 1.0  
+**Trạng thái:** Approved — Requirements Baseline
 
 ## 1. Bối cảnh và đặt vấn đề
 
@@ -1372,6 +1372,143 @@ Sau khi hoàn thành P0, ưu tiên các P1 có giá trị nghiên cứu: kiểm 
 
 Việc bài báo được chấp nhận tại hội nghị quốc tế không phải tiêu chí nghiệm thu bắt buộc; mục tiêu là tạo sản phẩm nghiên cứu đủ nghiêm túc để có cơ hội gửi bài.
 
-## 12. Tiêu chí nghiệm thu
+## 12. Tiêu chí nghiệm thu (Acceptance Criteria)
 
-*Chưa chốt.*
+### 12.1. Chiến lược nghiệm thu
+
+Áp dụng Hybrid Targets theo mục 7.14. Nghiệm thu theo bốn nhóm: Functional Acceptance, Technical Acceptance, Research Acceptance và Deliverable Acceptance.
+
+### 12.2. Functional Acceptance Criteria
+
+| ID | Nhóm FR | Điều kiện nghiệm thu |
+|---|---|---|
+| FAC01 | FR01 | Tiếp nhận, kiểm tra và cập nhật được đề toán văn bản, hình ảnh và đầu vào kết hợp. |
+| FAC02 | FR02 | Trích xuất và chuẩn hóa dữ kiện toán học, bao gồm dữ kiện trực quan và nguồn gốc. |
+| FAC03 | FR03 | Xác định mục tiêu, phân tích và lập kế hoạch giải toán có cấu trúc. |
+| FAC04 | FR04 | Truy xuất tri thức phù hợp, cung cấp nguồn và điều kiện áp dụng. |
+| FAC05 | FR05 | Giải toán nhiều bước, gọi và tích hợp kết quả công cụ toán học. |
+| FAC06 | FR06 | Kiểm chứng lời giải, phát hiện lỗi, sửa lỗi và kiểm chứng lại trong giới hạn cho phép. |
+| FAC07 | FR07 | Điều phối Agent thích ứng, quản lý Shared State và giới hạn tài nguyên. |
+| FAC08 | FR08 | Phát hiện bất định, yêu cầu làm rõ, trả lời có điều kiện hoặc từ chối kết luận phù hợp. |
+| FAC09 | FR09 | Cung cấp lời giải có cấu trúc, đáp án, căn cứ, trạng thái kiểm chứng và thông tin bất định. |
+| FAC10 | FR10 | Thực hiện benchmark tự động, cấu hình thí nghiệm, ghi log và xuất kết quả. |
+
+- Toàn bộ 115 Functional Requirements P0 phải được triển khai và có bằng chứng kiểm thử phù hợp.
+- P1 được nghiệm thu riêng đối với chức năng đã triển khai; P2 không phải điều kiện nghiệm thu MVP.
+- Cả 62 Business Rules phải được xem xét khi kiểm thử chức năng tương ứng.
+- Không coi yêu cầu hoàn thành chỉ vì mã nguồn tương ứng tồn tại. Test case chi tiết được xây dựng trong triển khai.
+
+### 12.3. Technical Acceptance Criteria
+
+| ID | Tiêu chí | Phương pháp xác minh |
+|---|---|---|
+| TAC01 | Có thể cài đặt và chạy hệ thống trên máy tính cá nhân | Installation Test |
+| TAC02 | Các thành phần có interface và trách nhiệm rõ ràng | Architecture Review |
+| TAC03 | Có khả năng thay thế LLM thông qua interface thống nhất | Integration Test |
+| TAC04 | Kiểm tra đầu vào, đầu ra và tham số công cụ | Validation Test |
+| TAC05 | Không có vòng lặp suy luận hoặc sửa lỗi vô hạn | Boundary Test |
+| TAC06 | Kiểm soát timeout, retry, rate limit và giới hạn tài nguyên | Fault Injection Test |
+| TAC07 | Không cho phép thực thi mã hoặc công cụ ngoài quyền hạn | Security Test |
+| TAC08 | Không đưa thông tin xác thực vào mã nguồn hoặc log | Security Review |
+| TAC09 | Có khả năng truy vết phiên suy luận và quyết định điều phối | Execution Trace Review |
+| TAC10 | Bảo toàn kết quả hợp lệ khi benchmark bị gián đoạn | Recovery Test |
+| TAC11 | Lưu phiên bản dữ liệu, mô hình, prompt và cấu hình thực nghiệm | Reproducibility Review |
+| TAC12 | Các định dạng đầu ra nhất quán về nội dung toán học | Consistency Test |
+
+Giới hạn vòng lặp, timeout và tài nguyên cụ thể được xác định tại System Design. Khi đạt giới hạn sửa lỗi, hệ thống phải dừng sửa lỗi, ghi nhận lỗi chưa giải quyết và xử lý bất định phù hợp; lời giải đã sửa phải được kiểm chứng lại.
+
+### 12.4. Research Acceptance Criteria
+
+#### A. Thực nghiệm theo Research Objectives
+
+| ID | Research Objective | So sánh thực nghiệm |
+|---|---|---|
+| RAC01 | RO01 — Multi-Agent | Single-Agent và Multi-Agent |
+| RAC02 | RO02 — Symbolic Tools | Có và không sử dụng công cụ toán học |
+| RAC03 | RO03 — Agentic RAG | No RAG, Static RAG, Agentic RAG |
+| RAC04 | RO04 — Verification | Có và không kiểm chứng, tự sửa lỗi |
+| RAC05 | RO05 — Adaptive Routing | Static, Rule-based và Hybrid Routing |
+| RAC06 | RO06 — Multimodal | Text/OCR-based và Multimodal Reasoning |
+| RAC07 | RO07 — Uncertainty | Có và không có cơ chế xử lý bất định |
+
+Không bắt buộc thử nghiệm mọi tổ hợp thành phần; thiết kế thí nghiệm phù hợp để trả lời các câu hỏi nghiên cứu.
+
+#### B. Chỉ số đánh giá
+
+| Khía cạnh | Metrics đề xuất |
+|---|---|
+| Độ chính xác | Answer Accuracy, Mathematical Equivalence |
+| Chất lượng lời giải | Solution Correctness |
+| Truy xuất tri thức | Recall@K, Precision@K, MRR |
+| Kiểm chứng | Error Detection F1 |
+| Tự sửa lỗi | Correction Success Rate |
+| Xử lý bất định | Detection F1, Coverage, False Abstention Rate |
+| Hiệu năng | Latency |
+| Tài nguyên | Token Usage, LLM Calls, Tool Calls |
+| Chi phí | Cost per Problem |
+
+Các metric cần nhãn tham chiếu phải có dữ liệu tham chiếu phù hợp để đánh giá đáng tin cậy.
+
+#### C. Xác định ngưỡng chất lượng
+
+Áp dụng Hybrid Targets: xây dựng dataset và phân tách Development/Test; đánh giá baseline trên Development Set; xác định mục tiêu chất lượng, chi phí và độ trễ; phát triển và tối ưu trên Development Set; đánh giá cuối cùng trên Held-out Test Set.
+
+Không áp đặt ngưỡng chất lượng hoặc mức cải thiện khi chưa có căn cứ baseline. Các ngưỡng phải được xác định trước khi đánh giá trên tập test cuối cùng.
+
+#### D. Tiêu chí hoàn thành nghiên cứu
+
+| ID | Tiêu chí |
+|---|---|
+| RAC08 | Có benchmark với nguồn gốc và phương pháp xây dựng rõ ràng. |
+| RAC09 | Có phương pháp đánh giá và metric phù hợp với từng câu hỏi nghiên cứu. |
+| RAC10 | Có baseline hợp lý và điều kiện so sánh được kiểm soát. |
+| RAC11 | Hoàn thành các thí nghiệm và Ablation Study đã thống nhất. |
+| RAC12 | Báo cáo đầy đủ kết quả tích cực, tiêu cực, lỗi và giới hạn hệ thống. |
+| RAC13 | Không sử dụng đáp án tập test để tối ưu quá trình giải toán. |
+| RAC14 | Có khả năng chạy lại thí nghiệm theo cấu hình đã lưu. |
+| RAC15 | Có báo cáo nghiên cứu hoặc bản thảo bài báo trình bày phương pháp và kết quả. |
+
+Nếu phương pháp không vượt baseline thì mục tiêu cải thiện chất lượng có thể chưa đạt, nhưng quá trình nghiên cứu vẫn có thể được nghiệm thu nếu thí nghiệm hợp lệ và kết quả được báo cáo trung thực.
+
+### 12.5. Deliverable Acceptance Criteria
+
+| Deliverable | Điều kiện bàn giao |
+|---|---|
+| D01 — Reasoning Engine | Chạy được pipeline suy luận từ đầu đến cuối. |
+| D02 — Demo | Thực hiện được các Use Case P0 dành cho người dùng cuối. |
+| D03 — Math Tools | Có Tool Registry, interface, validation và kiểm thử. |
+| D04 — Knowledge Base | Có tri thức có cấu trúc, metadata, nguồn tham chiếu. |
+| D05 — Benchmark Dataset | Có dữ liệu, nhãn đánh giá và tài liệu mô tả. |
+| D06 — Evaluation Pipeline | Chạy tự động, lưu và khôi phục kết quả. |
+| D07 — Baseline & Ablation | Có cấu hình thực nghiệm và hướng dẫn chạy. |
+| D08 — Experiment Results | Có số liệu thực tế, metrics và phân tích lỗi. |
+| D09 — Source Code & Docs | Có mã nguồn, quản lý phiên bản và hướng dẫn sử dụng. |
+| D10 — Research Report | Có phương pháp, thực nghiệm, kết quả và giới hạn nghiên cứu. |
+
+### 12.6. Requirements Traceability Matrix
+
+Truy vết từ Research Objectives (RO), Product Objectives (PO), Technical Objectives (TO) đến FR, NFR và Business Rules, tiếp theo là Acceptance Criteria, Test Cases và Test Results/Research Evidence.
+
+| Requirement | Business Rule | Acceptance | Test Case dự kiến |
+|---|---|---|---|
+| FR05.07 | BR04.02 | FAC05, TAC04 | TC-TOOL-001 |
+| FR06.11 | BR06.04 | FAC06, TAC05 | TC-VER-001 |
+| FR07.10 | BR07.04 | FAC07, TAC05 | TC-ROUTE-001 |
+| FR08.11 | BR08.06 | FAC08 | TC-UNC-001 |
+| FR10.15 | BR10.06 | FAC10, TAC10 | TC-EVAL-001 |
+
+Các ID test case là minh họa, chưa phải danh sách kiểm thử chính thức. Ma trận truy vết được xây dựng dần trong thiết kế và triển khai.
+
+### 12.7. Definition of Done
+
+- [ ] Hoàn thành và kiểm thử toàn bộ Functional Requirements P0.
+- [ ] Đáp ứng các NFR bắt buộc với tiêu chí đã xác định.
+- [ ] Có bằng chứng tuân thủ các Business Rules liên quan.
+- [ ] Đáp ứng Functional và Technical Acceptance Criteria.
+- [ ] Hoàn thành benchmark, baseline và Ablation Study.
+- [ ] Có đầy đủ sản phẩm bàn giao D01–D10.
+- [ ] Lưu mã nguồn, cấu hình và kết quả thực nghiệm.
+- [ ] Báo cáo rõ các giới hạn và chức năng chưa hoàn thành.
+
+Checklist là tiêu chí nghiệm thu dự kiến, không phản ánh tiến độ triển khai thực tế.
+
