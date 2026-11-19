@@ -1,7 +1,7 @@
 # 01 — REQUIREMENTS
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.15  
+**Phiên bản:** 0.16  
 **Trạng thái:** Đang thảo luận
 
 ## 1. Bối cảnh và đặt vấn đề
@@ -1288,9 +1288,89 @@ Không cam kết kết quả vượt baseline trước thực nghiệm.
 
 Không yêu cầu duy trì máy chủ 24/7. Technology Stack cụ thể được quyết định tại System Design; ngân sách cụ thể được xem xét trong thiết kế, triển khai và thực nghiệm.
 
-## 11. Phạm vi MVP và mở rộng
+## 11. Phạm vi MVP và mở rộng (MVP Scope & Future Extensions)
 
-*Chưa chốt.*
+### 11.1. Định nghĩa MVP
+
+MVP là nguyên mẫu nghiên cứu AI Mathematical Reasoning Engine có khả năng tiếp nhận và hiểu đề toán đa phương thức; phân tích và lập kế hoạch; truy xuất tri thức theo nhu cầu; suy luận nhiều bước kết hợp công cụ toán học; kiểm chứng và tự sửa lỗi; điều phối Agent thích ứng; xử lý sự không chắc chắn; cung cấp lời giải có cấu trúc; thực hiện benchmark và so sánh phương pháp phục vụ Research Objectives.
+
+Phạm vi chức năng hiện tại gồm 132 Functional Requirements: 115 P0 bắt buộc, 16 P1 mở rộng khi nguồn lực cho phép và 1 P2 định hướng tương lai.
+
+### 11.2. Phạm vi kiến thức toán học
+
+| ID | Miền kiến thức | Năng lực nghiên cứu |
+|---|---|---|
+| MD01 | Số học | Tính toán chính xác. |
+| MD02 | Biểu thức đại số | Symbolic Reasoning. |
+| MD03 | Phương trình và hệ phương trình | Tool Use. |
+| MD04 | Bất phương trình | Điều kiện và kiểm chứng nghiệm. |
+| MD05 | Hàm số và đồ thị | Multimodal Reasoning. |
+| MD06 | Hình học phẳng | Visual Understanding, Knowledge Grounding. |
+| MD07 | Thống kê và xác suất cơ bản | Phân tích bảng, biểu đồ. |
+| MD08 | Bài toán thực tế | Multi-step Reasoning, Planning. |
+
+Lựa chọn các dạng toán đại diện trong chương trình THCS lớp 6–9. Không cam kết bao phủ tất cả dạng bài nâng cao hoặc chứng minh hình học phức tạp. Phạm vi chi tiết theo dạng toán được xác định khi xây dựng benchmark.
+
+### 11.3. Các giai đoạn phát triển MVP
+
+| Giai đoạn | Mục tiêu | Phạm vi |
+|---|---|---|
+| MVP-A — Core Reasoning | Nền tảng suy luận toán học | Đề toán văn bản, Planning, Reasoning, Direct Function Calling, SymPy, đầu ra có cấu trúc và baseline đầu tiên. |
+| MVP-B — Grounded Multi-Agent Reasoning | Suy luận có căn cứ và kiểm chứng | Multi-Agent, Agentic RAG, Hybrid Verification, Correction, Shared State. |
+| MVP-C — Adaptive Multimodal Reasoning | Năng lực nghiên cứu trọng tâm | Hiểu hình ảnh, Adaptive Routing, Uncertainty Handling, Human-in-the-loop và hoàn thiện yêu cầu P0. |
+| MVP-D — Research Validation | Hoàn thiện và đánh giá khoa học | Benchmark, baselines, Ablation Study, phân tích lỗi, độ chính xác, chi phí, độ trễ, khả năng kiểm chứng và báo cáo nghiên cứu. |
+
+Xây dựng Benchmark Runner, logging và kiểm thử từ MVP-A, mở rộng xuyên suốt các giai đoạn. Bốn mốc là định hướng phân chia phạm vi, chưa phải lịch triển khai chính thức.
+
+### 11.4. Chức năng P1
+
+| Nhóm | Functional Requirements | Số lượng |
+|---|---|---:|
+| Đầu vào mở rộng | FR01.08–FR01.10, FR02.11 | 4 |
+| Suy luận nâng cao | FR03.10, FR05.14, FR06.13 | 3 |
+| Knowledge Retrieval | FR04.11–FR04.12 | 2 |
+| Verification | FR06.14 | 1 |
+| Routing | FR07.14 | 1 |
+| Uncertainty | FR08.15 | 1 |
+| Output | FR09.13–FR09.14 | 2 |
+| Evaluation | FR10.16–FR10.17 | 2 |
+| | **Tổng** | **16** |
+
+Sau khi hoàn thành P0, ưu tiên các P1 có giá trị nghiên cứu: kiểm chứng độc lập, hiệu chỉnh độ tin cậy định lượng, trực quan hóa thực nghiệm và LLM-as-a-Judge có đối chiếu thủ công. Tiếp theo là các chức năng tăng khả năng sử dụng và P1 còn lại. Viết tay, PDF và phân tách bài toán vẫn là mục tiêu mở rộng trong MVP. Không thay đổi mức ưu tiên chính thức.
+
+### 11.5. Phạm vi ngoài MVP
+
+| Chức năng | Định hướng |
+|---|---|
+| Toán THPT và đại học | Mở rộng miền kiến thức. |
+| MCP Integration | Mở rộng giao thức công cụ. |
+| Formal Proof Engine | Kiểm chứng chứng minh hình thức. |
+| Multimodal Generation | Sinh hình vẽ, đồ thị minh họa. |
+| Fine-tuning chuyên biệt | Nghiên cứu bổ sung nếu cần. |
+| Reinforcement Learning Router | Tối ưu chiến lược điều phối. |
+| Public API và SDK | Mở rộng khả năng tích hợp. |
+| Xuất lời giải PDF | FR09.15 — P2. |
+| Distributed Architecture | Khi có nhu cầu mở rộng thực tế. |
+| Education Platform | Phát triển ứng dụng dựa trên MATHK. |
+
+Đây là hướng mở rộng, không phải cam kết triển khai.
+
+### 11.6. Sản phẩm bàn giao MVP
+
+| ID | Deliverable |
+|---|---|
+| D01 | Mathematical Reasoning Engine hoạt động được. |
+| D02 | Giao diện demo tối giản hỗ trợ văn bản và hình ảnh. |
+| D03 | Bộ công cụ toán học và Tool Registry. |
+| D04 | Kho tri thức toán học có cấu trúc. |
+| D05 | Tập dữ liệu benchmark. |
+| D06 | Evaluation Pipeline và Benchmark Runner. |
+| D07 | Các cấu hình baseline và ablation. |
+| D08 | Kết quả thực nghiệm và phân tích lỗi. |
+| D09 | Mã nguồn và tài liệu kỹ thuật. |
+| D10 | Báo cáo nghiên cứu hoặc bản thảo bài báo. |
+
+Việc bài báo được chấp nhận tại hội nghị quốc tế không phải tiêu chí nghiệm thu bắt buộc; mục tiêu là tạo sản phẩm nghiên cứu đủ nghiêm túc để có cơ hội gửi bài.
 
 ## 12. Tiêu chí nghiệm thu
 
