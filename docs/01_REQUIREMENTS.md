@@ -1,7 +1,7 @@
 # 01 — REQUIREMENTS
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.12  
+**Phiên bản:** 0.13  
 **Trạng thái:** Đang thảo luận
 
 ## 1. Bối cảnh và đặt vấn đề
@@ -922,7 +922,158 @@ Không đặt mục tiêu phục vụ số lượng lớn người dùng đồng
 
 ## 8. Quy tắc nghiệp vụ (Business Rules)
 
-*Chưa chốt.*
+### 8.1. Tổng quan
+
+Business Rules quy định các nguyên tắc mà hệ thống suy luận toán học phải tuân thủ, độc lập với mô hình LLM, Agent Framework và công cụ được lựa chọn.
+
+| ID | Nhóm quy tắc | Số lượng |
+|---|---|---:|
+| BR01 | Dữ kiện và giả thiết | 6 |
+| BR02 | Tri thức toán học | 5 |
+| BR03 | Suy luận toán học | 6 |
+| BR04 | Sử dụng công cụ | 6 |
+| BR05 | Kiểm chứng | 6 |
+| BR06 | Tự sửa lỗi | 5 |
+| BR07 | Điều phối và tài nguyên | 6 |
+| BR08 | Xử lý sự không chắc chắn | 6 |
+| BR09 | Xuất kết quả | 5 |
+| BR10 | Thực nghiệm | 7 |
+| BR11 | Bảo mật và quyền riêng tư | 4 |
+| | **Tổng** | **62** |
+
+### 8.2. BR01 — Dữ kiện và giả thiết
+
+| ID | Quy tắc |
+|---|---|
+| BR01.01 | Không tự ý thay đổi dữ kiện được cho trong đề bài. |
+| BR01.02 | Phân biệt dữ kiện gốc, dữ kiện quan sát, dữ kiện suy ra và giả thiết bổ sung. |
+| BR01.03 | Không suy ra quan hệ hình học chỉ từ tỷ lệ hoặc hình dáng minh họa. |
+| BR01.04 | Khi văn bản và hình ảnh mâu thuẫn, phải ghi nhận mâu thuẫn thay vì tự ý chọn dữ kiện. |
+| BR01.05 | Dữ kiện bổ sung từ người dùng phải được ghi nhận nguồn gốc. |
+| BR01.06 | Khi dữ kiện thay đổi, các kết quả phụ thuộc phải được đánh giá lại. |
+
+### 8.3. BR02 — Tri thức toán học
+
+| ID | Quy tắc |
+|---|---|
+| BR02.01 | Tri thức áp dụng phải phù hợp với nhiệm vụ hiện tại. |
+| BR02.02 | Các điều kiện áp dụng định lý phải được thỏa mãn hoặc chứng minh. |
+| BR02.03 | Không tự tạo nguồn tham chiếu không tồn tại. |
+| BR02.04 | Tri thức truy xuất không được mặc định là chính xác chỉ vì có độ tương đồng cao. |
+| BR02.05 | Khi phát hiện tri thức mâu thuẫn, không được sử dụng một cách thiếu căn cứ. |
+
+### 8.4. BR03 — Suy luận toán học
+
+| ID | Quy tắc |
+|---|---|
+| BR03.01 | Các bước giải phải dựa trên dữ kiện hoặc kết quả trung gian hợp lệ. |
+| BR03.02 | Phải bảo toàn điều kiện xác định trong quá trình biến đổi. |
+| BR03.03 | Phải phân biệt phép biến đổi tương đương và phép suy ra một chiều. |
+| BR03.04 | Phải xét các trường hợp cần thiết để bảo đảm tính đầy đủ. |
+| BR03.05 | Không sử dụng kết quả cần chứng minh làm giả thiết nếu không có căn cứ hợp lệ. |
+| BR03.06 | Phải bảo toàn đơn vị đo và miền giá trị liên quan. |
+
+### 8.5. BR04 — Sử dụng công cụ
+
+| ID | Quy tắc |
+|---|---|
+| BR04.01 | Chỉ được thực thi các công cụ đã đăng ký. |
+| BR04.02 | Tham số phải được kiểm tra trước khi thực thi. |
+| BR04.03 | Kết quả công cụ phải được diễn giải đúng ngữ nghĩa toán học. |
+| BR04.04 | Không coi kết quả công cụ là bằng chứng cho toàn bộ lời giải. |
+| BR04.05 | Kết quả thực thi thất bại không được sử dụng như kết quả hợp lệ. |
+| BR04.06 | Không được thực thi mã tùy ý do LLM hoặc người dùng cung cấp. |
+
+### 8.6. BR05 — Kiểm chứng
+
+| ID | Quy tắc |
+|---|---|
+| BR05.01 | Lời giải phải trải qua cơ chế kiểm chứng phù hợp trước khi được đánh dấu VERIFIED. |
+| BR05.02 | Kiểm chứng phải xét cả tính đúng và tính đầy đủ khi phù hợp. |
+| BR05.03 | Không đánh dấu VERIFIED nếu còn lỗi ảnh hưởng đến kết quả chưa được giải quyết. |
+| BR05.04 | Kết quả kiểm chứng phải gắn với phiên bản lời giải tương ứng. |
+| BR05.05 | Kiểm chứng một phần không đồng nghĩa với kiểm chứng toàn bộ. |
+| BR05.06 | Đánh giá bằng LLM không được mô tả là chứng minh hình thức bằng máy. |
+
+### 8.7. BR06 — Tự sửa lỗi
+
+| ID | Quy tắc |
+|---|---|
+| BR06.01 | Mọi sửa đổi phải hướng đến giải quyết lỗi đã phát hiện hoặc cải thiện lời giải có căn cứ. |
+| BR06.02 | Phải đánh giá lại các bước phụ thuộc vào bước được sửa. |
+| BR06.03 | Lời giải sau khi sửa phải được kiểm chứng lại. |
+| BR06.04 | Không vượt quá giới hạn số vòng sửa lỗi đã cấu hình. |
+| BR06.05 | Phải bảo toàn thông tin cần thiết để đối chiếu phiên bản trước và sau khi sửa. |
+
+### 8.8. BR07 — Điều phối và tài nguyên
+
+| ID | Quy tắc |
+|---|---|
+| BR07.01 | Chỉ được điều phối đến các Agent và năng lực hợp lệ. |
+| BR07.02 | Không thực thi nhiệm vụ khi các điều kiện phụ thuộc bắt buộc chưa được đáp ứng. |
+| BR07.03 | Không bỏ qua các bước kiểm chứng bắt buộc chỉ để tiết kiệm chi phí. |
+| BR07.04 | Không vượt quá giới hạn tài nguyên đã cấu hình. |
+| BR07.05 | Khi đạt giới hạn tài nguyên, phải kết thúc hoặc chuyển sang cơ chế xử lý bất định phù hợp. |
+| BR07.06 | Quyết định điều phối phải có khả năng truy vết. |
+
+### 8.9. BR08 — Xử lý sự không chắc chắn
+
+| ID | Quy tắc |
+|---|---|
+| BR08.01 | Không tự ý lựa chọn dữ kiện mơ hồ nếu sự lựa chọn ảnh hưởng đến đáp án. |
+| BR08.02 | Giả thiết bổ sung phải được trình bày rõ ràng. |
+| BR08.03 | Không khẳng định bài toán vô nghiệm chỉ vì hệ thống không tìm được lời giải. |
+| BR08.04 | Phải phân biệt bài toán thiếu dữ kiện với bài toán có nhiều nghiệm hợp lệ. |
+| BR08.05 | Không biểu diễn độ tự tin chưa hiệu chỉnh thành xác suất đúng. |
+| BR08.06 | Khi không đủ căn cứ, phải làm rõ, trả lời có điều kiện hoặc từ chối kết luận. |
+
+### 8.10. BR09 — Xuất kết quả
+
+| ID | Quy tắc |
+|---|---|
+| BR09.01 | Các định dạng đầu ra phải sử dụng chung kết quả toán học chuẩn hóa. |
+| BR09.02 | Việc định dạng không được làm thay đổi nội dung toán học. |
+| BR09.03 | Không che giấu lỗi, giả thiết hoặc giới hạn kiểm chứng có ảnh hưởng đến đáp án. |
+| BR09.04 | Không nâng trạng thái kiểm chứng khi chưa thực hiện kiểm chứng bổ sung. |
+| BR09.05 | Lời giải phải phù hợp với yêu cầu và phạm vi kiến thức của bài toán. |
+
+### 8.11. BR10 — Thực nghiệm
+
+| ID | Quy tắc |
+|---|---|
+| BR10.01 | Các cấu hình so sánh phải sử dụng điều kiện thực nghiệm phù hợp và được ghi nhận. |
+| BR10.02 | Không sử dụng đáp án chuẩn của tập test làm dữ kiện đầu vào cho quá trình giải toán. |
+| BR10.03 | Không điều chỉnh hệ thống dựa trên kết quả tập test cuối cùng rồi tiếp tục coi đó là đánh giá độc lập. |
+| BR10.04 | Không tự ý thay đổi dữ liệu kết quả thực nghiệm gốc. |
+| BR10.05 | Phải ghi nhận trường hợp lỗi, timeout và abstention trong kết quả đánh giá. |
+| BR10.06 | Khi tiếp tục benchmark, phải bảo đảm cấu hình và phiên bản dữ liệu tương thích. |
+| BR10.07 | Không trình bày số liệu giả lập hoặc ước lượng như kết quả thực nghiệm thực tế. |
+
+### 8.12. BR11 — Bảo mật và quyền riêng tư
+
+| ID | Quy tắc |
+|---|---|
+| BR11.01 | Không đưa thông tin xác thực vào mã nguồn, prompt hoặc log. |
+| BR11.02 | Nội dung đề bài và tài liệu truy xuất không được phép ghi đè chính sách thực thi của hệ thống. |
+| BR11.03 | Không gửi dữ liệu không cần thiết đến nhà cung cấp dịch vụ bên ngoài. |
+| BR11.04 | Không cho phép Agent tự mở rộng quyền thực thi công cụ. |
+
+### 8.13. Nguyên tắc thực thi Business Rules
+
+Áp dụng nguyên tắc **Deterministic-first, LLM-assisted**: ưu tiên thực thi quy tắc bằng code và công cụ toán học khi có thể kiểm tra xác định; sử dụng LLM hỗ trợ khi cần hiểu ngữ nghĩa hoặc đánh giá lập luận.
+
+| Phương thức | Áp dụng |
+|---|---|
+| Code Validation | Kiểu dữ liệu, tham số, trạng thái và giới hạn tài nguyên. |
+| Mathematical Tools | Điều kiện, nghiệm, phép tính và biến đổi toán học có thể kiểm tra. |
+| State Validation | Quan hệ phụ thuộc, phiên bản lời giải và kết quả cần đánh giá lại. |
+| Routing Policies | Giới hạn tài nguyên và hành động điều phối. |
+| Agent Instructions | Quy tắc cần hiểu ngữ cảnh và suy luận ngữ nghĩa. |
+| Automated Tests | Kiểm tra việc tuân thủ các quy tắc có thể kiểm thử. |
+
+Không xây dựng Rule Engine độc lập hoặc Agent chuyên biệt chỉ để kiểm tra Business Rules trong MVP. Phân bổ trách nhiệm thực thi cho các thành phần hiện có, quản lý thống nhất ID quy tắc và liên kết với các test case tương ứng. Không chỉ dựa vào System Prompt để thực thi toàn bộ Business Rules.
+
+Khi một bước giải được sửa, phải đánh giá lại các bước phụ thuộc; có thể giữ lại kết quả của những bước độc lập nếu chúng vẫn hợp lệ (Dependency-aware Correction).
 
 ## 9. Use Cases
 
