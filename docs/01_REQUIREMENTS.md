@@ -1,7 +1,7 @@
 # 01 — REQUIREMENTS
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.13  
+**Phiên bản:** 0.14  
 **Trạng thái:** Đang thảo luận
 
 ## 1. Bối cảnh và đặt vấn đề
@@ -395,6 +395,7 @@ Không cho phép Agent thực thi mã Python tùy ý.
 | FR06.11 | Giới hạn số vòng lặp kiểm chứng và sửa lỗi. | P0 |
 | FR06.12 | Lưu lại các phiên bản lời giải và kết quả kiểm chứng. | P0 |
 | FR06.13 | Hỗ trợ kiểm chứng bằng phương pháp giải độc lập. | P1 |
+| FR06.14 | Hỗ trợ tiếp nhận, chuẩn hóa và kiểm chứng lời giải do người dùng cung cấp, báo cáo lỗi và phạm vi kiểm chứng. | P1 |
 
 #### Phạm vi kiểm chứng
 
@@ -1077,7 +1078,148 @@ Khi một bước giải được sửa, phải đánh giá lại các bước p
 
 ## 9. Use Cases
 
-*Chưa chốt.*
+### 9.1. Actors
+
+| ID | Actor | Trách nhiệm |
+|---|---|---|
+| ACT01 | Học sinh | Cung cấp đề bài, nhận và tìm hiểu lời giải. |
+| ACT02 | Giáo viên/Gia sư | Tham khảo, đối chiếu và kiểm tra lời giải. |
+| ACT03 | Nhà phát triển | Tích hợp Mathematical Reasoning Engine, mở rộng chức năng. |
+| ACT04 | Nhà nghiên cứu | Cấu hình, thực nghiệm, đánh giá và phân tích hệ thống. |
+
+Supporting Actors:
+
+| ID | Actor | Trách nhiệm |
+|---|---|---|
+| ACT05 | LLM Provider | Cung cấp năng lực xử lý đa phương thức và suy luận. |
+| ACT06 | External Tool Provider | Cung cấp công cụ bên ngoài khi mở rộng hệ thống. |
+
+ACT06 không bắt buộc trong MVP. SymPy, Calculator, Knowledge Base và Agent nội bộ thuộc phạm vi hệ thống, không phải Actor bên ngoài.
+
+### 9.2. Danh sách Use Cases
+
+#### Nhóm A — Mathematical Reasoning
+
+| ID | Use Case | Ưu tiên |
+|---|---|---|
+| UC01 | Giải bài toán dạng văn bản | P0 |
+| UC02 | Giải bài toán đa phương thức | P0 |
+| UC03 | Bổ sung hoặc làm rõ dữ kiện | P0 |
+| UC04 | Xem lời giải chi tiết và căn cứ toán học | P0 |
+| UC05 | Xem kết quả kiểm chứng và thông tin bất định | P0 |
+| UC06 | Kiểm tra lời giải do người dùng cung cấp | P1 |
+| UC07 | Giải bài toán từ tài liệu PDF hoặc đề viết tay | P1 |
+| UC08 | Xem nhiều phương pháp giải | P1 |
+
+#### Nhóm B — Integration & Extensibility
+
+| ID | Use Case | Ưu tiên |
+|---|---|---|
+| UC09 | Gọi Mathematical Reasoning Engine từ chương trình khác | P0 |
+| UC10 | Đăng ký và mở rộng công cụ toán học | P0 |
+| UC11 | Cập nhật và mở rộng kho tri thức | P0 |
+| UC12 | Thay thế mô hình và cấu hình Agent | P0 |
+
+#### Nhóm C — Research & Evaluation
+
+| ID | Use Case | Ưu tiên |
+|---|---|---|
+| UC13 | Quản lý tập dữ liệu benchmark | P0 |
+| UC14 | Cấu hình phiên thực nghiệm | P0 |
+| UC15 | Thực thi benchmark tự động | P0 |
+| UC16 | So sánh cấu hình và Ablation Study | P0 |
+| UC17 | Phân tích quá trình suy luận và lỗi | P0 |
+| UC18 | Phân tích hiệu năng và chi phí | P0 |
+| UC19 | Khôi phục benchmark bị gián đoạn | P0 |
+| UC20 | Xuất kết quả thực nghiệm | P0 |
+
+Tổng cộng 20 Use Cases (17 P0, 3 P1). UC09 yêu cầu giao diện lập trình ổn định, không bắt buộc REST API public hoặc SDK riêng.
+
+### 9.3. Quan hệ Actor và Use Case
+
+| Actor | Use Cases chính |
+|---|---|
+| ACT01 | UC01–UC08 |
+| ACT02 | UC01–UC08 |
+| ACT03 | UC09–UC12 |
+| ACT04 | UC13–UC20 |
+| ACT05 | Hỗ trợ các phiên suy luận cần LLM. |
+| ACT06 | Hỗ trợ sử dụng công cụ bên ngoài khi mở rộng. |
+
+### 9.4. Đặc tả các Use Case có luồng phức tạp
+
+#### UC02 — Giải bài toán đa phương thức (P0)
+
+- Primary Actor: Học sinh, Giáo viên/Gia sư.
+- Trigger: Người dùng gửi đề bài.
+- Tiền điều kiện: Đầu vào thuộc định dạng được hỗ trợ.
+- Hậu điều kiện: Trả về kết quả có cấu trúc hoặc trạng thái chưa thể kết luận.
+- Related FR: FR01–FR09.
+
+Luồng chính:
+
+1. Người dùng cung cấp đề toán.
+2. Hệ thống kiểm tra đầu vào.
+3. Trích xuất và chuẩn hóa dữ kiện đa phương thức.
+4. Phân tích bài toán và lựa chọn chiến lược suy luận.
+5. Truy xuất tri thức khi cần thiết.
+6. Thực hiện suy luận và gọi công cụ toán học khi cần thiết.
+7. Kiểm chứng và sửa lỗi nếu phát hiện sai sót.
+8. Tổng hợp và trả về kết quả.
+
+| Ngoại lệ | Hành động |
+|---|---|
+| Đầu vào không hợp lệ | Yêu cầu cung cấp lại. |
+| Dữ kiện không rõ ràng | Chuyển UC03. |
+| Bài toán đơn giản | Sử dụng tuyến Lightweight. |
+| Phát hiện lỗi toán học | Corrective Reasoning. |
+| Vượt giới hạn tài nguyên | Kết thúc an toàn, thông báo giới hạn. |
+| Không đủ căn cứ kết luận | Conditional Answer hoặc Abstention. |
+
+#### UC03 — Bổ sung hoặc làm rõ dữ kiện (P0)
+
+- Primary Actor: Người dùng.
+- Trigger: Hệ thống phát hiện bất định cần người dùng giải quyết.
+- Tiền điều kiện: Có phiên suy luận đang xử lý.
+- Hậu điều kiện: Dữ kiện được cập nhật hoặc phiên suy luận kết thúc.
+- Related FR: FR01, FR02, FR07, FR08.
+
+Hệ thống yêu cầu làm rõ dữ kiện; người dùng cung cấp hoặc xác nhận thông tin; hệ thống ghi nhận nguồn gốc, đánh giá lại các kết quả phụ thuộc và tiếp tục phiên suy luận nếu có đủ căn cứ. Nếu không thể làm rõ, hệ thống trả lời có điều kiện hoặc từ chối kết luận phù hợp với FR08. Không bắt buộc xử lý lại toàn bộ từ đầu.
+
+#### UC06 — Kiểm tra lời giải do người dùng cung cấp (P1)
+
+- Primary Actor: Học sinh, Giáo viên/Gia sư.
+- Trigger: Người dùng cung cấp đề bài và lời giải cần kiểm tra.
+- Tiền điều kiện: Đầu vào hợp lệ.
+- Hậu điều kiện: Báo cáo kiểm chứng, lỗi phát hiện và phản hồi có căn cứ; nêu rõ phạm vi kiểm chứng.
+- Related FR: FR06.14 và các năng lực kiểm chứng FR06.
+
+Tiếp nhận và chuẩn hóa lời giải bên ngoài, tái sử dụng Verifier Agent để kiểm tra tính nhất quán với đề bài, điều kiện, lập luận và phép tính. Thông báo vị trí lỗi khi có thể, đề xuất sửa lỗi hoặc nêu giới hạn kiểm chứng. Không mặc định phải giải lại toàn bộ bài toán.
+
+#### UC15 — Thực thi benchmark tự động (P0)
+
+- Primary Actor: Nhà nghiên cứu.
+- Tiền điều kiện: Dataset và cấu hình thực nghiệm hợp lệ.
+- Hậu điều kiện: Kết quả, metrics và log được lưu.
+- Related FR: FR10.
+
+Luồng chính: nạp Dataset và Experiment Config, chạy Benchmark Runner, gọi Mathematical Reasoning Engine, đánh giá kết quả, ghi metrics và execution logs, tổng hợp Experiment Results. Lặp lại cho các bài toán trong benchmark. Khi gặp lỗi API, timeout hoặc rate limit, lưu trạng thái cần thiết để tiếp tục mà không đánh mất các kết quả hợp lệ đã hoàn thành (UC19).
+
+#### UC16 — So sánh cấu hình và Ablation Study (P0)
+
+- Primary Actor: Nhà nghiên cứu.
+- Related FR: FR10.
+- Mục tiêu: Đánh giá đóng góp của từng thành phần bằng các cấu hình thực nghiệm phù hợp.
+
+Nhà nghiên cứu lựa chọn cấu hình (Multi-Agent, Symbolic Tools, Agentic RAG, Verification, Adaptive Routing), thực thi benchmark theo điều kiện so sánh được ghi nhận, tổng hợp và đối chiếu các chỉ số như Accuracy, Solution Correctness, Latency, Token Usage và Cost per Problem. Tổ hợp cấu hình hợp lệ được xác định trong System Design; phương pháp đánh giá chi tiết tại 06_EVALUATION.md.
+
+### 9.5. Nguyên tắc đặc tả
+
+Chỉ đặc tả chi tiết các Use Case có luồng nghiệp vụ phức tạp. Các hoạt động phân tích đề bài, lập kế hoạch, lựa chọn Agent, truy xuất tri thức, gọi SymPy, kiểm chứng trung gian và tự sửa lỗi là quy trình nội bộ được mô tả thông qua Functional Requirements và System Design, không phải các Use Case độc lập.
+
+### 9.6. Giới hạn phạm vi
+
+Không đưa đăng ký tài khoản, quản lý lớp học, chấm điểm học sinh, quản lý bài tập, cá nhân hóa lộ trình học hoặc thanh toán dịch vụ vào MVP. Tập trung vào Mathematical Reasoning Engine và thực nghiệm nghiên cứu.
 
 ## 10. Ràng buộc và giả định
 
