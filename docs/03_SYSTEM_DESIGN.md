@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.3  
+**Phiên bản:** 0.3.1  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6)
 
@@ -14,11 +14,11 @@ MATHK là AI Mathematical Reasoning Engine, không phải chatbot giải toán �
 
 ```mermaid
 flowchart TD
- UI[Demo UI] --> E[MATHK Reasoning Engine]
- APP[Python application] --> E
- E --> K[Knowledge Base]
- B[Evaluation System] --> E
- E --> O[Structured Output]
+ UI["Demo UI"] --> E["MATHK Reasoning Engine"]
+ APP["Python application"] --> E
+ E --> K["Knowledge Base"]
+ B["Evaluation System"] --> E
+ E --> O["Structured Output"]
 ```
 
 ### 1.2. Functional Drivers
@@ -80,21 +80,21 @@ Shared Database: Shared State là trạng thái logic của phiên suy luận, k
 
 ```mermaid
 flowchart TD
- A[Agents] -->|Structured updates| O[Orchestrator]
- O -->|Validated updates| S[Shared State]
+ A["Agents"] -->|Structured updates| O["Orchestrator"]
+ O -->|Validated updates| S["Shared State"]
  S -->|Relevant context| A
- S --> R[Storage / Repository]
- R --> D[(Shared Database)]
- R -. Optional .-> V[(Specialized store)]
+ S --> R["Storage / Repository"]
+ R --> D[("Shared Database")]
+ R -.->|Optional| V[("Specialized store")]
 ```
 
 
 ```mermaid
 flowchart LR
- A[Static config] --> E[Same MATHK Engine]
- B[Rule-based config] --> E
- C[Hybrid config] --> E
- E --> R[Comparable results and traces]
+ A["Static config"] --> E["Same MATHK Engine"]
+ B["Rule-based config"] --> E
+ C["Hybrid config"] --> E
+ E --> R["Comparable results and traces"]
 ```
 
 ### 1.5. Kiến trúc không ưu tiên trong MVP
@@ -136,14 +136,14 @@ Chọn Modular Monolith: module có trách nhiệm và interface rõ ràng, cùn
 
 ```mermaid
 flowchart TD
- subgraph App[Modular Monolith]
- O[Orchestrator] --> A[Agents]
- O --> T[Tools]
- O --> K[Retrieval]
- O --> V[Verification]
+ subgraph App ["Modular Monolith"]
+ O["Orchestrator"] --> A["Agents"]
+ O --> T["Tools"]
+ O --> K["Retrieval"]
+ O --> V["Verification"]
  end
- App --> R[Repository]
- R --> D[(Shared Database)]
+ App --> R["Repository"]
+ R --> D[("Shared Database")]
 ```
 
 ### 2.3. Internal Architecture
@@ -155,16 +155,16 @@ Chọn Lightweight Hexagonal Architecture: áp dụng Ports & Adapters có chọ
 
 ```mermaid
 flowchart TD
- I[Demo / CLI / Benchmark] --> P[Input Port]
- P --> C[Core: orchestration, rules, models]
- C --> M[Model Port]
- C --> T[Tool Port]
- C --> K[Retrieval Port]
- C --> S[Storage Port]
- MA[Model Adapter] -. implements .-> M
- TA[Math Tool Adapter] -. implements .-> T
- KA[Retrieval Adapter] -. implements .-> K
- SA[Storage Adapter] -. implements .-> S
+ I["Demo / CLI / Benchmark"] --> P["Input Port"]
+ P --> C["Core: orchestration, rules, models"]
+ C --> M["Model Port"]
+ C --> T["Tool Port"]
+ C --> K["Retrieval Port"]
+ C --> S["Storage Port"]
+ MA["Model Adapter"] -.->|implements| M
+ TA["Math Tool Adapter"] -.->|implements| T
+ KA["Retrieval Adapter"] -.->|implements| K
+ SA["Storage Adapter"] -.->|implements| S
 ```
 
 ### 2.4. Execution Architecture
@@ -186,15 +186,15 @@ Orchestrator sử dụng Shared State, quy tắc xác định và LLM khi cần;
 
 ```mermaid
 flowchart TD
- I[Input] --> P[Perception]
- P --> R{Routing}
- R -->|Lightweight| L[Reasoning]
- R -->|Structured| S[Planning and retrieval as needed]
+ I["Input"] --> P["Perception"]
+ P --> R{"Routing"}
+ R -->|Lightweight| L["Reasoning"]
+ R -->|Structured| S["Planning and retrieval as needed"]
  S --> L
- L --> V[Verification]
- V -->|Correction needed and allowed| C[Correction]
+ L --> V["Verification"]
+ V -->|Correction needed and allowed| C["Correction"]
  C --> R
- V -->|Accept or safe stop| O[Output]
+ V -->|Accept or safe stop| O["Output"]
 ```
 
 ### 2.5. Kiến trúc kết hợp
@@ -237,11 +237,11 @@ Kiểm soát timeout không đồng nghĩa với cô lập lỗi tiến trình h
 
 ```mermaid
 flowchart TD
- U[Học sinh / Giáo viên] --> M[MATHK]
- D[Developer] --> M
- R[Researcher] --> M
- M --> L[External LLM Provider]
- M -. Future integration .-> T[External Tool Provider]
+ U["Học sinh / Giáo viên"] --> M["MATHK"]
+ D["Developer"] --> M
+ R["Researcher"] --> M
+ M --> L["External LLM Provider"]
+ M -.->|Future integration| T["External Tool Provider"]
 ```
 
 
@@ -252,43 +252,43 @@ SymPy, Calculator, Knowledge Base và Agents thuộc phạm vi nội bộ. Exter
 
 ```mermaid
 flowchart TD
- subgraph I[Interface Layer]
- M01[Input Processing]
- M02[Output Presentation]
- M03[Application Interface]
+ subgraph I ["Interface Layer"]
+ M01["Input Processing"]
+ M02["Output Presentation"]
+ M03["Application Interface"]
  end
- subgraph O[Orchestration Layer]
- M04[Reasoning Engine]
- M05[Adaptive Router]
- M06[State Manager]
- M07[Execution Guard]
+ subgraph O ["Orchestration Layer"]
+ M04["Reasoning Engine"]
+ M05["Adaptive Router"]
+ M06["State Manager"]
+ M07["Execution Guard"]
  end
- subgraph C[Reasoning Capability Layer]
- M08[Perception]
- M09[Planning]
- M10[Retrieval]
- M11[Reasoning]
- M12[Verification and Correction]
- M13[Uncertainty]
+ subgraph C ["Reasoning Capability Layer"]
+ M08["Perception"]
+ M09["Planning"]
+ M10["Retrieval"]
+ M11["Reasoning"]
+ M12["Verification and Correction"]
+ M13["Uncertainty"]
  end
- subgraph A[Infrastructure and Adapters]
- M14[Model Gateway]
- M15[Math Tool System]
- M16[Knowledge Store]
- M17[Persistence]
- M18[Configuration]
+ subgraph A ["Infrastructure and Adapters"]
+ M14["Model Gateway"]
+ M15["Math Tool System"]
+ M16["Knowledge Store"]
+ M17["Persistence"]
+ M18["Configuration"]
  end
- subgraph R[Research and Observability]
- M19[Benchmark]
- M20[Evaluation]
- M21[Tracing]
+ subgraph R ["Research and Observability"]
+ M19["Benchmark"]
+ M20["Evaluation"]
+ M21["Tracing"]
  end
  M03 --> M01 --> M04
  M04 --> M02
  O --> C
  C --> A
  M19 --> M04
- M04 -. Events .-> M21
+ M04 -.->|Events| M21
  M19 --> M20
 ```
 
@@ -326,11 +326,11 @@ Năm vùng trách nhiệm logic, không phải năm service hoặc thứ tự ph
 
 ```mermaid
 flowchart TD
- R[Adaptive Router] -->|Proposed action| G[Execution Guard]
- G -->|Valid action| O[Orchestrator]
- G -->|Rejected| F[Safe fallback or stop]
- O --> E[Execute task]
- E --> S[State Manager]
+ R["Adaptive Router"] -->|Proposed action| G["Execution Guard"]
+ G -->|Valid action| O["Orchestrator"]
+ G -->|Rejected| F["Safe fallback or stop"]
+ O --> E["Execute task"]
+ E --> S["State Manager"]
  S --> R
 ```
 
@@ -341,22 +341,22 @@ flowchart TD
 
 ```mermaid
 flowchart TD
- subgraph CP[Control Plane]
- O[Orchestrator]
- R[Router]
- S[State Manager]
- G[Execution Guard]
+ subgraph CP ["Control Plane"]
+ O["Orchestrator"]
+ R["Router"]
+ S["State Manager"]
+ G["Execution Guard"]
  end
- subgraph EP[Execution Plane]
- P[Perception and Planning]
- K[Retrieval]
- T[Reasoning and Tools]
- V[Verification and Correction]
+ subgraph EP ["Execution Plane"]
+ P["Perception and Planning"]
+ K["Retrieval"]
+ T["Reasoning and Tools"]
+ V["Verification and Correction"]
  end
  CP -->|Authorized tasks| EP
  EP -->|Structured results| CP
- U[Uncertainty Management] -. Signals .-> CP
- U -. Signals .-> EP
+ U["Uncertainty Management"] -.->|Signals| CP
+ U -.->|Signals| EP
 ```
 
 
@@ -367,20 +367,20 @@ Phân chia logic, không yêu cầu hai hệ thống triển khai riêng.
 
 ```mermaid
 flowchart TD
- I[Problem Input] --> N[Input Processing]
- N --> P[Perception]
- P --> R{Adaptive Routing}
- R -->|Lightweight| L[Direct Reasoning]
- R -->|Structured| S[Planning / RAG / Reasoning]
- L --> V[Verification]
+ I["Problem Input"] --> N["Input Processing"]
+ N --> P["Perception"]
+ P --> R{"Adaptive Routing"}
+ R -->|Lightweight| L["Direct Reasoning"]
+ R -->|Structured| S["Planning / RAG / Reasoning"]
+ L --> V["Verification"]
  S --> V
- V --> E{Evaluate Status}
- E -->|Correction allowed| C[Correction]
+ V --> E{"Evaluate Status"}
+ E -->|Correction allowed| C["Correction"]
  C --> R
- E -->|Accept| O[Structured Output]
- E -->|Uncertainty or limit| U[Uncertainty Handling]
- P -. Missing or unclear facts .-> U
- U -->|Clarify| H[User clarification]
+ E -->|Accept| O["Structured Output"]
+ E -->|Uncertainty or limit| U["Uncertainty Handling"]
+ P -.->|Missing or unclear facts| U
+ U -->|Clarify| H["User clarification"]
  H --> N
  U -->|Conditional answer or abstain| O
  U -->|Self resolve if allowed| R
@@ -424,9 +424,9 @@ M14, M17, M18 hỗ trợ xuyên suốt. Đây là truy vết cấp module, khôn
 
 ```mermaid
 flowchart LR
- A[MVP-A: Core Reasoning] --> B[MVP-B: Grounded Multi-Agent]
- B --> C[MVP-C: Adaptive Multimodal]
- C --> D[MVP-D: Research Validation]
+ A["MVP-A: Core Reasoning"] --> B["MVP-B: Grounded Multi-Agent"]
+ B --> C["MVP-C: Adaptive Multimodal"]
+ C --> D["MVP-D: Research Validation"]
 ```
 
 
