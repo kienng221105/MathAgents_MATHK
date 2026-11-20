@@ -1,8 +1,10 @@
 # 01 — REQUIREMENTS
 
 **Dự án:** MATHK  
-**Phiên bản:** 1.0  
-**Trạng thái:** Approved — Requirements Baseline
+**Phiên bản:** 1.1  
+**Trạng thái:** Approved — Requirements Baseline (Visual Documentation & User Stories)
+
+**Baseline gốc:** v1.0 — commit 558b25e2d1789f0ae526a4d1211be2febd0eadd6. v1.1 bổ sung sơ đồ và User Stories dẫn xuất, không thay đổi yêu cầu đã phê duyệt.
 
 ## 1. Bối cảnh và đặt vấn đề
 
@@ -36,11 +38,37 @@ Các vấn đề trên là cơ sở xác định yêu cầu hệ thống, câu h
 
 Các phương pháp giải quyết mới ở mức định hướng. Hiệu quả thực tế cần được kiểm chứng thông qua nghiên cứu và thực nghiệm.
 
+**Hình 1 — Problem–Solution Mapping**
+
+```mermaid
+flowchart LR
+ P1["P01: Multimodal Understanding"] --> S1["Multimodal Perception"]
+ P2["P02: Multi-step Reasoning"] --> S2["Planning and Multi-Agent Reasoning"]
+ P3["P03: Mathematical Computation"] --> S3["Neuro-Symbolic Reasoning"]
+ P4["P04: Knowledge Grounding"] --> S4["Agentic RAG"]
+ P5["P05: Verification"] --> S5["Verification and Correction"]
+ P6["P06: Reasoning Efficiency"] --> S6["Adaptive Routing"]
+ P7["P07: Uncertainty Awareness"] --> S7["Uncertainty Handling"]
+```
+
+Các hướng giải quyết là định hướng cần kiểm chứng, không phải kết quả đã được chứng minh.
+
 ## 2. Tầm nhìn sản phẩm
 
 MATHK là hệ thống AI chuyên sâu về suy luận toán học (AI Mathematical Reasoning Engine), hướng tới khả năng xử lý đa phương thức, sử dụng công cụ toán học và phối hợp nhiều tác tử.
 
 Giải toán và giáo dục là các lĩnh vực ứng dụng của hệ thống, không phải giới hạn của kiến trúc cốt lõi.
+
+**Hình 2 — Product Vision**
+
+```mermaid
+flowchart TD
+ R["MATHK Reasoning Engine"]
+ R --> N0["Hiểu đề đa phương thức"]
+ R --> N1["Suy luận toán học có căn cứ"]
+ R --> N2["Kiểm chứng và xử lý bất định"]
+ R --> N3["Mở rộng miền toán học"]
+```
 
 ## 3. Mục tiêu dự án
 
@@ -81,6 +109,16 @@ Các câu hỏi nghiên cứu cần được trả lời thông qua thực nghi�
 | TO06 | Theo dõi, ghi nhận và phân tích quá trình thực thi của các Agent. |
 | TO07 | Xây dựng pipeline đánh giá tự động và có khả năng tái lập thực nghiệm. |
 | TO08 | Cho phép thay thế mô hình AI mà không phải thiết kế lại toàn bộ hệ thống. |
+
+**Hình 3 — Objectives Tree**
+
+```mermaid
+flowchart TD
+ R["MATHK Objectives"]
+ R --> N0["PO01–PO06: Product"]
+ R --> N1["RO01–RO07: Research"]
+ R --> N2["TO01–TO08: Technical"]
+```
 
 ## 4. Đối tượng sử dụng
 
@@ -130,6 +168,81 @@ Các nhóm người dùng sử dụng chung năng lực suy luận của MATHK C
 
 MVP không tập trung vào quản lý lớp học, quản lý điểm số, phân quyền giáo viên hay cá nhân hóa lộ trình học tập.
 
+### 4.4. User Stories
+
+Các User Story dẫn xuất từ Use Case đã phê duyệt; không tạo yêu cầu mới. Mức ưu tiên theo Use Case, không thay đổi ưu tiên nhóm đối tượng. Liên kết FR là các nhóm/yêu cầu chức năng tiêu biểu, không phải ánh xạ đầy đủ; UC09 và UC12 còn chịu TO01, TO08 và NFR liên quan.
+
+| ID | User Story | Ưu tiên | Use Case | FR liên quan |
+|---|---|---|---|---|
+| US01 | Là học sinh hoặc giáo viên/gia sư, tôi muốn giải đề văn bản để nhận lời giải. | P0 | UC01 | FR01, FR05, FR09 |
+| US02 | Là học sinh hoặc giáo viên/gia sư, tôi muốn gửi đề có hình ảnh để nhận lời giải dựa trên dữ kiện trực quan. | P0 | UC02 | FR01–FR09 |
+| US03 | Là học sinh hoặc giáo viên/gia sư, tôi muốn bổ sung hoặc xác nhận dữ kiện để tiếp tục giải khi đủ căn cứ. | P0 | UC03 | FR01, FR02, FR07, FR08 |
+| US04 | Là học sinh hoặc giáo viên/gia sư, tôi muốn xem từng bước và căn cứ toán học để hiểu hoặc tham khảo phương pháp giải. | P0 | UC04 | FR04, FR09 |
+| US05 | Là học sinh hoặc giáo viên/gia sư, tôi muốn xem trạng thái kiểm chứng và bất định để biết phạm vi có thể tin cậy. | P0 | UC05 | FR06, FR08, FR09 |
+| US06 | Là học sinh hoặc giáo viên/gia sư, tôi muốn gửi lời giải có sẵn để kiểm tra để nhận phản hồi về sai sót và giới hạn kiểm chứng. | P1 | UC06 | FR06.14, FR06 |
+| US07 | Là học sinh hoặc giáo viên/gia sư, tôi muốn gửi PDF hoặc đề viết tay để giải đề từ định dạng bổ sung. | P1 | UC07 | FR01.08, FR01.09 |
+| US08 | Là học sinh hoặc giáo viên/gia sư, tôi muốn xem nhiều phương pháp giải để tham khảo các cách tiếp cận. | P1 | UC08 | FR05.14, FR09.14 |
+| US09 | Là nhà phát triển, tôi muốn gọi Engine từ chương trình khác để tích hợp chức năng giải toán. | P0 | UC09 | FR09.10 |
+| US10 | Là nhà phát triển, tôi muốn đăng ký công cụ toán học để mở rộng năng lực tính toán. | P0 | UC10 | FR05.12 |
+| US11 | Là nhà phát triển, tôi muốn cập nhật kho tri thức để mở rộng kiến thức mà không huấn luyện lại. | P0 | UC11 | FR04.10 |
+| US12 | Là nhà phát triển, tôi muốn thay mô hình và cấu hình Agent để điều chỉnh hệ thống. | P0 | UC12 | FR07.13, FR10.06 |
+| US13 | Là nhà nghiên cứu, tôi muốn quản lý dataset benchmark để chuẩn bị dữ liệu đánh giá. | P0 | UC13 | FR10.01, FR10.02 |
+| US14 | Là nhà nghiên cứu, tôi muốn cấu hình phiên thực nghiệm để kiểm soát điều kiện so sánh. | P0 | UC14 | FR10.06, FR10.12 |
+| US15 | Là nhà nghiên cứu, tôi muốn chạy benchmark tự động để thu kết quả và metrics. | P0 | UC15 | FR10.03, FR10.04, FR10.13 |
+| US16 | Là nhà nghiên cứu, tôi muốn so sánh cấu hình và ablation để đánh giá đóng góp thành phần. | P0 | UC16 | FR10.07, FR10.13 |
+| US17 | Là nhà nghiên cứu, tôi muốn xem trace và lỗi để phân tích quá trình suy luận. | P0 | UC17 | FR10.08, FR10.11 |
+| US18 | Là nhà nghiên cứu, tôi muốn xem hiệu năng và chi phí để đánh giá hiệu quả suy luận. | P0 | UC18 | FR10.09, FR10.10 |
+| US19 | Là nhà nghiên cứu, tôi muốn khôi phục benchmark gián đoạn để bảo toàn kết quả hợp lệ. | P0 | UC19 | FR10.15 |
+| US20 | Là nhà nghiên cứu, tôi muốn xuất kết quả thực nghiệm để phân tích và báo cáo. | P0 | UC20 | FR10.14 |
+
+### 4.5. User Story Maps
+
+Các map nhóm story theo hoạt động và ưu tiên, không quy định thứ tự thực thi bắt buộc.
+
+**User Story Map — Học sinh**
+
+```mermaid
+flowchart TD
+ R["Học sinh"]
+ R --> N0["Cung cấp đề: US01, US02 P0; US07 P1"]
+ R --> N1["Làm rõ: US03 P0"]
+ R --> N2["Nhận lời giải: US04 P0; US08 P1"]
+ R --> N3["Đánh giá: US05 P0; US06 P1"]
+```
+
+**User Story Map — Giáo viên/Gia sư**
+
+```mermaid
+flowchart TD
+ R["Giáo viên/Gia sư"]
+ R --> N0["Cung cấp đề: US01, US02 P0; US07 P1"]
+ R --> N1["Làm rõ: US03 P0"]
+ R --> N2["Tham khảo: US04 P0; US08 P1"]
+ R --> N3["Kiểm tra: US05 P0; US06 P1"]
+```
+
+**User Story Map — Nhà phát triển**
+
+```mermaid
+flowchart TD
+ R["Nhà phát triển"]
+ R --> N0["Tích hợp: US09 P0"]
+ R --> N1["Mở rộng công cụ: US10 P0"]
+ R --> N2["Mở rộng tri thức: US11 P0"]
+ R --> N3["Cấu hình: US12 P0"]
+```
+
+**User Story Map — Nhà nghiên cứu**
+
+```mermaid
+flowchart TD
+ R["Nhà nghiên cứu"]
+ R --> N0["Chuẩn bị: US13, US14 P0"]
+ R --> N1["Thực nghiệm: US15, US16 P0"]
+ R --> N2["Phân tích: US17, US18 P0"]
+ R --> N3["Khôi phục và xuất: US19, US20 P0"]
+```
+
 ## 5. Phạm vi bài toán
 
 ### 5.1. Phạm vi toán học
@@ -162,6 +275,17 @@ Level 1 (Multimodal Input) là năng lực nền tảng nhưng không phải m�
 
 Level 3 (Multimodal Reasoning & Generation) chưa thuộc phạm vi đã cam kết của MVP.
 
+**Scope Diagram**
+
+```mermaid
+flowchart TD
+ R["General-purpose Mathematical Reasoning Engine"]
+ R --> N0["MVP: THCS lớp 6–9"]
+ R --> N1["MVP: Level 2 Multimodal Reasoning"]
+ R --> N2["Tương lai: THPT và miền khác"]
+ R --> N3["Level 3 Generation: chưa cam kết"]
+```
+
 ## 6. Yêu cầu chức năng (FR)
 
 ### 6.1. Quy ước mức độ ưu tiên
@@ -169,6 +293,23 @@ Level 3 (Multimodal Reasoning & Generation) chưa thuộc phạm vi đã cam k�
 - P0: Bắt buộc trong MVP.
 - P1: Hướng tới triển khai trong MVP, sau khi hoàn thành P0.
 - P2: Phát triển trong giai đoạn mở rộng.
+
+**Functional Decomposition**
+
+```mermaid
+flowchart TD
+ R["MATHK Functions"]
+ R --> N0["FR01 Input"]
+ R --> N1["FR02 Multimodal"]
+ R --> N2["FR03 Planning"]
+ R --> N3["FR04 Retrieval"]
+ R --> N4["FR05 Reasoning and Tools"]
+ R --> N5["FR06 Verification"]
+ R --> N6["FR07 Routing"]
+ R --> N7["FR08 Uncertainty"]
+ R --> N8["FR09 Output"]
+ R --> N9["FR10 Evaluation"]
+```
 
 ### 6.2. FR01 — Tiếp nhận và xử lý đầu vào
 
@@ -446,6 +587,23 @@ Trạng thái kiểm chứng phải đi kèm phương pháp và phạm vi kiểm
 
 MVP ưu tiên một Verifier Agent chính, tái sử dụng bộ công cụ FR05. Không bắt buộc huấn luyện Verifier riêng, triển khai Formal Proof Engine hoặc Multi-Agent Debate.
 
+**Verification Status**
+
+```mermaid
+flowchart TD
+ A["Kiểm chứng lời giải"] --> B{"Kết quả"}
+ B --> C["VERIFIED"]
+ B --> D["PARTIALLY_VERIFIED"]
+ B --> E["UNVERIFIED"]
+ B --> F["FAILED"]
+ F --> G{"Sửa lỗi khả thi và trong giới hạn?"}
+ G -->|Có| H["Sửa và kiểm chứng lại"]
+ H --> A
+ G -->|Không| I["Dừng an toàn"]
+```
+
+Các trạng thái phản ánh phạm vi và phương pháp kiểm chứng; không mặc định sửa lỗi chỉ khi FAILED.
+
 ### 6.8. FR07 — Điều phối tác tử thích nghi
 
 | ID | Yêu cầu chức năng | Ưu tiên |
@@ -513,6 +671,20 @@ Khi vượt quá giới hạn tài nguyên hoặc không thể tiếp tục suy 
 
 Không yêu cầu Reinforcement Learning Router, huấn luyện mô hình Router riêng hoặc hệ thống Agent phân tán.
 
+**Escalation**
+
+```mermaid
+flowchart TD
+ A["L1 Lightweight"] -->|Cần suy luận có cấu trúc| B["L2 Structured"]
+ A -->|Cần sửa lỗi| C["L3 Corrective"]
+ B -->|Cần sửa lỗi| C
+ A --> D["Kết quả hoặc dừng an toàn"]
+ B --> D
+ C --> D
+```
+
+Minh họa khả năng nâng mức, không yêu cầu luôn bắt đầu tại L1 hoặc đi qua mọi mức.
+
 ### 6.9. FR08 — Nhận thức và xử lý sự không chắc chắn
 
 | ID | Yêu cầu chức năng | Ưu tiên |
@@ -571,6 +743,21 @@ Cho phép người dùng tham gia xác nhận và bổ sung dữ kiện.
 Hệ thống bảo toàn trạng thái xử lý có liên quan và tiếp tục suy luận sau khi nhận được thông tin bổ sung.
 
 Không yêu cầu hệ thống hội thoại dài hạn hoặc quản lý tài khoản để triển khai Human-in-the-loop trong MVP.
+
+**Uncertainty Decision**
+
+```mermaid
+flowchart TD
+ A["Phát hiện bất định"] --> B{"Đánh giá căn cứ và ảnh hưởng"}
+ B --> C["CONTINUE"]
+ B --> D["SELF_RESOLVE"]
+ B --> E["CLARIFY"]
+ B --> F["CONDITIONAL_ANSWER"]
+ B --> G["ABSTAIN"]
+ D --> H["Đánh giá lại trong giới hạn"]
+ E --> H
+ H --> B
+```
 
 ### 6.10. FR09 — Tổng hợp và xuất kết quả
 
@@ -760,6 +947,21 @@ Hạn chế thực thi lại những bài toán đã hoàn thành hợp lệ tro
 
 Công nghệ lưu trữ, schema, quy mô benchmark và quy trình thực nghiệm chi tiết sẽ được xác định trong các tài liệu thiết kế liên quan.
 
+**Benchmark — tổng quan**
+
+```mermaid
+flowchart TD
+ N0["Dataset và cấu hình"]
+ N1["Thực thi benchmark"]
+ N2["Đánh giá kết quả"]
+ N3["Ghi metrics, trace và checkpoint"]
+ N4["Xuất kết quả"]
+ N0 --> N1
+ N1 --> N2
+ N2 --> N3
+ N3 --> N4
+```
+
 ## 7. Yêu cầu phi chức năng (Non-functional Requirements)
 
 ### 7.1. Các thuộc tính chất lượng
@@ -782,6 +984,17 @@ Công nghệ lưu trữ, schema, quy mô benchmark và quy trình thực nghiệ
 Ưu tiên chất lượng toán học, độ tin cậy, hiệu quả suy luận và khả năng phục vụ nghiên cứu.
 
 Security & Privacy là ràng buộc bắt buộc xuyên suốt hệ thống.
+
+**Quality Attribute Tree**
+
+```mermaid
+flowchart TD
+ R["Quality Attributes"]
+ R --> N0["P0 NFR01–04: Correctness, Reliability, Performance, Cost"]
+ R --> N1["P0 NFR05–06: Modifiability, Extensibility"]
+ R --> N2["P0 NFR07–09: Reproducibility, Observability, Security"]
+ R --> N3["P1 NFR10–12: Usability, Portability, Scalability"]
+```
 
 ### 7.2. NFR01 — Tính đúng đắn toán học
 
@@ -1076,6 +1289,20 @@ Không xây dựng Rule Engine độc lập hoặc Agent chuyên biệt chỉ đ
 
 Khi một bước giải được sửa, phải đánh giá lại các bước phụ thuộc; có thể giữ lại kết quả của những bước độc lập nếu chúng vẫn hợp lệ (Dependency-aware Correction).
 
+**Business Rules — kiểm soát hành động**
+
+```mermaid
+flowchart TD
+ A["Hành động suy luận hoặc công cụ"] --> B{"Đủ điều kiện và quyền hạn?"}
+ B -->|Có| C["Thực hiện trong giới hạn"]
+ B -->|Không| D["Không thực hiện; sửa hoặc dừng an toàn"]
+ C --> E{"Kết quả hợp lệ?"}
+ E -->|Có| F["Ghi nhận và kiểm chứng"]
+ E -->|Không| D
+```
+
+Minh họa BR02–BR08 và BR11; không thay thế quy tắc chi tiết.
+
 ## 9. Use Cases
 
 ### 9.1. Actors
@@ -1146,6 +1373,101 @@ Tổng cộng 20 Use Cases (17 P0, 3 P1). UC09 yêu cầu giao diện lập trì
 | ACT05 | Hỗ trợ các phiên suy luận cần LLM. |
 | ACT06 | Hỗ trợ sử dụng công cụ bên ngoài khi mở rộng. |
 
+**Use Case overview — 6 Actors**
+
+```mermaid
+flowchart LR
+ A1["ACT01 Học sinh"] --- G1
+ A2["ACT02 Giáo viên"] --- G1
+ A3["ACT03 Developer"] --- G2
+ A4["ACT04 Researcher"] --- G3
+ subgraph SYS ["MATHK"]
+ G1(["UC01–UC08 Mathematical Reasoning"])
+ G2(["UC09–UC12 Integration"])
+ G3(["UC13–UC20 Research"])
+ end
+ A5["ACT05 LLM Provider"] ---|Khi phiên cần LLM| SYS
+ A6["ACT06 External Tool Provider"] -.->|Mở rộng tương lai| SYS
+```
+
+Mermaid flowchart mô phỏng Use Case Diagram; không tuyên bố ký pháp UML đầy đủ. ACT05 và ACT06 là supporting actors có điều kiện.
+
+**Nhóm A**
+
+```mermaid
+flowchart LR
+ A0["ACT01 Học sinh"]
+ A1["ACT02 Giáo viên"]
+ subgraph SYS ["MATHK"]
+ U1(["UC01: Giải văn bản"])
+ U2(["UC02: Giải đa phương thức"])
+ U3(["UC03: Làm rõ dữ kiện"])
+ U4(["UC04: Xem lời giải và căn cứ"])
+ U5(["UC05: Xem kiểm chứng và bất định"])
+ U6(["UC06: Kiểm tra lời giải P1"])
+ U7(["UC07: PDF hoặc viết tay P1"])
+ U8(["UC08: Nhiều cách giải P1"])
+ end
+ A0 --- U1
+ A0 --- U2
+ A0 --- U3
+ A0 --- U4
+ A0 --- U5
+ A0 --- U6
+ A0 --- U7
+ A0 --- U8
+ A1 --- U1
+ A1 --- U2
+ A1 --- U3
+ A1 --- U4
+ A1 --- U5
+ A1 --- U6
+ A1 --- U7
+ A1 --- U8
+```
+
+**Nhóm B**
+
+```mermaid
+flowchart LR
+ A0["ACT03 Developer"]
+ subgraph SYS ["MATHK"]
+ U9(["UC09: Gọi Engine"])
+ U10(["UC10: Mở rộng công cụ"])
+ U11(["UC11: Cập nhật tri thức"])
+ U12(["UC12: Thay model và cấu hình"])
+ end
+ A0 --- U9
+ A0 --- U10
+ A0 --- U11
+ A0 --- U12
+```
+
+**Nhóm C**
+
+```mermaid
+flowchart LR
+ A0["ACT04 Researcher"]
+ subgraph SYS ["MATHK"]
+ U13(["UC13: Quản lý dataset"])
+ U14(["UC14: Cấu hình thực nghiệm"])
+ U15(["UC15: Chạy benchmark"])
+ U16(["UC16: So sánh và ablation"])
+ U17(["UC17: Phân tích suy luận và lỗi"])
+ U18(["UC18: Phân tích hiệu năng và chi phí"])
+ U19(["UC19: Khôi phục benchmark"])
+ U20(["UC20: Xuất kết quả"])
+ end
+ A0 --- U13
+ A0 --- U14
+ A0 --- U15
+ A0 --- U16
+ A0 --- U17
+ A0 --- U18
+ A0 --- U19
+ A0 --- U20
+```
+
 ### 9.4. Đặc tả các Use Case có luồng phức tạp
 
 #### UC02 — Giải bài toán đa phương thức (P0)
@@ -1176,6 +1498,26 @@ Luồng chính:
 | Vượt giới hạn tài nguyên | Kết thúc an toàn, thông báo giới hạn. |
 | Không đủ căn cứ kết luận | Conditional Answer hoặc Abstention. |
 
+**Activity UC02**
+
+```mermaid
+flowchart TD
+ A["Gửi đề"] --> B{"Đầu vào hợp lệ?"}
+ B -->|Không| C["Yêu cầu gửi lại"]
+ B -->|Có| D["Chuẩn hóa dữ kiện"]
+ D --> E{"Cần làm rõ?"}
+ E -->|Có| F["UC03"]
+ E -->|Không| G["Phân tích và chọn chiến lược"]
+ F -->|Đủ căn cứ| G
+ G --> H["Truy xuất và dùng công cụ khi cần"]
+ H --> I["Suy luận và kiểm chứng"]
+ I --> J{"Cần sửa và còn tài nguyên?"}
+ J -->|Có| K["Corrective Reasoning"]
+ K --> I
+ J -->|Không| L["Kết quả có cấu trúc hoặc dừng phù hợp"]
+ F -->|Không đủ căn cứ| L
+```
+
 #### UC03 — Bổ sung hoặc làm rõ dữ kiện (P0)
 
 - Primary Actor: Người dùng.
@@ -1185,6 +1527,19 @@ Luồng chính:
 - Related FR: FR01, FR02, FR07, FR08.
 
 Hệ thống yêu cầu làm rõ dữ kiện; người dùng cung cấp hoặc xác nhận thông tin; hệ thống ghi nhận nguồn gốc, đánh giá lại các kết quả phụ thuộc và tiếp tục phiên suy luận nếu có đủ căn cứ. Nếu không thể làm rõ, hệ thống trả lời có điều kiện hoặc từ chối kết luận phù hợp với FR08. Không bắt buộc xử lý lại toàn bộ từ đầu.
+
+**Activity UC03**
+
+```mermaid
+flowchart TD
+ A["Yêu cầu làm rõ"] --> B{"Người dùng bổ sung?"}
+ B -->|Có| C["Cập nhật dữ kiện và nguồn gốc"]
+ C --> D["Đánh giá lại kết quả phụ thuộc"]
+ D --> E{"Đủ căn cứ?"}
+ E -->|Có| F["Tiếp tục phiên"]
+ E -->|Không| G["Trả lời có điều kiện hoặc từ chối"]
+ B -->|Không| G
+```
 
 #### UC06 — Kiểm tra lời giải do người dùng cung cấp (P1)
 
@@ -1196,6 +1551,19 @@ Hệ thống yêu cầu làm rõ dữ kiện; người dùng cung cấp hoặc x
 
 Tiếp nhận và chuẩn hóa lời giải bên ngoài, tái sử dụng Verifier Agent để kiểm tra tính nhất quán với đề bài, điều kiện, lập luận và phép tính. Thông báo vị trí lỗi khi có thể, đề xuất sửa lỗi hoặc nêu giới hạn kiểm chứng. Không mặc định phải giải lại toàn bộ bài toán.
 
+**Activity UC06**
+
+```mermaid
+flowchart TD
+ N0["Nhận đề và lời giải"]
+ N1["Chuẩn hóa lời giải"]
+ N2["Kiểm tra dữ kiện, điều kiện, lập luận và phép tính"]
+ N3["Báo cáo lỗi, phản hồi và phạm vi kiểm chứng"]
+ N0 --> N1
+ N1 --> N2
+ N2 --> N3
+```
+
 #### UC15 — Thực thi benchmark tự động (P0)
 
 - Primary Actor: Nhà nghiên cứu.
@@ -1205,6 +1573,21 @@ Tiếp nhận và chuẩn hóa lời giải bên ngoài, tái sử dụng Verifi
 
 Luồng chính: nạp Dataset và Experiment Config, chạy Benchmark Runner, gọi Mathematical Reasoning Engine, đánh giá kết quả, ghi metrics và execution logs, tổng hợp Experiment Results. Lặp lại cho các bài toán trong benchmark. Khi gặp lỗi API, timeout hoặc rate limit, lưu trạng thái cần thiết để tiếp tục mà không đánh mất các kết quả hợp lệ đã hoàn thành (UC19).
 
+**Activity UC15**
+
+```mermaid
+flowchart TD
+ A["Nạp dataset và config hợp lệ"] --> B["Chạy bài toán tiếp theo"]
+ B --> C{"Lỗi gây gián đoạn?"}
+ C -->|Có| D["Lưu checkpoint"]
+ D --> E["UC19: khôi phục khi phù hợp"]
+ E --> B
+ C -->|Không| F["Đánh giá và lưu metrics, log"]
+ F --> G{"Còn bài?"}
+ G -->|Có| B
+ G -->|Không| H["Tổng hợp kết quả"]
+```
+
 #### UC16 — So sánh cấu hình và Ablation Study (P0)
 
 - Primary Actor: Nhà nghiên cứu.
@@ -1212,6 +1595,21 @@ Luồng chính: nạp Dataset và Experiment Config, chạy Benchmark Runner, g�
 - Mục tiêu: Đánh giá đóng góp của từng thành phần bằng các cấu hình thực nghiệm phù hợp.
 
 Nhà nghiên cứu lựa chọn cấu hình (Multi-Agent, Symbolic Tools, Agentic RAG, Verification, Adaptive Routing), thực thi benchmark theo điều kiện so sánh được ghi nhận, tổng hợp và đối chiếu các chỉ số như Accuracy, Solution Correctness, Latency, Token Usage và Cost per Problem. Tổ hợp cấu hình hợp lệ được xác định trong System Design; phương pháp đánh giá chi tiết tại 06_EVALUATION.md.
+
+**Activity UC16**
+
+```mermaid
+flowchart TD
+ N0["Chọn cấu hình so sánh"]
+ N1["Ghi điều kiện thực nghiệm"]
+ N2["Chạy benchmark theo cấu hình"]
+ N3["Tổng hợp và đối chiếu metrics"]
+ N4["Phân tích đóng góp và giới hạn"]
+ N0 --> N1
+ N1 --> N2
+ N2 --> N3
+ N3 --> N4
+```
 
 ### 9.5. Nguyên tắc đặc tả
 
@@ -1321,6 +1719,19 @@ Lựa chọn các dạng toán đại diện trong chương trình THCS lớp 6�
 | MVP-D — Research Validation | Hoàn thiện và đánh giá khoa học | Benchmark, baselines, Ablation Study, phân tích lỗi, độ chính xác, chi phí, độ trễ, khả năng kiểm chứng và báo cáo nghiên cứu. |
 
 Xây dựng Benchmark Runner, logging và kiểm thử từ MVP-A, mở rộng xuyên suốt các giai đoạn. Bốn mốc là định hướng phân chia phạm vi, chưa phải lịch triển khai chính thức.
+
+**MVP Roadmap**
+
+```mermaid
+flowchart TD
+ N0["MVP-A: Core Reasoning"]
+ N1["MVP-B: Grounded Multi-Agent"]
+ N2["MVP-C: Adaptive Multimodal"]
+ N3["MVP-D: Research Validation"]
+ N0 --> N1
+ N1 --> N2
+ N2 --> N3
+```
 
 ### 11.4. Chức năng P1
 
@@ -1498,6 +1909,23 @@ Truy vết từ Research Objectives (RO), Product Objectives (PO), Technical Obj
 | FR10.15 | BR10.06 | FAC10, TAC10 | TC-EVAL-001 |
 
 Các ID test case là minh họa, chưa phải danh sách kiểm thử chính thức. Ma trận truy vết được xây dựng dần trong thiết kế và triển khai.
+
+**Requirements Traceability**
+
+```mermaid
+flowchart TD
+ N0["PO / RO / TO"]
+ N1["FR / NFR / Business Rules"]
+ N2["Acceptance Criteria"]
+ N3["Test Cases"]
+ N4["Test Results / Research Evidence"]
+ N5["Acceptance Decision"]
+ N0 --> N1
+ N1 --> N2
+ N2 --> N3
+ N3 --> N4
+ N4 --> N5
+```
 
 ### 12.7. Definition of Done
 
