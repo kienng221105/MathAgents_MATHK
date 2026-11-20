@@ -1,9 +1,9 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.3.1  
+**Phiên bản:** 0.4  
 **Trạng thái:** Đang thảo luận  
-**Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6)
+**Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
 ## 1. Architecture Drivers — Cơ sở thiết kế
 
@@ -441,7 +441,230 @@ Kiểm soát tài nguyên, cấu hình và ghi log ở mức tối thiểu từ 
 
 ## 4. Technology Stack
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** Công nghệ phục vụ kiến trúc đã duyệt, Local-first và máy phát triển 16 GB RAM. Ưu tiên chiều sâu AI, khả năng kiểm soát thực nghiệm và đơn giản hóa hạ tầng. Không cố định phiên bản dependency cụ thể ngoài dòng phiên bản đã chọn trước kiểm thử tương thích.
+
+### 4.1. Tổng hợp công nghệ
+
+| Nhóm | Lựa chọn |
+|---|---|
+| Language & Environment | Python 3.12, uv, pyproject.toml, uv.lock |
+| Agent Orchestration | LangGraph + Custom Agent Logic |
+| Model Integration | LiteLLM + Custom Model Gateway; Native SDK Adapter khi cần |
+| Validation | Pydantic v2 |
+| Symbolic & Numerical Math | SymPy, NumPy, math, decimal, fractions |
+| Multimodal | Pillow + VLM qua Model Gateway |
+| Retrieval | BM25, Sentence Transformers, FAISS, RRF |
+| Embedding | Embedding Gateway; BGE-M3 là ứng viên |
+| Persistence | SQLite, SQLAlchemy 2.x, Alembic, sqlite3 |
+| Interface | Python API, CLI, Gradio |
+| Testing | pytest, Hypothesis, unittest.mock, pytest-cov |
+| Evaluation | Custom Python, pandas, NumPy, Matplotlib |
+| Observability | Python logging, JSONL, psutil |
+| Code Quality | Ruff, mypy |
+| CI | GitHub Actions |
+| Containerization | Docker tùy chọn |
+
+### 4.2. Programming Language & Environment
+
+Python 3.12 là mục tiêu tương thích. uv quản lý Python, môi trường và dependency; commit pyproject.toml và uv.lock để tái lập môi trường. Ruff phục vụ lint/format, mypy kiểm tra kiểu. Poetry và pip + venv không chọn làm workflow chính. Kiểm tra tương thích Windows và thư viện native trước khi khóa dependency.
+
+### 4.3. Agent Orchestration
+
+LangGraph được chọn thay AutoGen, CrewAI và tự viết toàn bộ runtime vì phù hợp State Graph, conditional edges, bounded loops, checkpoint và interrupt/resume. Không phụ thuộc Agent dựng sẵn để quyết định phương pháp nghiên cứu.
+
+| LangGraph | MATHK |
+|---|---|
+| Graph execution, nodes, edges | Agent Logic và Adaptive Routing Policy |
+| State runtime | Mathematical Representation và quy tắc cập nhật state |
+| Checkpoint, interrupt/resume | Resource Guard, Verification và Correction Strategy |
+| Conditional transitions | Knowledge Retrieval Strategy |
+
+```mermaid
+flowchart TD
+ E["MATHK Reasoning Engine"] --> G["LangGraph Runtime"]
+ G --> S["Shared State"]
+ G --> R["MATHK Adaptive Router"]
+ G --> A["MATHK Agent Logic"]
+ G --> C["Checkpointing"]
+ A --> T["Mathematical Tools"]
+ A --> M["Model Gateway"]
+ A --> V["Verification Logic"]
+```
+
+LangGraph là framework thực thi, không phải đóng góp nghiên cứu. Router và guard vẫn tuân thủ AR01–AR08.
+
+### 4.4. LLM Integration
+
+Custom Model Gateway chuẩn hóa request, response, structured output, tool calls, lỗi, token usage và metadata. LiteLLM là adapter chính; Native SDK Adapter là đường mở rộng khi chức năng provider không tương thích. Model cụ thể và provider đầu tiên sẽ chọn sau thử nghiệm. Không bắt buộc dùng nhiều provider.
+
+```mermaid
+flowchart TD
+ A["MATHK Agents"] --> G["Model Gateway"]
+ G --> I["Model Port"]
+ I --> L["LiteLLM Adapter"]
+ L --> O["OpenAI"]
+ L --> P["Google Gemini"]
+ L --> R["OpenRouter"]
+ L --> X["Other Providers"]
+ I --> N["Native SDK Adapter khi cần"]
+```
+
+Model Profiles: DEFAULT (suy luận thông thường), MULTIMODAL (văn bản và hình ảnh), ADVANCED (suy luận hoặc sửa lỗi phức tạp), EMBEDDING (vector, qua Embedding Gateway). Các profile có thể dùng chung model; giữ model cố định khi cần cô lập biến thực nghiệm. LLM/VLM qua API bên ngoài trong MVP.
+
+### 4.5. Data Validation
+
+Pydantic v2 kiểm tra dữ liệu tại ranh giới module và structured output. Schema khái niệm: ProblemInput, ProblemRepresentation, ReasoningPlan, ReasoningStep, ToolRequest, ToolResult, VerificationReport, UncertaintyReport, ReasoningState, SolutionOutput, ExperimentConfig. Thiết kế schema chính thức ở các mục sau.
+
+```mermaid
+flowchart LR
+ I["Raw Input"] --> P["Pydantic Validation"]
+ P --> S["Structured Model"]
+ S --> A["Agent or Tool"]
+ A --> V["Output Validation"]
+ V --> R["Structured Result"]
+```
+
+### 4.6. Mathematical Computation
+
+SymPy và Calculator là năng lực P0, dùng NumPy và thư viện chuẩn Python cho tính số khi phù hợp. SciPy là tùy chọn khi cần. Direct Function Calling, Tool Registry, validation và bounded execution. Không thực thi mã Python tùy ý; không dùng eval/exec hoặc parse_expr/sympify trên chuỗi không kiểm soát. Giới hạn biểu thức, độ phức tạp và thời gian tính toán.
+
+```mermaid
+flowchart TD
+ A["Reasoner or Verifier"] --> T["Tool Registry"]
+ T --> V["Parameter Validation"]
+ V --> E["Execution Guard"]
+ E --> S["SymPy"]
+ E --> C["Calculator"]
+ E --> N["Numerical Tools khi cần"]
+ S --> R["Structured Tool Result"]
+ C --> R
+ N --> R
+```
+
+### 4.7. Multimodal Processing
+
+VLM-first, Pillow để đọc, kiểm tra và resize ảnh. OpenCV tùy nhu cầu, PyMuPDF ứng viên P1 cho PDF, OCR engine chọn khi xây baseline. Không bắt buộc huấn luyện detector hình học riêng.
+
+```mermaid
+flowchart TD
+ I["Text and Images"] --> P["Pillow Image Validation"]
+ P --> V["VLM via Model Gateway"]
+ V --> S["Structured Problem Representation"]
+```
+
+Đầu vào chỉ văn bản không cần qua xử lý ảnh.
+
+### 4.8. Knowledge Retrieval & Agentic RAG
+
+BM25 làm sparse retrieval; Sentence Transformers và FAISS cho dense retrieval; RRF cho fusion. BGE-M3 là ứng viên, không mặc định tối ưu cho toán tiếng Việt. Embedding Gateway hỗ trợ chạy local hoặc API. Index và query phải dùng embedding tương thích; đổi model cần xây lại index tương ứng. Agentic Retrieval Logic do MATHK xây dựng, quyết định truy xuất và kiểm tra applicability trong giới hạn. Không đồng nhất Hybrid Retrieval với Agentic RAG.
+
+```mermaid
+flowchart TD
+ Q["Knowledge Query"] --> F["Metadata Filtering"]
+ F --> B["BM25"]
+ F --> D["Embedding Gateway"]
+ D --> V["FAISS"]
+ B --> R["RRF"]
+ V --> R
+ R --> K["Relevant Knowledge"]
+ K --> A["Applicability Checking"]
+ A --> O["Knowledge References"]
+```
+
+```mermaid
+flowchart TD
+ subgraph OFF ["Offline Indexing"]
+ K["Knowledge Base"] --> B["Embedding Provider"]
+ B --> V[("FAISS Index")]
+ end
+ subgraph ON ["Online Reasoning"]
+ Q["Knowledge Query"] --> E["Compatible Embedding Provider"]
+ E --> S["Vector Search"]
+ Q --> M["BM25"]
+ V --> S
+ S --> R["Hybrid Fusion"]
+ M --> R
+ R --> A["Reasoning Engine"]
+ end
+```
+
+### 4.9. Database & Storage
+
+Chốt SQLite + FAISS thay PostgreSQL + pgvector để giảm quản trị và phù hợp MVP local. SQLAlchemy 2.x quản lý persistence, Alembic quản lý schema migration, sqlite3 là driver. SQLite là nguồn dữ liệu chính cho metadata và dữ liệu nghiệp vụ; FAISS là index có thể xây dựng lại; file lớn, ảnh, dataset, trace/export dùng local file storage. Repository Interface giữ ranh giới module. Không lưu hai trạng thái nghiệp vụ độc lập thiếu đồng bộ. SQLite có giới hạn ghi đồng thời; PostgreSQL là lựa chọn tương lai nếu cần, việc chuyển đổi cần kiểm thử và migration.
+
+```mermaid
+flowchart TD
+ E["MATHK Engine"] --> R["Repository Interfaces"]
+ R --> ORM["SQLAlchemy"]
+ ORM --> DB[("SQLite")]
+ R --> F[("FAISS Index")]
+ R --> FS["Local File Storage"]
+ DB --> S["Sessions and Checkpoints"]
+ DB --> K["Knowledge and Metadata"]
+ DB --> X["Experiment Metadata"]
+ F --> V["Knowledge Embeddings"]
+ FS --> D["Images and Datasets"]
+ FS --> L["Logs and Reports"]
+```
+
+Checkpoint chi tiết và cơ chế phối hợp persistence của LangGraph sẽ chốt ở State Management và Data & Storage Design.
+
+### 4.10. Application Interface
+
+Python API là giao diện cốt lõi, CLI cho chạy bài toán và thực nghiệm, Gradio làm demo văn bản/ảnh và lời giải toán học. FastAPI chỉ thêm khi cần HTTP. Streamlit và Next.js chưa triển khai. UI chỉ gọi Engine qua interface, không chứa logic suy luận.
+
+### 4.11. Testing & Code Quality
+
+pytest cho unit/integration, Hypothesis cho property-based testing, unittest.mock cho mock, pytest-cov cho coverage, Ruff/mypy cho chất lượng mã, GitHub Actions cho CI. Property testing không thay thế chứng minh toán học. Test provider bằng mock khi phù hợp để kiểm soát chi phí.
+
+### 4.12. Evaluation & Observability
+
+Custom Benchmark Runner và Evaluator, SymPy + custom mathematical evaluation, pandas/NumPy, SciPy nếu cần, Matplotlib, logging và JSONL, SQLite metadata, JSON/CSV export. LLM-as-Judge P1, Langfuse/LangSmith tùy chọn. Ground truth không đưa vào Engine.
+
+```mermaid
+flowchart TD
+ D["Benchmark Dataset"] --> B["Benchmark Runner"]
+ C["Experiment Config"] --> B
+ B --> E["MATHK Engine"]
+ E --> R["Solution and Execution Trace"]
+ R --> V["Mathematical Evaluator"]
+ G["Ground Truth"] --> V
+ V --> M["Metrics"]
+ M --> S[("Experiment Storage")]
+ R --> S
+ S --> O["Reports and Charts"]
+```
+
+Benchmark Runner chỉ chuyển dữ liệu đề bài được phép tới Engine, không chuyển nhãn ground truth.
+
+### 4.13. Technology Stack Overview
+
+```mermaid
+flowchart TD
+ I["Gradio / CLI / Python API"]
+ C["Python 3.12 / LangGraph / Pydantic v2"]
+ A["Model Gateway / LiteLLM / VLM"]
+ T["SymPy / NumPy / Calculator"]
+ K["BM25 / Sentence Transformers / FAISS / SQLite"]
+ R["pytest / pandas / Ruff / uv / GitHub Actions"]
+ I --> C
+ C --> A
+ C --> T
+ C --> K
+ R -.->|Research and engineering support| C
+```
+
+Sơ đồ nhóm trách nhiệm, không phải dependency graph bắt buộc.
+
+### 4.14. Resource Management & Deployment Constraints
+
+Máy phát triển 16 GB RAM. LLM qua API, local-first cho các thành phần khác. Lazy Loading, Shared Model Instance trong một tiến trình, Embedding Gateway, Configurable Concurrency, Bounded State và Resource Monitoring bằng psutil. Benchmark tuần tự hoặc giới hạn đồng thời; Docker tùy chọn, không bắt buộc chạy Docker Desktop trong phát triển. Embedding index tính trước và lưu; embedding truy vấn dùng model tương thích. Giữ BGE-M3 là ứng viên, cân nhắc embedding nhẹ hoặc API nếu RAM/latency không phù hợp.
+
+Ước tính trước kiểm thử: Core không RAG khoảng 0,5–1 GB; full stack với embedding API khoảng 0,8–1,8 GB; BGE-M3 local khoảng 3–5,5 GB RAM riêng ứng dụng, benchmark có thể cao hơn. Đây không phải benchmark hoặc giới hạn cam kết, chưa gồm hệ điều hành/IDE/browser/Docker. Kiểm tra tiêu thụ thực tế ở MVP-A và khi tích hợp Retrieval; không cộng cơ học RAM các thư viện cùng tiến trình.
+
+Các dependency, phiên bản model, cấu hình concurrency và ngưỡng tài nguyên cụ thể sẽ khóa sau kiểm thử. Không mở rộng sang PostgreSQL, vector database server, MCP, hạ tầng phân tán hoặc GPU server bắt buộc trong MVP.
+
+**Quyết định:** Chấp thuận toàn bộ stack bảng 4.1 và nguyên tắc quản lý tài nguyên.
 
 ## 5. Agent Design
 
