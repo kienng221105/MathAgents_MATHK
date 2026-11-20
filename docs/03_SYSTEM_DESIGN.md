@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.2  
+**Phiên bản:** 0.3  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6)
 
@@ -10,6 +10,16 @@
 ### 1.1. Mục tiêu kiến trúc
 
 MATHK là AI Mathematical Reasoning Engine, không phải chatbot giải toán đơn thuần. Engine hoạt động độc lập với giao diện, hỗ trợ sử dụng từ Python và tích hợp ứng dụng trong tương lai. Kiến trúc cần đủ linh hoạt để điều chỉnh theo kết quả nghiên cứu sau này.
+
+
+```mermaid
+flowchart TD
+ UI[Demo UI] --> E[MATHK Reasoning Engine]
+ APP[Python application] --> E
+ E --> K[Knowledge Base]
+ B[Evaluation System] --> E
+ E --> O[Structured Output]
+```
 
 ### 1.2. Functional Drivers
 
@@ -67,6 +77,26 @@ Configuration-driven: sử dụng cùng Engine với cấu hình mô hình, Rout
 
 Shared Database: Shared State là trạng thái logic của phiên suy luận, không đồng nghĩa với database. Có thể phân nhóm dữ liệu Sessions, Problems, Planning, Reasoning, Verification, Knowledge, Execution và Evaluation. Agent không truy cập tùy ý trực tiếp vào database. Có thể sử dụng Vector Store chuyên biệt phục vụ RAG hoặc database riêng khi có nhu cầu; chưa chốt schema và công nghệ lưu trữ.
 
+
+```mermaid
+flowchart TD
+ A[Agents] -->|Structured updates| O[Orchestrator]
+ O -->|Validated updates| S[Shared State]
+ S -->|Relevant context| A
+ S --> R[Storage / Repository]
+ R --> D[(Shared Database)]
+ R -. Optional .-> V[(Specialized store)]
+```
+
+
+```mermaid
+flowchart LR
+ A[Static config] --> E[Same MATHK Engine]
+ B[Rule-based config] --> E
+ C[Hybrid config] --> E
+ E --> R[Comparable results and traces]
+```
+
 ### 1.5. Kiến trúc không ưu tiên trong MVP
 
 Không yêu cầu Microservices phân tán, Kubernetes, Message Broker, GPU Server chuyên dụng, Agent cho mọi tác vụ, frontend phức tạp hoặc huấn luyện LLM từ đầu. Không bắt buộc database riêng cho từng Agent; áp dụng AP16. Đây không phải lệnh cấm mở rộng về sau.
@@ -103,11 +133,39 @@ Phân biệt Deployment Architecture (đóng gói và triển khai), Internal Ar
 
 Chọn Modular Monolith: module có trách nhiệm và interface rõ ràng, cùng thuộc một hệ thống triển khai; ưu tiên lời gọi hàm Python thay cho HTTP nội bộ. Multi-Agent không đòi hỏi Microservices; Agent có thể cùng chạy trong một tiến trình.
 
+
+```mermaid
+flowchart TD
+ subgraph App[Modular Monolith]
+ O[Orchestrator] --> A[Agents]
+ O --> T[Tools]
+ O --> K[Retrieval]
+ O --> V[Verification]
+ end
+ App --> R[Repository]
+ R --> D[(Shared Database)]
+```
+
 ### 2.3. Internal Architecture
 
 Layered Architecture phân chia trách nhiệm theo tầng; Clean Architecture bảo vệ logic nghiệp vụ bằng quan hệ phụ thuộc hướng vào lõi; Hexagonal Architecture sử dụng Ports & Adapters để tách lõi khỏi hạ tầng.
 
 Chọn Lightweight Hexagonal Architecture: áp dụng Ports & Adapters có chọn lọc, tránh trừu tượng hóa quá mức. Core gồm orchestration, Agent Logic, Domain Models và Business Rules. Demo, CLI và Benchmark sử dụng Input Port; LLM, Math Tools, Retrieval và Storage được tích hợp qua interface và adapter phù hợp. Core không phụ thuộc trực tiếp vào SDK của LLM Provider. Interface cụ thể chưa chốt.
+
+
+```mermaid
+flowchart TD
+ I[Demo / CLI / Benchmark] --> P[Input Port]
+ P --> C[Core: orchestration, rules, models]
+ C --> M[Model Port]
+ C --> T[Tool Port]
+ C --> K[Retrieval Port]
+ C --> S[Storage Port]
+ MA[Model Adapter] -. implements .-> M
+ TA[Math Tool Adapter] -. implements .-> T
+ KA[Retrieval Adapter] -. implements .-> K
+ SA[Storage Adapter] -. implements .-> S
+```
 
 ### 2.4. Execution Architecture
 
@@ -124,6 +182,20 @@ Chọn Lightweight Hexagonal Architecture: áp dụng Ports & Adapters có chọ
 Chọn State Graph kết hợp Hybrid Orchestration. Node là Agent hoặc tác vụ xác định; Edge là chuyển tiếp; Conditional Edge phụ thuộc điều kiện hoặc Routing; State chứa dữ liệu hiện tại; Termination Condition kiểm soát kết thúc và dừng an toàn.
 
 Orchestrator sử dụng Shared State, quy tắc xác định và LLM khi cần; không bắt buộc Supervisor LLM riêng cho mỗi quyết định. Hỗ trợ tuyến tuần tự, rút gọn, có điều kiện và vòng sửa lỗi giới hạn. Ví dụ khái niệm: Input → Perception → Routing → Lightweight hoặc Structured → Reasoning → Verification → Output hoặc Correction và kiểm chứng lại. Đây chưa phải workflow chính thức. Framework chưa được chọn.
+
+
+```mermaid
+flowchart TD
+ I[Input] --> P[Perception]
+ P --> R{Routing}
+ R -->|Lightweight| L[Reasoning]
+ R -->|Structured| S[Planning and retrieval as needed]
+ S --> L
+ L --> V[Verification]
+ V -->|Correction needed and allowed| C[Correction]
+ C --> R
+ V -->|Accept or safe stop| O[Output]
+```
 
 ### 2.5. Kiến trúc kết hợp
 
@@ -158,9 +230,214 @@ ADR lưu trong System Design, chưa cần file riêng.
 
 Kiểm soát timeout không đồng nghĩa với cô lập lỗi tiến trình hoàn toàn.
 
-## 3. High-Level Architecture
+## 3. High-Level Architecture — Kiến trúc tổng thể
 
-*Chưa chốt.*
+### 3.1. System Context
+
+
+```mermaid
+flowchart TD
+ U[Học sinh / Giáo viên] --> M[MATHK]
+ D[Developer] --> M
+ R[Researcher] --> M
+ M --> L[External LLM Provider]
+ M -. Future integration .-> T[External Tool Provider]
+```
+
+
+SymPy, Calculator, Knowledge Base và Agents thuộc phạm vi nội bộ. External Tool Provider không bắt buộc trong MVP.
+
+### 3.2. Kiến trúc tổng thể
+
+
+```mermaid
+flowchart TD
+ subgraph I[Interface Layer]
+ M01[Input Processing]
+ M02[Output Presentation]
+ M03[Application Interface]
+ end
+ subgraph O[Orchestration Layer]
+ M04[Reasoning Engine]
+ M05[Adaptive Router]
+ M06[State Manager]
+ M07[Execution Guard]
+ end
+ subgraph C[Reasoning Capability Layer]
+ M08[Perception]
+ M09[Planning]
+ M10[Retrieval]
+ M11[Reasoning]
+ M12[Verification and Correction]
+ M13[Uncertainty]
+ end
+ subgraph A[Infrastructure and Adapters]
+ M14[Model Gateway]
+ M15[Math Tool System]
+ M16[Knowledge Store]
+ M17[Persistence]
+ M18[Configuration]
+ end
+ subgraph R[Research and Observability]
+ M19[Benchmark]
+ M20[Evaluation]
+ M21[Tracing]
+ end
+ M03 --> M01 --> M04
+ M04 --> M02
+ O --> C
+ C --> A
+ M19 --> M04
+ M04 -. Events .-> M21
+ M19 --> M20
+```
+
+
+Năm vùng trách nhiệm logic, không phải năm service hoặc thứ tự phụ thuộc mã nguồn bắt buộc. Core định nghĩa interface, Adapter triển khai interface. Research & Observability xuyên suốt hệ thống; mũi tên mô tả tương tác logic.
+
+### 3.3. Danh sách module
+
+| ID | Vùng | Module | Trách nhiệm |
+|---|---|---|---|
+| M01 | Interface | Input Processing | Tiếp nhận, kiểm tra, chuẩn hóa đầu vào |
+| M02 | Interface | Output Presentation | Render Markdown, LaTeX, JSON |
+| M03 | Interface | Application Interface | Demo UI, CLI, Python API |
+| M04 | Orchestration | Reasoning Engine | Điều phối workflow và giao diện giải toán |
+| M05 | Orchestration | Adaptive Router | Chọn tuyến và mức suy luận |
+| M06 | Orchestration | State Manager | Quản lý Shared State và cập nhật |
+| M07 | Orchestration | Execution Guard | Kiểm soát hành động, timeout, tài nguyên, dừng |
+| M08 | Capability | Multimodal Perception | Hiểu đề và dữ kiện trực quan |
+| M09 | Capability | Problem Analysis & Planning | Phân tích, phân loại, lập kế hoạch |
+| M10 | Capability | Knowledge Retrieval | Truy xuất tri thức toán học |
+| M11 | Capability | Mathematical Reasoning | Suy luận và dùng công cụ |
+| M12 | Capability | Verification & Correction | Kiểm chứng, phát hiện lỗi, hỗ trợ sửa lỗi |
+| M13 | Capability | Uncertainty Management | Tổng hợp tín hiệu và đề xuất xử lý bất định |
+| M14 | Adapter | Model Gateway | Interface và adapter LLM/VLM |
+| M15 | Adapter | Mathematical Tool System | Registry, validation, thực thi công cụ |
+| M16 | Adapter | Knowledge Store | Lưu trữ, indexing, tìm kiếm |
+| M17 | Adapter | Persistence | Repository, database, checkpoint |
+| M18 | Adapter | Configuration | Cấu hình, prompt, tham số |
+| M19 | Research | Benchmark Runner | Thực thi dataset và cấu hình thực nghiệm |
+| M20 | Research | Evaluation | Tính metrics, đánh giá |
+| M21 | Research | Execution Tracing | Sự kiện, tuyến xử lý, lỗi, chi phí |
+
+21 module logic, không phải 21 service, package hoặc Agent bắt buộc. Python API không đồng nghĩa REST API hoặc SDK riêng. Verification & Correction có thể dùng Verifier và Reasoner thay vì Corrector Agent riêng.
+
+
+```mermaid
+flowchart TD
+ R[Adaptive Router] -->|Proposed action| G[Execution Guard]
+ G -->|Valid action| O[Orchestrator]
+ G -->|Rejected| F[Safe fallback or stop]
+ O --> E[Execute task]
+ E --> S[State Manager]
+ S --> R
+```
+
+
+
+### 3.4. Control Plane và Execution Plane
+
+
+```mermaid
+flowchart TD
+ subgraph CP[Control Plane]
+ O[Orchestrator]
+ R[Router]
+ S[State Manager]
+ G[Execution Guard]
+ end
+ subgraph EP[Execution Plane]
+ P[Perception and Planning]
+ K[Retrieval]
+ T[Reasoning and Tools]
+ V[Verification and Correction]
+ end
+ CP -->|Authorized tasks| EP
+ EP -->|Structured results| CP
+ U[Uncertainty Management] -. Signals .-> CP
+ U -. Signals .-> EP
+```
+
+
+Phân chia logic, không yêu cầu hai hệ thống triển khai riêng.
+
+### 3.5. Luồng xử lý tổng thể
+
+
+```mermaid
+flowchart TD
+ I[Problem Input] --> N[Input Processing]
+ N --> P[Perception]
+ P --> R{Adaptive Routing}
+ R -->|Lightweight| L[Direct Reasoning]
+ R -->|Structured| S[Planning / RAG / Reasoning]
+ L --> V[Verification]
+ S --> V
+ V --> E{Evaluate Status}
+ E -->|Correction allowed| C[Correction]
+ C --> R
+ E -->|Accept| O[Structured Output]
+ E -->|Uncertainty or limit| U[Uncertainty Handling]
+ P -. Missing or unclear facts .-> U
+ U -->|Clarify| H[User clarification]
+ H --> N
+ U -->|Conditional answer or abstain| O
+ U -->|Self resolve if allowed| R
+```
+
+
+Luồng khái niệm, không phải workflow chính thức. Cả hai tuyến có thể dùng công cụ. Bất định có thể xuất hiện ở mọi giai đoạn. Kết quả Verification có thể tác động Routing, Planning và Retrieval. Mọi vòng lặp chịu giới hạn thực thi; bảo toàn trạng thái liên quan khi tiếp tục sau clarification.
+
+### 3.6. Module Traceability
+
+| Requirement | Module chính |
+|---|---|
+| FR01 | M01, M03 |
+| FR02 | M08 |
+| FR03 | M09 |
+| FR04 | M10, M16 |
+| FR05 | M11, M15 |
+| FR06 | M12, M11, M15 |
+| FR07 | M04, M05, M06, M07 |
+| FR08 | M13, M04 |
+| FR09 | M02, M04 |
+| FR10 | M19, M20, M21 |
+
+M14, M17, M18 hỗ trợ xuyên suốt. Đây là truy vết cấp module, không thay thế RTM chi tiết.
+
+### 3.7. Ranh giới phụ thuộc
+
+| ID | Quy tắc |
+|---|---|
+| AR01 | Interface gọi Engine, không tự tổ chức workflow. |
+| AR02 | Agent không tự gọi Agent khác tùy ý ngoài điều phối. |
+| AR03 | Router đề xuất hành động; Orchestrator kiểm soát thực thi. |
+| AR04 | Agent nhận trạng thái cần thiết, trả cập nhật có cấu trúc. |
+| AR05 | Kết nối LLM Provider qua Model Gateway. |
+| AR06 | Thực thi công cụ qua Tool Registry và validation. |
+| AR07 | Truy cập dữ liệu bền vững qua Repository hoặc Storage Interface. |
+| AR08 | Evaluation không đưa đáp án tham chiếu vào phiên suy luận. |
+
+### 3.8. Kiến trúc theo MVP
+
+
+```mermaid
+flowchart LR
+ A[MVP-A: Core Reasoning] --> B[MVP-B: Grounded Multi-Agent]
+ B --> C[MVP-C: Adaptive Multimodal]
+ C --> D[MVP-D: Research Validation]
+```
+
+
+| Giai đoạn | Năng lực |
+|---|---|
+| MVP-A | Input, Engine, Reasoning, Model Gateway, Math Tools, Output, benchmark và tracing cơ bản |
+| MVP-B | Planning, Retrieval, Verification, Correction, Shared State |
+| MVP-C | Perception, Adaptive Router, Uncertainty Handling, toàn bộ P0 |
+| MVP-D | Đánh giá, baseline, ablation, phân tích lỗi |
+
+Kiểm soát tài nguyên, cấu hình và ghi log ở mức tối thiểu từ MVP-A, mở rộng dần.
 
 ## 4. Technology Stack
 
