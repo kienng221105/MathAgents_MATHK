@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.1  
+**Phiên bản:** 0.2  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6)
 
@@ -82,9 +82,81 @@ Không yêu cầu Microservices phân tán, Kubernetes, Message Broker, GPU Serv
 
 Thứ tự trên không phải trọng số định lượng. Security & Privacy là ràng buộc bắt buộc xuyên suốt, không đánh đổi để giảm chi phí hay tăng hiệu năng.
 
-## 2. Architecture Style
+## 2. Architecture Style — Phong cách kiến trúc
 
-*Chưa chốt.*
+### 2.1. Phân loại kiến trúc
+
+Phân biệt Deployment Architecture (đóng gói và triển khai), Internal Architecture (tổ chức mã nguồn và phụ thuộc), Execution Architecture (phối hợp thực thi Agent) và Data Architecture (tổ chức và chia sẻ dữ liệu). Các lựa chọn thuộc những khía cạnh khác nhau có thể kết hợp.
+
+### 2.2. Deployment Architecture
+
+| Tiêu chí | Traditional Monolith | Modular Monolith | Microservices |
+|---|---|---|---|
+| Triển khai local | Đơn giản | Đơn giản | Phức tạp hơn |
+| Modularity | Tùy thiết kế | Cao | Cao |
+| Kiểm thử độc lập | Tùy thiết kế | Tốt | Tốt |
+| Giao tiếp nội bộ | Function | Interface/Function | Network |
+| Shared State | Dễ | Dễ | Phức tạp hơn |
+| Chi phí hạ tầng | Thấp | Thấp | Tùy triển khai |
+| Mở rộng độc lập khi chạy | Hạn chế | Hạn chế | Tốt |
+| Phù hợp MVP | Khá | Rất tốt | Thấp |
+
+Chọn Modular Monolith: module có trách nhiệm và interface rõ ràng, cùng thuộc một hệ thống triển khai; ưu tiên lời gọi hàm Python thay cho HTTP nội bộ. Multi-Agent không đòi hỏi Microservices; Agent có thể cùng chạy trong một tiến trình.
+
+### 2.3. Internal Architecture
+
+Layered Architecture phân chia trách nhiệm theo tầng; Clean Architecture bảo vệ logic nghiệp vụ bằng quan hệ phụ thuộc hướng vào lõi; Hexagonal Architecture sử dụng Ports & Adapters để tách lõi khỏi hạ tầng.
+
+Chọn Lightweight Hexagonal Architecture: áp dụng Ports & Adapters có chọn lọc, tránh trừu tượng hóa quá mức. Core gồm orchestration, Agent Logic, Domain Models và Business Rules. Demo, CLI và Benchmark sử dụng Input Port; LLM, Math Tools, Retrieval và Storage được tích hợp qua interface và adapter phù hợp. Core không phụ thuộc trực tiếp vào SDK của LLM Provider. Interface cụ thể chưa chốt.
+
+### 2.4. Execution Architecture
+
+| Tiêu chí | Sequential | Supervisor | State Graph |
+|---|---|---|---|
+| Luồng cố định | Tốt | Có thể | Tốt |
+| Điều phối thích ứng | Hạn chế | Tốt | Tốt |
+| Vòng lặp sửa lỗi | Cần bổ sung | Tốt | Tốt |
+| Kiểm soát chuyển tiếp | Cao | Tùy Supervisor | Cao |
+| Truy vết | Dễ | Tùy thiết kế | Tốt |
+| Độ phức tạp | Thấp | Trung bình | Trung bình |
+| Vai trò trong MATHK | Baseline | Hỗ trợ | Kiến trúc chính |
+
+Chọn State Graph kết hợp Hybrid Orchestration. Node là Agent hoặc tác vụ xác định; Edge là chuyển tiếp; Conditional Edge phụ thuộc điều kiện hoặc Routing; State chứa dữ liệu hiện tại; Termination Condition kiểm soát kết thúc và dừng an toàn.
+
+Orchestrator sử dụng Shared State, quy tắc xác định và LLM khi cần; không bắt buộc Supervisor LLM riêng cho mỗi quyết định. Hỗ trợ tuyến tuần tự, rút gọn, có điều kiện và vòng sửa lỗi giới hạn. Ví dụ khái niệm: Input → Perception → Routing → Lightweight hoặc Structured → Reasoning → Verification → Output hoặc Correction và kiểm chứng lại. Đây chưa phải workflow chính thức. Framework chưa được chọn.
+
+### 2.5. Kiến trúc kết hợp
+
+Graph-orchestrated Modular Monolith with Ports & Adapters:
+- Deployment: Modular Monolith.
+- Internal: Lightweight Hexagonal Architecture.
+- Execution: State Graph & Hybrid Orchestration.
+- Data: Shared Database by Default, quyền sở hữu dữ liệu theo module, hỗ trợ lưu trữ chuyên biệt.
+
+Tên gọi mô tả tổ hợp kiến trúc, không tuyên bố Architecture Pattern mới.
+
+### 2.6. Architecture Decision Records
+
+| ID | Quyết định | Lý do chính |
+|---|---|---|
+| ADR001 | Modular Monolith | Phù hợp Local-first và nguồn lực cá nhân. |
+| ADR002 | Lightweight Hexagonal | Giảm phụ thuộc framework và Provider. |
+| ADR003 | State Graph & Hybrid Orchestration | Hỗ trợ Adaptive Routing và Verification. |
+| ADR004 | Shared Database by Default | Đơn giản hóa quản lý dữ liệu và tính nhất quán. |
+
+ADR lưu trong System Design, chưa cần file riêng.
+
+### 2.7. Đánh đổi
+
+| Hạn chế | Hướng xử lý |
+|---|---|
+| Module chia sẻ tiến trình | Kiểm soát lỗi và timeout từng tác vụ. |
+| Hạn chế scale độc lập từng Agent | Duy trì interface để có thể tách module về sau. |
+| State Graph có thể phức tạp | Giới hạn chuyển tiếp và chia subgraph khi cần. |
+| Shared Database có nguy cơ phụ thuộc schema | Repository Layer và quyền sở hữu dữ liệu. |
+| Ports & Adapters tăng lượng mã | Chỉ tạo interface tại ranh giới cần thiết. |
+
+Kiểm soát timeout không đồng nghĩa với cô lập lỗi tiến trình hoàn toàn.
 
 ## 3. High-Level Architecture
 
