@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.4
+**Phiên bản:** 0.5
 
 **Trạng thái:** Đang thảo luận
 
@@ -116,7 +116,54 @@ Dựng lại từ uv.lock; kiểm chứng chạy trên laptop 8 GB; Windows/Linu
 
 ## 4. Model Provider & Gateway
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 4.1. Kiến trúc
+```mermaid
+flowchart TD
+ A["MATHK Agents"] --> B["Model Gateway"]
+ K["Retrieval Pipeline"] --> B
+ B --> C["Model Policy"]
+ C --> D["9Router Adapter"]
+ C --> E["Direct Provider Adapter"]
+ D --> F["9Router"]
+ F --> G["LLM / VLM Providers"]
+ E --> G
+ E --> H["Embedding API"]
+ B --> I["Usage / Cost Tracker"]
+```
+Ưu tiên thử 9Router cho LLM/VLM; embedding trực tiếp nếu proxy không đáp ứng.
+
+### 4.2. Model Profiles
+MP01 Lightweight (phân loại/routing/tác vụ đơn giản); MP02 Reasoning (đa bước); MP03 Advanced (khó/correction); MP04 Vision; MP05 Embedding. Vai trò logic, không bắt buộc năm model riêng.
+
+### 4.3. Trách nhiệm
+Gateway: model profile, request/response normalization, ngân sách tổng, reasoning escalation, execution trace. 9Router: kết nối provider, provider routing, operational fallback, quota/API monitoring nếu hỗ trợ. Có thể thay proxy không sửa agent logic.
+
+### 4.4. API policy
+Development free-first, paid chỉ nếu cho phép, bounded fallback, model linh hoạt. Research theo cấu hình/ngân sách, fallback mặc định tắt, pin model khi có thể, xác minh actual model để so sánh theo model. Usage tracking cả hai; metadata thiếu ghi unknown.
+
+### 4.5. Provider selection
+P0 mathematical reasoning, structured output, tool calling, vision cho VLM, embedding quality cho embedding, stability, token cost/quota (theo capability cần thiết). P1 latency/context window. Không chọn chỉ theo parameter count hoặc benchmark công bố.
+
+### 4.6. API failure
+```mermaid
+flowchart TD
+ A["API Request"] --> B{"Thành công?"}
+ B -->|Có| C["Validate Output"]
+ B -->|Không| D{"Retry hợp lệ và còn budget?"}
+ D -->|Có| E["Bounded Backoff"]
+ E --> A
+ D -->|Không| F{"Fallback hợp lệ và còn budget?"}
+ F -->|Có| G["Alternative Provider"]
+ G --> A
+ F -->|Không| H["Structured Failure / Checkpoint"]
+```
+Retry/fallback cùng budget; giới hạn số lần và deadline; tránh retry lồng SDK/proxy/MATHK.
+
+### 4.7. Model selection
+Chưa chốt model cụ thể. P0 connectivity; P2 LLM; P4 embedding API; P5 routing; P6 VLM; P7 freeze research config. Custom Model Gateway + OpenAI-compatible SDK + 9Router Adapter + Direct Provider Adapter khi cần.
+
 
 ## 5. Configuration & Secrets
 
