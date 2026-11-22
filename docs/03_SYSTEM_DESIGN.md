@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.14  
+**Phiên bản:** 0.15  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -3057,7 +3057,208 @@ Interface separation; Gradio Blocks; Python Facade; CLI/Benchmark Runner; Studen
 
 ## 15. Evaluation & Observability
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** FR10, NFR07–08, RAC01–15. Dataset, hypothesis và thống kê chi tiết chốt ở tài liệu Research/Evaluation.
+
+### 15.1. Objectives
+Evaluation đo chất lượng, correction, chi phí; Observability truy vết nguyên nhân và tài nguyên.
+
+### 15.2. Architecture
+M19 Benchmark Runner, M20 Evaluator, M21 Tracer. Ground Truth không vào Engine.
+```mermaid
+flowchart TD
+ D["Dataset"] --> B["Benchmark Runner"]
+ C["Config"] --> B
+ B --> E["Engine"]
+ E --> S["SolveResult"]
+ E --> T["Tracer"]
+ S --> V["Evaluator"]
+ D -->|"Ground Truth"| V
+ V --> A["Aggregator"]
+ T --> A
+ A --> R["Reports and JSON CSV"]
+```
+
+### 15.3. Levels
+EL01 Component; EL02 Pipeline; EL03 End-to-End; EL04 Research comparisons.
+
+### 15.4. Dataset
+Grade 6–9, domain, difficulty, modality text/image/mixed, answer type, sufficiency complete/insufficient/contradictory/ambiguous, requirements knowledge/tools/multi-step/visual. Multi-label; chưa chốt nguồn, số lượng, phân bố.
+```mermaid
+flowchart TD
+ D["Benchmark"] --> A["Domain and Grade"]
+ D --> B["Modality"]
+ D --> C["Difficulty"]
+ D --> E["Sufficiency"]
+ D --> F["Reasoning Requirements"]
+```
+
+### 15.5. Split
+Development dùng điều chỉnh prompt/routing/retrieval/tools/budget; freeze trước held-out test. Group near-duplicates/templates trước split khi phù hợp; chưa chốt tỷ lệ.
+```mermaid
+flowchart LR
+ D["Development"] --> F["Freeze Config"]
+ F --> T["Held-out Test"]
+```
+
+### 15.6. Config
+Experiment ID/name, agent/routing strategy, tool/retrieval/verification/correction/uncertainty toggles, pinned model and fallback policy, dataset version/split, checkpoint/trace, prompt/KB/index/version/budget/git commit. YAML/Pydantic; chưa chốt schema.
+
+### 15.7. Baseline and Ablation
+Baseline đối chứng; ablation thay hoặc bỏ thành phần để đo đóng góp. Direct LLM, single agent, static multi-agent, adaptive; full vs without tools/RAG/correction là ví dụ. Không giả định cải thiện; safety không bị bypass.
+
+### 15.8. Groups
+| ID | Comparison |
+|---|---|
+| EG01 | Single vs Multi-Agent |
+| EG02 | Symbolic tools on/off; NS variants |
+| EG03 | No/static/agentic RAG |
+| EG04 | VC01–06 verification/correction |
+| EG05 | RS01–04 routing |
+| EG06 | MM01–04 multimodal |
+| EG07 | UH01–03 uncertainty |
+Ưu tiên phân tích EG04/05; novelty chưa xác minh. Shared engine, registry và config.
+```mermaid
+flowchart TD
+ C["Experiment Config"] --> R["Registry"]
+ R --> A["Agent and Routing"]
+ R --> B["Retrieval and Tools"]
+ R --> V["Verification and Uncertainty"]
+ A --> E["Shared Engine"]
+ B --> E
+ V --> E
+```
+
+### 15.9. Fair Comparison
+EP01 same suitable problems; EP02 same model unless variable; EP03 same tools unless variable; EP04 same KB for retrieval strategy; EP05 comparable budget where relevant; EP06 actual model/retries/fallback; EP07 no ground truth leakage; EP08 no arbitrary exclusion; EP09 no test tuning; EP10 report limitations/cost. Routing: quality under common budget and actual usage; missing proxy metadata explicit.
+
+### 15.10. Metrics
+| Group | Candidates |
+|---|---|
+| MG01 Mathematical | Answer Accuracy, Solution/Step Correctness, Completeness |
+| MG02 Multimodal | Fact Accuracy, Entity/Relation F1, Visual Hallucination Rate, Formula Exact Match, Re-perception Success |
+| MG03 Retrieval | Recall/Precision@K, MRR, nDCG, Applicability/Theorem/Citation Accuracy |
+| MG04 Tools | Selection Accuracy, Execution Success, Parameter Validity, computational accuracy/domain preservation |
+| MG05 Verification | Detection F1, Localization, Correction Success, Error Introduction, Accuracy Gain |
+| MG06 Routing | Agent/LLM calls, unnecessary calls by rubric, quality-cost |
+| MG07 Uncertainty | Detection F1, Action Accuracy, Clarification Success, False Abstention, Unsupported Answer, Coverage/Selective Accuracy |
+| MG08 Efficiency | Latency, tokens, estimated cost, sampled peak RAM, technical failure |
+Chọn metric theo experiment, định nghĩa mẫu số ở Evaluation.
+
+### 15.11. Answer Evaluation
+Normalize numeric, expression, set, units; compare exact/symbolic or tolerance phù hợp đề; preserve domain (x/x=1 only x!=0); incomplete set không đúng đầy đủ. Proof/rationale rubric. Undetermined chuyển review, không tự đánh sai.
+```mermaid
+flowchart TD
+ P["Prediction and Ground Truth"] --> N["Normalize"]
+ N --> A{"Answer Type"}
+ A --> B["Numeric"]
+ A --> C["Domain-aware Symbolic"]
+ A --> D["Set Comparison"]
+ A --> E["Proof Rubric"]
+ B --> R["Evaluation Record"]
+ C --> R
+ D --> R
+ E --> R
+```
+
+### 15.12. Solution Rubric
+Ứng viên 5 tiêu chí 0–2: dữ kiện, kiến thức, lập luận, tính toán, đầy đủ; tổng 10. Đáp án đúng không đủ chứng minh lời giải đúng. Critical errors riêng, không bù bằng trình bày; rubric/NA/threshold chốt trước test.
+
+### 15.13. Methods
+Deterministic/symbolic/human rubric P0; LLM judge P1, audit và agreement với human, version model/rubric, cost judge riêng.
+```mermaid
+flowchart TD
+ A["Evaluation Task"] --> B{"Deterministic Applicable?"}
+ B -->|Yes| C["Deterministic or Symbolic"]
+ B -->|No| D{"Judge Enabled?"}
+ D -->|Yes| E["LLM-assisted Rubric"]
+ D -->|No| F["Human Evaluation"]
+ E --> G["Audit"]
+ C --> R["Record"]
+ F --> R
+ G --> R
+```
+
+### 15.14. Quality-Cost
+Accuracy vs calls/tokens/latency/cost, Pareto frontier (không bị cấu hình khác dominate trên các objective đã chọn). Không cần accuracy cao nhất nếu chất lượng tương đương và tài nguyên thấp hơn; không kết luận trước đo.
+
+### 15.15. Correction
+Correction Success = wrong-to-right / initially wrong; Error Introduction = right-to-wrong / initially right; gain điểm phần trăm. Ví dụ giả lập 60/100 đúng, sửa 50% số sai, hỏng 10% số đúng => 74/100, +14 pp. Undefined nếu mẫu số 0; cùng initial candidates khi so sánh.
+
+### 15.16. Benchmark Lifecycle
+```mermaid
+flowchart TD
+ A["Load Config"] --> B["Validate Versions"]
+ B --> C["Load Dataset and Checkpoint"]
+ C --> D["Pending Problem"]
+ D --> E["Execute Engine"]
+ E --> F["Persist Raw Result"]
+ F --> G["Evaluate"]
+ G --> H["Save Metrics and Checkpoint"]
+ H --> I{"More Pending?"}
+ I -->|Yes| D
+ I -->|No| J["Aggregate and Export"]
+```
+PENDING/RUNNING/COMPLETED/FAILED/SKIPPED with reason; execution status khác evaluation status. Sai toán không đồng nghĩa technical failure; clarify đúng với đề thiếu dữ kiện không phải failure. Resume theo version/operation ID; giữ raw result để đánh giá lại.
+
+### 15.17. Observability
+Logs, metrics, traces; Python logging/JSONL/SQLite, không distributed monitoring mặc định.
+```mermaid
+flowchart TD
+ A["Agents and Router"] --> T["Tracer"]
+ M["Model Gateway and Tools"] --> T
+ K["Retrieval and Verification"] --> T
+ U["Uncertainty"] --> T
+ T --> J["JSONL Events"]
+ T --> S["SQLite Summary"]
+ J --> E["Error Analysis"]
+ S --> R["Reports"]
+```
+
+### 15.18. Structured Event
+event_id, run_id, trace_id, type, component, status, duration_ms, state_version, timestamp, sequence, parent/span, attempt ID, metadata theo event. Tool completion ví dụ solve_equation 18ms chỉ minh họa. Observable events, không private CoT; redaction.
+
+### 15.19. Trace Visualization
+Timeline agent/tool/retrieval/router, correction và reverification; latency, lỗi và kết quả theo dependency.
+```mermaid
+sequenceDiagram
+ participant R as Reasoner
+ participant V as Verifier
+ participant O as Orchestrator
+ R-->>O: Candidate
+ O->>V: Verify
+ V-->>O: Error feedback
+ O->>R: Correct affected steps
+ R-->>O: Updated candidate
+ O->>V: Reverify
+```
+
+### 15.20. Resource Measurement
+Gateway calls and actual provider identity/usage metadata; estimated cost theo pricing version; monotonic clock E2E/agent/tool latency; psutil sampled RAM/CPU; retry/fallback counts. Proxy requests khác upstream calls. Unknown/estimated explicit; free cost không đồng nghĩa không token/quota.
+
+### 15.21. Error Analysis
+Primary root cause + secondary labels/evidence/trace: perception, planning, knowledge, reasoning, computation, uncertainty, technical. AB3 đọc thành AB8 là lỗi perception gốc dù công thức/tính toán sau đúng.
+
+### 15.22. Reproducibility
+Git commit, dependency/environment, dataset/KB/index/prompt versions, actual model, config, seed nếu supported, time, raw results, evaluator version, provider limitations. Không đảm bảo deterministic; giữ raw records và version evaluation mới khi sửa evaluator.
+```mermaid
+flowchart TD
+ E["Experiment Run"] --> C["Git and Environment"]
+ E --> D["Dataset and KB Index"]
+ E --> P["Prompt and Model"]
+ E --> S["Config and Seed"]
+ E --> R["Raw Results"]
+ E --> V["Evaluator Version"]
+```
+
+### 15.23. Stack
+Python, SymPy, pandas/NumPy, SciPy optional, Matplotlib, logging, JSONL, SQLite, psutil, YAML/Pydantic, JSON/CSV. Judge P1; LangSmith/Langfuse optional later.
+
+### 15.24. Learning by Building
+Phase 0–1 pytest/logging/tools; Phase 2 small single-agent baseline; Phase 3 agent/state/routing traces; Phase 4 retrieval metrics; Phase 5 verification/correction; Phase 6 visual/uncertainty/E2E; Phase 7 freeze, benchmark/ablation/statistics/error analysis. Evaluate từ đầu.
+
+### 15.25. Decisions
+Separate evaluation; EL01–04, development/held-out, config-driven EG01–07, EP01–10, MG01–08, deterministic/symbolic/human, judge P1, quality-cost, resumable benchmark, structured observability, root cause analysis, versioned records. Không external monitoring bắt buộc.
+
 
 ## 16. Security, Reliability & Resource Management
 
