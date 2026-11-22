@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.4
+**Phiên bản:** 0.5
 
 **Trạng thái:** Đang thảo luận
 
@@ -67,7 +67,7 @@ __init__.py: package/public API; __main__.py: entry point; config.py: configurat
 | 4 RAG | knowledge, data/knowledge, data/runtime/indexes, labs/phase_04 |
 | 5 Verification | verification, uncertainty, labs/phase_05 |
 | 6 Multimodal | multimodal, interfaces, data/runtime/assets, labs/phase_06 |
-| 7 Research | experiments, data/datasets, data/experiments, tests/system, labs/phase_07 |
+| 7 Research | experiments, data/datasets, tests/system, labs/phase_07 |
 Các package chức năng nằm trong src/mathk.
 
 ### 2.5. Mini Labs
@@ -226,7 +226,97 @@ Phase 0 imports/package/circular dependency; Phase 1 Protocol/tool contracts; Ph
 
 ## 5. Configuration & Data Organization
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 5.1. Configuration-driven Architecture
+Thay đổi hành vi qua config đã validate, không hard-code; hỗ trợ ablation cùng codebase.
+
+### 5.2. Configuration Structure
+```text
+configs/
+  default.yaml
+  models/{free,research}.yaml
+  routing/{static,adaptive}.yaml
+  profiles/{lightweight,standard,research}.yaml
+```
+Phase 0 chỉ default.yaml; bổ sung dần, không Hydra MVP.
+
+### 5.3. Loading
+```mermaid
+flowchart TD
+ A["Defaults"] --> L["Loader"]
+ B["Selected profiles"] --> L
+ C["Environment variables"] --> L
+ D["Explicit overrides"] --> L
+ L --> V["Pydantic Validation"]
+ V -->|Valid| R["Runtime config"]
+ V -->|Invalid| E["Configuration error"]
+ R --> K["Composition Root"]
+```
+Ưu tiên tăng dần defaults, profiles, environment, explicit overrides; chỉ cho phép override hợp lệ, không vượt guard bắt buộc.
+
+### 5.4. Typed Configuration
+Pydantic kiểm tra kiểu/range, ví dụ max_llm_calls nguyên dương, timeout_seconds dương, allow_fallback boolean. Giá trị budget thực tế chưa chốt.
+
+### 5.5. Prompt Management
+src/mathk/prompts/{perception,planner,retrieval,reasoner,verifier}/system_v1.md; version Git, template variables rõ ràng, package data khi đóng gói; không secrets/ground truth.
+```mermaid
+flowchart TD
+ P["Prompt Template"] --> C["Context Builder"]
+ S["Selected State"] --> C
+ K["Relevant Knowledge"] --> C
+ T["Authorized Tool Schemas"] --> C
+ C --> R["Model Request"]
+ R --> G["Model Gateway"]
+```
+
+### 5.6. Secrets
+.env local, .env.example placeholders; environment variables cho credentials; redact snapshot/trace, không dump env.
+
+### 5.7. Data Organization
+```text
+data/
+  knowledge/{sources,processed}/
+  datasets/{raw,processed}/
+  runtime/
+    mathk.sqlite
+    checkpoints.sqlite
+    assets/
+    indexes/
+    traces/
+```
+SQLite nghiệp vụ, checkpoint riêng, FAISS rebuildable, local assets/logs. Không DB server MVP.
+
+### 5.8. Experiment Organization
+Duy nhất experiments/ tại root, thay thế đề xuất data/experiments/.
+```text
+experiments/
+  configs/
+    baseline_direct.yaml
+    baseline_single_agent.yaml
+    static_multi_agent.yaml
+    adaptive_multi_agent.yaml
+  results/
+  exports/
+```
+Config thí nghiệm, raw results và export tách biệt; ablation RAG/tools/correction theo config, guard bắt buộc luôn duy trì.
+
+### 5.9. Git Policy
+Commit code/docs/labs/tests/prompts/sample configs/lock/manifests/kết quả tổng hợp đã kiểm tra; dataset mẫu chỉ khi nhỏ và có quyền sử dụng. Không commit secrets, .env, .venv, runtime DB/checkpoint, generated indexes, private images, raw logs, temp, dataset lớn/hạn chế, model weights lớn. DVC/Git LFS chưa cần MVP.
+
+### 5.10. Versioning
+Ghi git commit, config/prompt/dataset/KB version, actual model identity, evaluator version; manifest/checksum/metadata; không gộp cấu hình khác nhau thành cùng thí nghiệm.
+```mermaid
+flowchart TD
+ E["Experiment Run"] --> G["Git Commit"]
+ E --> C["Config Version"]
+ E --> P["Prompt Version"]
+ E --> D["Dataset Version"]
+ E --> K["KB Version"]
+ E --> M["Actual Model"]
+ E --> V["Evaluator Version"]
+```
+
 
 ## 6. Testing & Mini Lab Structure
 
