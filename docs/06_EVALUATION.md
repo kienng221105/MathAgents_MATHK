@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.2
+**Phiên bản:** 0.3
 
 **Trạng thái:** Đang thảo luận
 
@@ -51,7 +51,46 @@ Evaluation độc lập, không can thiệp quá trình giải toán; theo Syste
 
 ## 2. Benchmark Dataset Design
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 2.1. Phạm vi
+THCS lớp 6–9, tiếng Việt; số học, đại số, hình học, thống kê, xác suất; easy/medium/hard; text/image/mixed; số, biểu thức, tập nghiệm, chứng minh, tự luận; dữ kiện đầy đủ/thiếu/mâu thuẫn/mơ hồ.
+
+### 2.2. Nguồn
+Dataset công khai có giấy phép phù hợp, bài tập/đề thi THCS được phép sử dụng, tự xây dựng, tổng hợp bằng LLM có kiểm chứng đáp án và rà soát chất lượng. Lưu provenance từng mẫu; không dùng dữ liệu chưa kiểm chứng làm ground truth.
+
+### 2.3. Quy mô dự kiến
+| Tập | Số bài |
+|---|---:|
+| Smoke test | 20–30 |
+| Development | 100–200 |
+| Held-out benchmark | 300–800 |
+| Tổng dev + held-out | 400–1000 |
+Smoke test có thể lấy từ dev; quy mô là dự kiến, không phải yêu cầu cứng.
+
+### 2.4. Split
+Đề xuất dev 20%, held-out 80%, điều chỉnh theo dữ liệu thực tế. Dev tối ưu prompt/retrieval/routing/budget; freeze cấu hình trước held-out. Group near-duplicates/templates trước split để giảm leakage.
+
+### 2.5. Schema
+BenchmarkSample:
+- Identity: sample_id, source, dataset_version.
+- Input: problem_text, images.
+- Metadata: grade, topic, difficulty, modality, reasoning_requirements.
+- Ground Truth: answer, solution, required_knowledge, expected_facts, sufficiency_status, expected_action.
+Ground truth chỉ cung cấp cho evaluator, không vào agent context. Schema logic, chi tiết kiểu dữ liệu xác định khi triển khai.
+
+### 2.6. Data Quality Pipeline
+```mermaid
+flowchart LR
+ A["Thu thập"] --> B["Chuẩn hóa"]
+ B --> C["Loại trùng"]
+ C --> D["Kiểm chứng"]
+ D --> E["Gán nhãn"]
+ E --> F["Chia tập"]
+ F --> G["Versioning"]
+```
+Ưu tiên chất lượng và tính đại diện; chưa cố định phân bố chủ đề, độ khó, modality trước khảo sát nguồn.
+
 
 ## 3. Evaluation Metrics
 
