@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.9
+**Phiên bản:** 0.10
 
 **Trạng thái:** Đang thảo luận
 
@@ -388,7 +388,43 @@ P0–2 model/prompt/tool; P3–4 multi-agent/retrieval/context; P5–6 adaptive 
 
 ## 10. User & Deployment Guide
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 10.1. Mục tiêu
+Người dùng mới có thể cài đặt, sử dụng và đánh giá MATHK độc lập, không cần sửa source code.
+
+### 10.2. Phân chia
+README: Quick Start; 07_DEPLOYMENT: chiến lược; guides/USER_GUIDE.md: sử dụng; guides/TROUBLESHOOTING.md: sự cố; .env.example: mẫu biến môi trường; configs/: cấu hình.
+
+### 10.3. User Guide
+System Requirements, Installation (Python/uv), Configuration (API key/profile/budget), Quick Start, Student Mode, Research Mode (trace/verification/cost), Multimodal Input, Session Management, Benchmark Usage, Limitations.
+
+### 10.4. User Workflow
+```mermaid
+flowchart TD
+ A["Cài đặt MATHK"] --> B["Thiết lập API Key"]
+ B --> C["Chọn Runtime Profile"]
+ C --> D["Khởi chạy CLI hoặc Gradio"]
+ D --> E["Nhập bài toán"]
+ E --> F["MATHK xử lý"]
+ F --> G["Lời giải và Verification Report"]
+ G --> H["Xem kết quả"]
+ G --> I["Phân tích Execution Trace"]
+```
+Mặc định laptop 8 GB RAM, Full API Inference, Lightweight Profile.
+
+### 10.5. Troubleshooting
+Invalid API Key, rate limit/quota, model capability, RAM cao, index không tương thích, budget exhausted, interrupted execution, verification failed, installation failed. Mỗi mục: triệu chứng → nguyên nhân có thể → kiểm tra → xử lý; không vượt guard/budget.
+
+### 10.6. Trực quan
+Ảnh Gradio thực tế, Mermaid, ví dụ input/output, CLI/config, video demo ngắn MVP C/D. Không dùng minh họa làm bằng chứng tính năng hoàn thành.
+
+### 10.7. Ownership
+ChatGPT thiết kế/review/nghiệm thu; Codex xác minh lệnh và viết hướng dẫn theo implementation; Owner kiểm tra usability.
+
+### 10.8. Acceptance
+Người mới tái dựng môi trường, cấu hình API, chạy bài mẫu, đọc kết quả, xử lý lỗi phổ biến không sửa source. Local-first, đơn giản, tái lập, bám implementation thực tế.
+
 
 ## 11. Context & Progress Management
 
