@@ -1,9 +1,9 @@
 # Current Status — MATHK
 
 **Ngày checkpoint:** 2026-11-22
-**Giai đoạn:** Phase 0 — Foundation (planning approved; chưa có code)
-**Milestone:** P0-01 Engineering ACCEPTED; Learning Gate pending
-**Active Task:** P0-01 chờ Owner Learning Gate; P0-02 chưa giao
+**Giai đoạn:** Phase 0 — Foundation (P0-01 completed)
+**Milestone:** P0-01 COMPLETED (Engineering + Learning + Checkpoint)
+**Active Task:** Không có task Codex đang chạy; P0-02 chưa giao
 **Latest Verified Implementation Commit:** bdb0c45d6dbb631eed00a87a032c69a6a7d415f9 (P0-01, 11 file đã source review)
 **Latest Document Checkpoint:** Xem GitHub main và [Task Board](../management/TASK_BOARD.md)
 
@@ -15,8 +15,8 @@
 - P0-01 đã có package Python Foundation, CLI, uv.lock và hai mini labs; source review PASS, các lệnh chạy PASS theo báo cáo Codex. Chưa có tests/CI chính thức, benchmark hoặc kết quả thực nghiệm.
 
 ## Learning Progress
-- 73 Mini Labs / 40 competencies là kế hoạch theo Implementation; chưa ghi nhận mức L1–L4 hoặc lab đã hoàn thành.
-- Trước khi giao task Phase 0, thống nhất mục tiêu học và evidence; không tự đánh dấu đã đạt.
+- P0-L01/L02: Learning Gate L2 cơ bản được Technical Lead chấp nhận qua hỏi đáp: src-layout/import path, uv lock + uv sync --locked, thay formatter qua tham số hàm. Ban đầu có hiểu nhầm, đã sửa được qua kiểm tra lại; chưa chứng minh thành thạo toàn Phase 0.
+- 73 Mini Labs / 40 competencies là tổng kế hoạch; các lab P0-L03 trở đi chưa được nghiệm thu.
 
 ## Decisions and Risks
 - [Decision Log](../management/DECISION_LOG.md): kiến trúc, vai trò, MVP, ground truth isolation.
@@ -24,11 +24,11 @@
 - Chưa kiểm chứng hiệu quả mô hình, chi phí API thực tế, visual quality 227 SVG.
 
 ## Next Action
-1. Owner trả lời câu hỏi Learning Gate P0-L01/L02; Technical Lead đánh giá và lưu evidence.
-2. Nếu đạt, cập nhật P0-01 COMPLETED; chuẩn bị P0-02, chưa tự giao task mới.
+1. Chuẩn bị task prompt ngắn gọn cho P0-02 theo baseline, bắt đầu bằng kiểm tra Git/pull an toàn.
+2. Owner duyệt/giao P0-02; Codex thực hiện và báo cáo.
 3. Cài uv/Python 3.12 ở môi trường của Owner nếu muốn tự chạy lab.
 
 ## Relevant Context
 [AGENTS](../../AGENTS.md) · [Workflow](../management/WORKFLOW.md) · [Task Board](../management/TASK_BOARD.md) · [Traceability](../management/TRACEABILITY_MATRIX.md)
 
-**Checkpoint:** P0-01 Engineering ACCEPTED theo source review commit bdb0c45 và báo cáo Codex; chờ Learning Gate trước khi COMPLETED.
+**Checkpoint:** P0-01 COMPLETED: source review commit bdb0c45, lệnh PASS theo báo cáo Codex, Learning Gate L2 cơ bản qua hỏi đáp, trạng thái đã ghi nhận trên GitHub.
