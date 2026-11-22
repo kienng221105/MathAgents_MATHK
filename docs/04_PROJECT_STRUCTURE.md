@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.3
+**Phiên bản:** 0.4
 
 **Trạng thái:** Đang thảo luận
 
@@ -155,7 +155,74 @@ Chỉ tạo BaseAgent khi có hành vi chung cần tái sử dụng; không tác
 
 ## 4. Dependency Rules
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 4.1. Loose Coupling
+Agent phụ thuộc contract Model Gateway, Tool và Capability, không phụ thuộc SDK/provider/SQLite trực tiếp.
+
+### 4.2. Dependency Inversion
+Lightweight Hexagonal; ưu tiên typing.Protocol khi thực sự cần abstraction.
+```mermaid
+flowchart TD
+ A["Reasoner Agent"] --> P["Model Gateway Protocol"]
+ R["9Router Adapter"] -.-> P
+ D["Direct Adapter"] -.-> P
+ M["Mock Model"] -.-> P
+```
+
+### 4.3. Dependency Injection
+Constructor Injection bằng Python; truyền implementation từ ngoài, hỗ trợ fake/mock không gọi API. Không DI framework MVP.
+
+### 4.4. Composition Root
+bootstrap.py tạo khi cần lắp ráp nhiều dependency. Đọc config, khởi tạo gateway, registry, repositories, agents, engine; CLI/Gradio/benchmark dùng engine.
+```mermaid
+flowchart TD
+ C["Configuration"] --> B["Composition Root"]
+ B --> M["Model Gateway"]
+ B --> T["Tool Registry"]
+ B --> R["Repositories"]
+ M --> A["Agents"]
+ T --> A
+ A --> E["Engine"]
+ R --> E
+ E --> I["CLI Gradio Benchmark"]
+```
+
+### 4.5. Dependency Rules
+| Package | Allowed dependencies |
+|---|---|
+| domain | Python, Pydantic, necessary data types |
+| application | domain, engine contracts |
+| orchestration | domain, agent/capability/service contracts |
+| agents | domain, model/tool/capability contracts |
+| tools | domain, math libraries |
+| knowledge | domain, retrieval/index/storage contracts |
+| verification | domain, mathematical tool contracts |
+| uncertainty | domain |
+| multimodal | domain, image libraries |
+| infrastructure | implemented contracts, external libraries |
+| interfaces | Application API, public contracts |
+| evaluation | Application API, domain, evaluation contracts |
+Contracts gần consumer hoặc package có trách nhiệm phù hợp. Composition root kết nối concrete implementations.
+
+### 4.6. Forbidden dependencies
+Domain không phụ thuộc UI; agent không gọi agent khác trực tiếp, không SDK/SQLite trực tiếp, không arbitrary tool execution; engine không ground truth; core không labs. Tuân thủ AR01–08 và guard/registry.
+
+### 4.7. Circular Dependency
+Agent trả AgentResult/ActionRequest có cấu trúc; orchestration quyết định bước tiếp theo. Không import ngược orchestration từ agent.
+```mermaid
+flowchart TD
+ O["Orchestration"] --> A["Agents"]
+ O --> D["Domain Contracts"]
+ A --> D
+```
+
+### 4.8. Testing
+Unit fake/mock; routing fake agents; guardrail simulated requests; integration fake hoặc controlled API; E2E integrated system; research pinned model. Không cần API thật trong mọi test.
+
+### 4.9. Mini Labs
+Phase 0 imports/package/circular dependency; Phase 1 Protocol/tool contracts; Phase 2 constructor injection thật/fake; Phase 3 composition/orchestration/router/guard tests.
+
 
 ## 5. Configuration & Data Organization
 
