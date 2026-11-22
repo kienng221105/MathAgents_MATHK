@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.9
+**Phiên bản:** 0.10
 
 **Trạng thái:** Đang thảo luận
 
@@ -374,7 +374,41 @@ Local-first, phát hành/triển khai chủ động; không Jenkins/Kubernetes/M
 
 ## 9. Monitoring & Maintenance
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 9.1. Monitoring Objectives
+MO01 Resource (RAM/CPU/disk); MO02 Model (ID/provider/tokens); MO03 Cost (chi phí/quota/budget); MO04 Performance (latency/throughput); MO05 Agent (routing/calls/state); MO06 Reliability (errors/retry/fallback); MO07 Quality (verification/correction/uncertainty); MO08 Storage (DB/index/checkpoint).
+
+### 9.2. Architecture
+```mermaid
+flowchart TD
+ A["MATHK Runtime"] --> B["Trace Collector"]
+ C["Model Gateway"] --> B
+ D["Resource Monitor"] --> B
+ E["Execution Guard"] --> B
+ B --> F["JSONL / SQLite"]
+ F --> G["CLI Trace"]
+ F --> H["Gradio Research Panel"]
+ F --> I["Evaluation Framework"]
+ C --> J["9Router Monitoring"]
+```
+9Router bổ sung giám sát API nếu hỗ trợ; MATHK tự giám sát agent/reasoning/verification/resource.
+
+### 9.3. Stack
+Python logging, psutil, JSONL, SQLite, 9Router tùy khả năng, Gradio, pandas/Matplotlib. Không Prometheus/Grafana/LangSmith/Langfuse trong MVP.
+
+### 9.4. Research Dashboard
+Hiển thị application RAM, latency, total tokens, estimated API cost, execution trace theo agent và verification status hợp lệ. Không coi số liệu minh họa là benchmark thực tế.
+
+### 9.5. Runtime Protection
+Vượt RAM: giảm tải/checkpoint/dừng an toàn; hết quota: fallback hợp lệ hoặc dừng; hết budget: guard chặn tác vụ tiếp theo; agent loop: bounded execution; index không tương thích: từ chối và yêu cầu rebuild; checkpoint lỗi: kiểm tra/phục hồi/báo lỗi. Ngưỡng hiệu năng xác định qua thực nghiệm.
+
+### 9.6. Maintenance
+Kiểm tra provider khi model/endpoint đổi; cập nhật dependencies có kiểm soát và regression test; backup DB/kết quả; dọn logs/cache/temp; rebuild index khi cần; cập nhật docs/learning checkpoint.
+
+### 9.7. Principles
+Lightweight Local Observability; không ghi secrets, hạn chế overhead và đo ảnh hưởng tới benchmark; chi phí chưa xác định ghi unknown, không mặc định 0. Không phụ thuộc nền tảng monitoring bên ngoài.
+
 
 ## 10. Deployment Checklist
 
