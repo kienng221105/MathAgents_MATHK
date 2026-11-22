@@ -1,0 +1,5 @@
+# Example values for Foundation exercises, not approved operational budgets.
+model: example-model
+timeout_seconds: 30
+max_llm_calls: 4
+allow_fallback: false

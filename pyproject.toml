@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "MATHK Python foundation"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = ["pydantic>=2.10,<3", "pyyaml>=6,<7"]
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
 
 [build-system]
 requires = ["hatchling>=1.26,<2"]
