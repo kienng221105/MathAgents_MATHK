@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 
 **Trạng thái:** Đã phê duyệt
 
@@ -90,6 +90,7 @@ MathAgents_MATHK/
 │   ├── management/
 │   │   ├── WORKFLOW.md
 │   │   ├── TASK_BOARD.md
+│   │   ├── TRACEABILITY_MATRIX.md
 │   │   └── DECISION_LOG.md
 │   ├── progress/
 │   │   ├── CURRENT_STATUS.md
@@ -525,3 +526,6 @@ Nội dung duyệt, đồng bộ tài liệu liên quan, sơ đồ cần thiết
 ### 12.9. Bước tiếp theo
 Cross-document audit (02 Research vẫn tạm hoãn), khởi tạo AGENTS.md, WORKFLOW.md, TASK_BOARD.md, DECISION_LOG.md, CURRENT_STATUS.md; chốt planning baseline; Phase 0 Foundation.
 
+
+### 12.10. Traceability Matrix — AUD-005
+Owner đã duyệt docs/management/TRACEABILITY_MATRIX.md: theo dõi toàn bộ 259 FR/NFR/BR, module, phase, task, test và evidence; ánh xạ ban đầu cấp nhóm, tinh chỉnh từng ID theo task, không coi PLANNED là coverage đã kiểm chứng. ChatGPT quản lý, Codex bổ sung trong scope. MVP C hoàn thiện P0 chức năng engine; MVP D hoàn thiện P0 benchmark/nghiên cứu. Chỉ Evaluator tiếp nhận ground truth.
