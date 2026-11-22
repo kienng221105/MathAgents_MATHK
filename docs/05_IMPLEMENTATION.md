@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.2
+**Phiên bản:** 0.3
 
 **Trạng thái:** Đang thảo luận
 
@@ -71,11 +71,116 @@ L0 chưa biết; L1 giải thích; L2 đọc hiểu/dự đoán/thực nghiệm;
 
 ## 2. Kiến thức tiên quyết
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+Nền tảng Python, ML, NLP/retrieval, API, SQL, Git và thiết kế hệ thống đã có kinh nghiệm ban đầu; chưa đánh giá chính thức. Không học lại từ đầu nếu vượt qua kiểm tra.
+- A: kiểm tra nhanh Python/OOP/NumPy/SQL/Git/JSON/ML bằng đọc hiểu, dự đoán, thực nghiệm/debug, quyết định kỹ thuật; không bắt buộc tự viết class/function.
+- B: Phase 0 packaging, uv, type hints, Pydantic, pytest, YAML/env, CI; Coding Agent hỗ trợ.
+- C: Just-in-time: P1 SymPy/exact arithmetic/parser/Protocol/property tests; P2 API/prompt/structured output/DI/agent loop; P3 graph/state/LangGraph/guard/SQLite/SQLAlchemy/checkpoint; P4 BM25/dense/embedding/FAISS/RRF/agentic retrieval; P5 verification/DAG/correction/uncertainty/routing; P6 image/Pillow/VLM/fusion/Gradio; P7 metrics/experiment/ablation/statistics/reproducibility.
+- D: chưa cần Kubernetes, broker, distributed agents, training/fine-tuning LLM, microservices nâng cao, toàn bộ SOLID/patterns hoặc Docker nâng cao.
+Lab từ vấn đề nhỏ đến framework rồi MATHK; ví dụ Pydantic: dữ liệu tuổi âm → validation thủ công → BaseModel/Field → Product schema và test → ProblemInput. AI tạo code, người học phân tích kết quả.
+```mermaid
+flowchart TD
+ P["Python"] --> T["Type Hints"]
+ T --> V["Pydantic"]
+ V --> S["Structured Output"]
+ V --> C["Tool Schema"]
+ A["LLM API"] --> S
+ S --> L["Agent Loop"]
+ C --> L
+ V --> ST["Shared State"]
+ L --> O["Orchestration"]
+ ST --> O
+ O --> G["LangGraph"]
+ G --> R["Adaptive Routing"]
+```
+
 
 ## 3. AI Agent Competency Matrix
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+Mở rộng thành AI Systems Engineering Competency Matrix: 40 năng lực, 8 nhóm. Các mức là mục tiêu, không phải năng lực đã đạt.
+
+### 3.1. System Architecture
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| SYS01 | System Decomposition | 0–3 | L4 | Phân rã module |
+| SYS02 | Architecture Trade-offs | 2–3 | L4 | Direct/single/multi-agent và workflow xác định |
+| SYS03 | Interface & Data Contracts | 0–2 | L3 | Hợp đồng dữ liệu |
+| SYS04 | Dependency Management | 1–3 | L3 | Coupling, inversion, provider |
+| SYS05 | Execution Architecture | 3 | L4 | Control/execution/infrastructure |
+
+### 3.2. Model Engineering
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| MOD01 | LLM Fundamentals | 2 | L3 | Token, context, inference, giới hạn |
+| MOD02 | Model Selection | 2–6 | L4 | Chất lượng theo nhiệm vụ và chi phí |
+| MOD03 | Model Gateway | 0–2 | L3 | Chuẩn hóa provider |
+| MOD04 | Prompt Engineering | 2–7 | L3 | Prompt tiếng Việt và evaluation |
+| MOD05 | Structured Output | 2 | L4 | Schema adherence |
+
+### 3.3. Data Engineering
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| DAT01 | Data Quality | 4–7 | L3 | Thiếu, sai, trùng, nhất quán |
+| DAT02 | Knowledge Representation | 4 | L4 | Tri thức và điều kiện định lý |
+| DAT03 | Embedding & Retrieval | 4 | L3 | BM25, dense, FAISS |
+| DAT04 | Hybrid Retrieval | 4 | L3 | Kết hợp truy xuất |
+| DAT05 | Multimodal Data | 6 | L3 | Ảnh và text |
+
+### 3.4. Context Engineering
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| CTX01 | Context Construction | 2–4 | L4 | Chọn facts/knowledge/schema |
+| CTX02 | Context Budget | 2–5 | L4 | Phân bổ token |
+| CTX03 | Shared State & Memory | 3 | L4 | Context/state/memory/persistence |
+| CTX04 | Agentic RAG | 4 | L4 | Truy xuất theo nhu cầu |
+| CTX05 | Knowledge Applicability | 4–5 | L4 | Relevance vs applicability |
+
+### 3.5. Agent Engineering
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| AGT01 | Tool Use | 1–2 | L4 | Schema/registry/execution |
+| AGT02 | Agent Loop | 2 | L4 | Decision/action/observation |
+| AGT03 | Orchestration | 3 | L4 | Multi-agent workflow |
+| AGT04 | State Graph & LangGraph | 3 | L3 | Nodes/edges/state/transitions |
+| AGT05 | Adaptive Routing | 3–5 | L4 | Difficulty/state/budget/verification |
+
+### 3.6. Cost & Performance
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| OPT01 | Token Optimization | 2–5 | L4 | Giảm token, đo quality |
+| OPT02 | Model Routing | 2–5 | L4 | Model theo nhiệm vụ |
+| OPT03 | Execution Budget | 2–5 | L4 | Calls/tokens/retries/time |
+| OPT04 | Latency & Resource Optimization | 3–7 | L3 | Bottleneck/RAM/concurrency/cache |
+| OPT05 | Pareto Analysis | 5–7 | L4 | Quality/cost/speed |
+
+### 3.7. Reliability & Safety
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| REL01 | Guardrails | 1–3 | L4 | Permission/input/action |
+| REL02 | Failure Handling | 2–3 | L3 | Bounded retry/timeout/fallback/stop |
+| REL03 | Checkpointing | 3 | L3 | Resume đúng phiên bản |
+| REL04 | Verification & Correction | 5 | L4 | Kiểm chứng và sửa có kiểm soát |
+| REL05 | Uncertainty Management | 5–6 | L4 | Thiếu/mâu thuẫn/giới hạn |
+
+### 3.8. Evaluation & Research
+| ID | Năng lực | Phase | Mục tiêu | Nội dung |
+|---|---|---|---|---|
+| EVA01 | Evaluation Metrics | 2–7 | L4 | Quality/resources/reliability |
+| EVA02 | Benchmark Design | 2–7 | L4 | Đại diện, tránh leakage |
+| EVA03 | Controlled Experiments | 2–7 | L4 | Baseline/ablation công bằng |
+| EVA04 | Error Analysis | 3–7 | L4 | Lỗi gốc và lan truyền |
+| EVA05 | Reproducibility | 0–7 | L3 | Version/config/results |
+
+### 3.9. Minh chứng và tiêu chí
+L0 chưa biết; L1 giải thích nguyên lý; L2 đọc hiểu lab, dự đoán và giải thích thực nghiệm; L3 thiết kế, đặc tả, delegate, review/test; L4 so sánh phương án, trade-off, debug và chuyển giao. Không bắt buộc tự gõ code. Năng lực xuyên suốt: đặc tả Coding Agent, đọc hiểu, review kiến trúc, debugging, testing.
+Ví dụ MOD02: hiểu khả năng LLM → cùng tập đề nhỏ → schema success → chất lượng theo nhiệm vụ → token/latency/cost → phân bổ model cho MATHK. Phân tích lỗi phân tuyến, overhead router, retry/fallback, chi phí model và ngưỡng quality; số liệu minh họa không phải kết quả thực tế.
+Mỗi lab có vấn đề, nguyên lý, sơ đồ, code AI tạo, thí nghiệm, câu hỏi phân tích, ứng dụng MATHK. Ánh xạ lab/chức năng/minh chứng chi tiết ở từng phase.
+Ngoài phạm vi MVP: LLM training/fine-tuning quy mô lớn, distributed inference, MCP/A2A, production MLOps nâng cao.
+
+
 
 ## 4. Phase 0 — Foundation
 
