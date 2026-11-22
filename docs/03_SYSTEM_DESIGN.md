@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.11  
+**Phiên bản:** 0.12  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -2585,7 +2585,149 @@ Một Verifier, Hybrid Verification V1–V5, VE01–08, structured report, depen
 
 ## 12. Uncertainty Handling
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** FR08.
+
+### 12.1. Mục đích
+Không tự bổ sung dữ kiện. Tam giác AB=3, AC=4 chưa xác định duy nhất BC nếu thiếu góc A hoặc điều kiện tương đương. BC=sqrt(25-24*cos(A)); nếu A=90 độ thì BC=5, chỉ là kết luận có điều kiện.
+
+### 12.2. Classification
+| ID | Type |
+|---|---|
+| UC01 | Input Uncertainty |
+| UC02 | Semantic Ambiguity |
+| UC03 | Insufficient Data |
+| UC04 | Contradictory Data |
+| UC05 | Reasoning Uncertainty |
+| UC06 | Verification Uncertainty |
+
+Phân biệt vấn đề đầu vào/bài toán (UC01–04) và giới hạn hệ thống (UC05–06). Vô nghiệm đã xác lập khác thiếu dữ kiện, mâu thuẫn hoặc solver không tìm được nghiệm.
+```mermaid
+flowchart TD
+ U["Uncertainty"] --> P["Input and problem"]
+ U --> S["System limitations"]
+ P --> A["UC01 Input"]
+ P --> B["UC02 Semantic"]
+ P --> C["UC03 Insufficient"]
+ P --> D["UC04 Contradictory"]
+ S --> E["UC05 Reasoning"]
+ S --> F["UC06 Verification"]
+```
+
+### 12.3. Architecture
+Chọn Centralized Uncertainty Manager M13 thay vì mỗi Agent tự quyết hoặc Agent độc lập thứ sáu. Nhận tín hiệu thông qua cập nhật state được kiểm soát, tổng hợp ST09, Router đề xuất, Guard kiểm tra, Orchestrator thực thi.
+```mermaid
+flowchart TD
+ A["AG01 Perception"] --> U["Uncertainty Manager"]
+ B["AG02 Planner"] --> U
+ C["AG03 Retrieval"] --> U
+ D["AG04 Reasoner"] --> U
+ E["AG05 Verifier"] --> U
+ T["Tools"] --> U
+ U --> S["ST09 via State Manager"]
+ S --> R["Adaptive Router"]
+ R --> G["Execution Guard"]
+ G --> O["Orchestrator"]
+```
+
+### 12.4. Evidence-based Hybrid Detection
+Deterministic rules (dữ kiện, điều kiện, trạng thái tool), LLM semantic assessment, component evidence. Không diễn giải confidence tự sinh là xác suất đúng. Calibration P1.
+
+### 12.5. Severity
+LOW: không ảnh hưởng mục tiêu; MEDIUM: ảnh hưởng một phần; HIGH: có thể thay đổi đáp án; BLOCKING: không đủ căn cứ tiếp tục phần cần giải. Đánh giá theo mục tiêu và DAG, không dựa trên tự tin chủ quan.
+
+### 12.6. Signal Schema
+Schema minh họa, không phải contract cuối.
+```json
+{
+ "signal_id":"US-001",
+ "source":"AG02",
+ "type":"INSUFFICIENT_DATA",
+ "severity":"BLOCKING",
+ "description":"Chưa xác định được góc A",
+ "affected_objectives":["calculate_BC"],
+ "missing_information":["angle_A"],
+ "evidence_refs":["F01","F02"],
+ "status":"OPEN",
+ "recommended_action":"CLARIFY"
+}
+```
+Lưu nguồn, loại, ảnh hưởng, evidence, phạm vi và hướng xử lý.
+
+### 12.7. Signal Lifecycle
+```mermaid
+stateDiagram-v2
+ [*] --> OPEN
+ OPEN --> RESOLVING
+ RESOLVING --> RESOLVED
+ RESOLVING --> OPEN
+ OPEN --> WAITING_USER
+ WAITING_USER --> RESOLVING
+ OPEN --> UNRESOLVED
+ RESOLVING --> UNRESOLVED
+ WAITING_USER --> UNRESOLVED
+ OPEN --> SUPERSEDED
+ RESOLVED --> [*]
+ UNRESOLVED --> [*]
+ SUPERSEDED --> [*]
+```
+OPEN mới phát hiện; RESOLVING đang xử lý; WAITING_USER chờ xác nhận; RESOLVED có căn cứ giải quyết; UNRESOLVED chưa giải quyết trong phiên; SUPERSEDED được thay thế. Giữ lịch sử.
+
+### 12.8. Resolution Policy
+UA01 CONTINUE nếu không ảnh hưởng; UA02 SELF_RESOLVE bằng đối chiếu, retrieval, tool, replan trong ngân sách; UA03 CLARIFY; UA04 CONDITIONAL_ANSWER; UA05 ABSTAIN.
+```mermaid
+flowchart TD
+ A["Signal"] --> B{"Affects objective?"}
+ B -->|No| C["CONTINUE"]
+ B -->|Yes| D{"Resolvable within budget?"}
+ D -->|Yes| E["SELF_RESOLVE"]
+ E --> F["Re-evaluate evidence"]
+ F --> B
+ D -->|No| G{"User can clarify?"}
+ G -->|Yes| H["CLARIFY"]
+ G -->|No| I{"Useful conditional answer?"}
+ I -->|Yes| J["CONDITIONAL_ANSWER"]
+ I -->|No| K["ABSTAIN"]
+```
+Không lặp vô hạn; chờ người dùng hoặc chọn kết luận điều kiện/abstain khi thích hợp.
+
+### 12.9. Examples
+Tam giác vuông đủ dữ kiện: CONTINUE, BC=5. Thiếu góc: CLARIFY. Cạnh 2,3,8: CLARIFY vì vi phạm bất đẳng thức tam giác. 9+16=23: SELF_RESOLVE bằng Calculator, cập nhật và kiểm chứng lại (lỗi xác lập VE04, không chỉ bất định). Lập luận quan trọng chưa kiểm chứng, hết ngân sách và thiếu căn cứ kết luận: ABSTAIN, có thể trình bày phần đã kiểm chứng.
+
+### 12.10. Human-in-the-loop
+Hỏi đúng dữ kiện chưa rõ, ví dụ AB=3 hay 8. LangGraph interrupt/resume, checkpoint; validate bổ sung, cập nhật Problem Version và invalidate phần phụ thuộc. Không cần tài khoản hay long-term memory.
+```mermaid
+flowchart TD
+ A["Processing"] --> B["Missing information"]
+ B --> C["Clarification request"]
+ C --> D["Save checkpoint"]
+ D --> E["WAITING_USER"]
+ E --> F["User response"]
+ F --> G["Validate information"]
+ G --> H{"Valid and sufficient?"}
+ H -->|No| C
+ H -->|Yes| I["Update Problem Version"]
+ I --> J["Invalidate affected steps"]
+ J --> K["Resume reasoning"]
+```
+
+### 12.11. Conditional Answer
+Explicit Assumption, provenance ASSUMPTION, kết luận gắn điều kiện, verification scope theo giả thiết, không silent assumption hay biến giả thiết thành dữ kiện gốc.
+
+### 12.12. Module Responsibilities
+Perception phát hiện ảnh không rõ; Planner thiếu điều kiện/mơ hồ mục tiêu; Retrieval thiếu tri thức; Reasoner khó suy luận; Verifier lỗi/thiếu căn cứ; Tools giới hạn toán học; M13 tổng hợp và đánh giá ảnh hưởng; Router đề xuất; Orchestrator thực thi. Cross-cutting concern.
+
+### 12.13. Evaluation
+UH01 không có module chuyên biệt; UH02 LLM-based assessment; UH03 Evidence-based Hybrid. Giữ yêu cầu an toàn bắt buộc, không ép bịa đáp án. Dataset đầy đủ, thiếu, mâu thuẫn, mơ hồ và vượt khả năng hệ thống. Metrics: Detection F1, Action Selection Accuracy, Clarification Success Rate, False Abstention Rate, Unsupported Answer Rate, Coverage, Selective Accuracy. Chốt rubric và mẫu số tại Evaluation.
+
+### 12.14. Stack
+Python M13, Pydantic v2, Python/SymPy rules, LLM qua Gateway, DAG impact analysis, rules+Router, LangGraph interrupt/resume, SQLite checkpoint, JSONL tracing. Calibration P1.
+
+### 12.15. Learning by Building
+Phase 5/6: mini lab phát hiện thiếu/mâu thuẫn, Pydantic signal, năm hành động, interrupt/resume, tổng hợp tín hiệu, integration và evaluation.
+
+### 12.16. Decisions
+Centralized M13; hybrid evidence; UC01–06; bốn severity; structured signals và lifecycle; UA01–05; dependency-aware impact; human-in-the-loop; conditional answer với giả thiết công khai; calibration P1; không Agent thứ sáu; UH01–03.
+
 
 ## 13. Data & Storage Design
 
