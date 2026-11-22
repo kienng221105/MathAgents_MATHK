@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.10  
+**Phiên bản:** 0.11  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -2441,7 +2441,147 @@ Direct functions, 9 P0 + 2 P1, exact-first/domain-aware typed results, native/JS
 
 ## 11. Verification & Self-correction
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** FR06; hiệu quả cần thực nghiệm.
+
+### 11.1. Architecture
+So sánh không kiểm chứng, kiểm chứng rồi giải lại toàn bộ, và Verification-guided Dependency-aware Self-correction (chọn). Xác định nguyên nhân, vị trí và phạm vi ảnh hưởng trước khi sửa.
+```mermaid
+flowchart TD
+ A["Reasoner"] --> B["Verifier"]
+ B --> C{"Verification outcome"}
+ C -->|Sufficient| D["Output"]
+ C -->|Error| E["Localize error"]
+ E --> F["Affected dependencies"]
+ F --> G["Correction"]
+ G --> B
+ C -->|Insufficient evidence| H["Uncertainty Handling"]
+```
+### 11.2. Verification Layers
+V1 Input: đối chiếu đề và ảnh; V2 Knowledge: định lý và điều kiện; V3 Reasoning: lập luận, tương đương và suy ra; V4 Computational: tính toán; V5 Answer: tính đúng, đầy đủ, điều kiện. Một AG05, không bắt buộc năm lời gọi LLM.
+### 11.3. Hybrid Verification
+Deterministic-first, Symbolic Verification trong phạm vi tool hỗ trợ, LLM-based Verification khi cần ngữ nghĩa. Không coi đánh giá LLM là chứng minh hình thức.
+```mermaid
+flowchart TD
+ S["Solution Candidate"] --> P["Verification Planner"]
+ P --> D["Deterministic Checks"]
+ D --> M["Symbolic Checks"]
+ M --> C{"Semantic evaluation needed?"}
+ C -->|Yes| L["LLM Verification"]
+ C -->|No| A["Aggregate Evidence"]
+ L --> A
+ A --> R["Verification Report"]
+```
+### 11.4. Error Classification
+| ID | Type | Action |
+|---|---|---|
+| VE01 | Input Error | Đối chiếu đầu vào |
+| VE02 | Knowledge Error | Truy xuất lại |
+| VE03 | Logical Error | Sửa suy luận |
+| VE04 | Computational Error | Tính lại |
+| VE05 | Domain Error | Khôi phục điều kiện |
+| VE06 | Answer Error | Sửa hoặc bổ sung đáp án |
+| VE07 | Planning Error | Replanning |
+| VE08 | Insufficient Evidence | Làm rõ hoặc báo bất định |
+
+VE08 không chứng minh lời giải sai. Có thể nhiều nhãn; ghi nguyên nhân chính và ảnh hưởng.
+### 11.5. Dependency-aware Error Localization
+Tam giác ABC vuông A, AB=3, AC=4. S01 Pythagoras; S02 tính BC² sai thành 23; S03 BC=sqrt(23); S04 chu vi 7+sqrt(23); S05 diện tích 6 độc lập với S02. Sửa S02=25, S03=5, S04=12; giữ S01/S05 nếu hợp lệ và kiểm chứng lại.
+```mermaid
+flowchart TD
+ F["Given facts"] --> S1["S01 Pythagoras"]
+ F --> S5["S05 Area = 6"]
+ S1 --> S2["S02 BC squared = 23 - Error"]
+ S2 --> S3["S03 BC = sqrt 23 - Affected"]
+ S3 --> S4["S04 Perimeter - Affected"]
+ S2 --> C["Correct S02 to 25"]
+ C --> N["Recompute S03 and S04"]
+ N --> V["Re-verify"]
+ S5 --> V
+```
+DAG theo mục 6; giữ bước không phụ thuộc nếu vẫn hợp lệ. Hiệu quả giảm chi phí là giả thuyết.
+### 11.6. Verification Report
+Schema minh họa:
+```json
+{
+ "report_id":"VR-001",
+ "problem_version":1,
+ "solution_version":1,
+ "status":"FAILED",
+ "errors":[{"type":"COMPUTATIONAL_ERROR","step_id":"S02","expected":"25","actual":"23","affected_steps":["S03","S04"],"method":"symbolic","recommended_action":"LOCAL_CORRECTION"}]
+}
+```
+Schema cuối thêm phạm vi, evidence refs, tool results, severity và phần chưa xác minh.
+### 11.7. Status
+VERIFIED: toàn bộ nội dung cần kiểm tra vượt qua kiểm tra phù hợp; PARTIALLY_VERIFIED: chỉ một phần; UNVERIFIED: chưa đủ căn cứ; FAILED: lỗi xác lập chưa sửa. Gắn phương pháp/phạm vi. Không coi VERIFIED là đảm bảo tuyệt đối. Không nâng VERIFIED nếu còn lỗi.
+### 11.8. Adaptive Correction
+| ID | Scope |
+|---|---|
+| CR01 | Recompute |
+| CR02 | Local Correction |
+| CR03 | Knowledge Correction |
+| CR04 | Replanning |
+| CR05 | Full Regeneration |
+
+Ưu tiên phạm vi nhỏ nhất đủ xử lý nguyên nhân; full regeneration khi DAG thiếu hoặc hướng giải sai căn bản. Router đề xuất, Guard/Orchestrator kiểm soát. Sai đầu vào re-perception; thiếu dữ kiện uncertainty. Cập nhật qua State Manager.
+```mermaid
+flowchart TD
+ V["Verification Report"] --> R["Adaptive Router"]
+ R --> E{"Error cause"}
+ E -->|Input| P["Targeted Re-perception"]
+ E -->|Knowledge| K["Retrieval"]
+ E -->|Computation| T["Tool"]
+ E -->|Logic| C["Local Correction"]
+ E -->|Planning| L["Replanning"]
+ E -->|Missing data| U["Uncertainty Handling"]
+ P --> S["Validated State Update"]
+ K --> S
+ T --> S
+ C --> S
+ L --> S
+ S --> N["Updated Solution"]
+ N --> W["Re-verification"]
+```
+### 11.9. Bounded Loop
+Development candidates: max_correction_rounds=2, max_replanning_rounds=1, max_targeted_reperception=1, stop_on_repeated_error=true, stop_on_budget_exceeded=true, require_reverification=true. Không phải giới hạn chính thức; tuân ngân sách tổng, bắt buộc reverify.
+```mermaid
+flowchart TD
+ S["Solution"] --> V["Verify"]
+ V --> C{"Sufficient evidence?"}
+ C -->|Yes| O["Output"]
+ C -->|No| B{"Correctable within budget?"}
+ B -->|Yes| R["Correction"]
+ R --> N["New Solution Version"]
+ N --> V
+ B -->|No| U["Safe Stop"]
+```
+### 11.10. Versioning
+Lưu lời giải cũ và report theo Problem/Solution Version; không ghi đè hoặc dùng pass cũ cho bản mới. Persistent history thay giữ toàn bộ RAM.
+```mermaid
+flowchart LR
+ A["Solution v1"] --> B["Report v1 FAILED"]
+ B --> C["Solution v2"]
+ C --> D["Report v2"]
+```
+### 11.11. Independent Verification
+P1: giải độc lập bằng phương pháp khác, ví dụ factor và công thức nghiệm cho x²-5x+6=0. Trùng đáp án không loại trừ lỗi dữ kiện chung. External user solution verification P1 theo FR06.14. Không bắt buộc formal proof engine, debate hay train verifier riêng.
+### 11.12. Evaluation
+| ID | Configuration |
+|---|---|
+| VC01 | No verification |
+| VC02 | LLM-based Verification |
+| VC03 | Hybrid Verification |
+| VC04 | Hybrid + Full Regeneration |
+| VC05 | Hybrid + Dependency-aware Correction |
+| VC06 | Hybrid + Adaptive Correction |
+
+Cùng initial solution, model, dataset và điều kiện thích hợp; no-verification chỉ baseline nghiên cứu. VC02/03 cô lập symbolic; VC04/05 phạm vi sửa; VC05/06 adaptive. Metrics: Detection F1, Localization Accuracy, Correction Success Rate (sai sang đúng trên số ban đầu sai), Error Introduction Rate (đúng sang sai trên số ban đầu đúng), Accuracy Gain, tokens, correction latency. Ví dụ giả lập 100 bài, 60 đúng ban đầu, sửa 50% bài sai và làm hỏng 10% bài đúng: 74 đúng, tăng 14 điểm phần trăm; không phải kết quả thực nghiệm.
+### 11.13. Stack
+AG05, Python/SymPy, LLM qua Model Gateway, Python DAG, Pydantic v2, LangGraph/Adaptive Router, State Manager, SQLite, JSONL, custom evaluation.
+### 11.14. Learning by Building
+Phase 5: mini lab kiểm tra nghiệm bằng SymPy; biểu diễn step IDs; DAG traversal; bounded correction loop; hybrid checks; tích hợp LangGraph/Router/State; đánh giá. Học từng phần, tự thực hành, review và test trước tích hợp.
+### 11.15. Decisions
+Một Verifier, Hybrid Verification V1–V5, VE01–08, structured report, dependency-aware localization, CR01–05, adaptive correction, bốn trạng thái, bounded loop, versioning, independent verification P1, VC01–06. Không khẳng định novelty hoặc hiệu quả trước thực nghiệm.
+
 
 ## 12. Uncertainty Handling
 
