@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.3
+**Phiên bản:** 0.4
 
 **Trạng thái:** Đang thảo luận
 
@@ -132,7 +132,42 @@ Không tạo file rỗng hàng loạt; tránh sao chép, dùng liên kết Markd
 
 ## 4. Project README
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 4.1. Mục tiêu
+Trang giới thiệu kỹ thuật và nghiên cứu cho giảng viên, nhà tuyển dụng, nhà nghiên cứu và developer; không chỉ giới thiệu ứng dụng giải toán.
+
+### 4.2. Cấu trúc
+Project Overview, Problem Statement, Research Objectives, Key Features, System Architecture, Technology Stack, Demo, Quick Start, Project Structure, Evaluation Results, Development Roadmap, Documentation, Limitations, References & License.
+
+### 4.3. Sơ đồ tổng quan
+```mermaid
+flowchart TD
+ A["Text / Image Input"] --> B["Adaptive Orchestration"]
+ B --> C["Perception Agent"]
+ B --> D["Planning Agent"]
+ B --> E["Retrieval Agent"]
+ B --> F["Reasoning Agent"]
+ B --> G["Verification Agent"]
+ E --> H["Mathematical Knowledge Base"]
+ F --> I["SymPy / Calculator"]
+ G --> I
+ G -->|Correction required| B
+ B --> J["Solution & Verification Report"]
+ B --> K["Model Gateway"]
+ K --> L["External Model APIs"]
+```
+Sơ đồ tổng quan, không quy định thứ tự thực thi cố định; các kết nối logic tuân thủ gateway/guard/interface trong System Design.
+
+### 4.4. Cập nhật theo milestone
+Phase 0: giới thiệu, mục tiêu, môi trường, roadmap. MVP A: Quick Start và ví dụ Text Solver. MVP B: Multi-Agent và Retrieval. MVP C: demo, Adaptive Routing, Verification. MVP D: benchmark, ablation, kết quả và giới hạn.
+
+### 4.5. Nguyên tắc
+Phân biệt tính năng thực tế/dự kiến; không công bố benchmark giả lập như kết quả thật, không khẳng định novelty chưa kiểm chứng. Liên kết System Design thay sao chép. Tiếng Việt, giữ thuật ngữ tiếng Anh; README_EN.md P1 khi công bố hoặc ứng tuyển.
+
+### 4.6. Ownership
+ChatGPT định hướng; Codex cập nhật lệnh/ví dụ thực tế; ChatGPT và Owner xác minh kết quả; Owner phê duyệt công bố.
+
 
 ## 5. Developer Guide
 
