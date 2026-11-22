@@ -1,10 +1,12 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 1.1
+**Phiên bản:** 1.2
 
 **Trạng thái:** Đã chốt
 
-Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design v0.16.1](03_SYSTEM_DESIGN.md).
+Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design v0.16.2](03_SYSTEM_DESIGN.md).
+
+**Đồng bộ Deployment v1.0:** Laptop mục tiêu 8 GB RAM, Full API Inference (LLM/VLM/embedding/reranker nếu dùng); BM25/FAISS, math tools, orchestration và storage chạy local. Không cần local AI model hoặc GPU; cloud thuê tạm chỉ tùy chọn. Xem [Deployment](07_DEPLOYMENT.md).
 
 ## 1. Nguyên tắc tổ chức mã nguồn
 
