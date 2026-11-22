@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.7
+**Phiên bản:** 0.8
 
 **Trạng thái:** Đang thảo luận
 
@@ -307,7 +307,44 @@ ChatGPT thiết kế bài học, giải thích, đánh giá năng lực và lưu
 
 ## 8. Architecture & API Documentation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 8.1. Phân loại
+03_SYSTEM_DESIGN: thiết kế; 04_PROJECT_STRUCTURE: cấu trúc/dependency rules; technical/API_REFERENCE.md: interface thực tế; technical/DATA_CONTRACTS.md: schema thực tế; code: implementation; tests: kiểm chứng.
+
+### 8.2. Sơ đồ
+Mermaid component, sequence, state, flowchart, ER, dependency graph; tham chiếu sơ đồ thiết kế hiện có thay vì sao chép.
+
+### 8.3. API Reference
+Python Interface chính, không mặc định REST. Mô tả Application API (solve/resume/cancel/trace), Model Gateway, Agent Contract, Math Tools, Retrieval, Verification, Persistence, Evaluation; mỗi interface nêu mục đích, input/output, ví dụ, lỗi và ràng buộc.
+
+### 8.4. Data Contracts
+```mermaid
+flowchart LR
+ A["Input Schema"] --> B["Validation"]
+ B --> C["Module Interface"]
+ C --> D["Structured Output"]
+ D --> E["Validation"]
+ E --> F["Consumer"]
+```
+Pydantic schema trong code là nguồn chính thức của hợp đồng thực tế; tài liệu giải thích ý nghĩa, cách dùng, quan hệ, không duy trì định nghĩa trùng lặp. ProblemInput, AgentResult, ToolRequest, VerificationReport, SolveResult theo phase.
+
+### 8.5. Traceability
+```mermaid
+flowchart TD
+ A["Requirement"] --> B["System Design"]
+ B --> C["Task ID"]
+ C --> D["Module / Interface"]
+ D --> E["Test Cases"]
+ E --> F["Acceptance Evidence"]
+```
+
+### 8.6. Công nghệ
+Markdown, Mermaid, Pydantic, Python docstrings, JSON Schema export khi cần; documentation website P1; chưa cần MkDocs/Sphinx/Swagger trong MVP.
+
+### 8.7. Ownership
+Codex cập nhật kỹ thuật theo code; ChatGPT review nhất quán kiến trúc/contracts/code/tests. Báo cáo sai lệch trước khi sửa baseline. Lightweight Architecture Documentation + Code-first API Contracts + Requirements Traceability.
+
 
 ## 9. Research Documentation
 
