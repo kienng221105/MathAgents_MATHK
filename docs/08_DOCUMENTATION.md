@@ -1,8 +1,8 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.11
+**Phiên bản:** 1.0
 
-**Trạng thái:** Đang thảo luận
+**Trạng thái:** Đã phê duyệt
 
 ## 1. Project Management & Agent Collaboration
 
@@ -474,4 +474,54 @@ Phân biệt đề xuất/đã duyệt/implementation; không hoàn thành thi�
 
 ## 12. Documentation Maintenance
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 12.1. Mục tiêu
+Living Documentation đồng bộ thiết kế, implementation và tiến độ.
+
+### 12.2. Chính sách cập nhật
+Yêu cầu → 01; kiến trúc → 03 và Decision Log; cấu trúc → 04; roadmap → 05; đánh giá → 06; môi trường → 07; quản lý → 08 và AGENTS.md; interface → API Reference/Data Contracts; task → Task Board/Current Status; lab → Learning Checkpoint; experiment → Experiment Log. Chỉ cập nhật tài liệu bị ảnh hưởng.
+
+### 12.3. Versioning
+v0.x thảo luận; v1.0 baseline đầu tiên; v1.1 bổ sung nhỏ; v1.1.1 sửa lỗi; v2.0 thay đổi lớn. Độc lập phiên bản phần mềm.
+
+### 12.4. Change Management
+```mermaid
+flowchart TD
+ A["Nhu cầu thay đổi"] --> B["ChatGPT phân tích tác động"]
+ B --> C["Đề xuất"]
+ C --> D{"Owner phê duyệt?"}
+ D -->|Không| E["Giữ baseline"]
+ D -->|Có| F["Decision Log"]
+ F --> G["Cập nhật tài liệu"]
+ G --> H["Giao task Codex"]
+ H --> I["Implementation và Testing"]
+ I --> J["Review nhất quán"]
+ J --> K["Commit và Checkpoint"]
+```
+Codex không tự sửa thiết kế để hợp thức hóa sai lệch.
+
+### 12.5. Quality Checklist
+- Nội dung đúng quyết định duyệt.
+- Không mâu thuẫn liên tài liệu.
+- Không trùng lặp không cần thiết.
+- Interface/schema phù hợp implementation.
+- Mermaid đúng cú pháp và luồng.
+- Lệnh cài đặt/chạy được kiểm chứng.
+- Kết quả nghiên cứu có bằng chứng.
+- Không secrets/dữ liệu nhạy cảm.
+- Liên kết hợp lệ.
+- Version/status cập nhật.
+
+### 12.6. Review
+Task-level sau task; phase-level cuối phase; milestone MVP A/B/C/D; full audit trước release/công bố.
+
+### 12.7. Ownership
+Owner phê duyệt thay đổi quan trọng; ChatGPT kiểm soát nhất quán/version/decisions/checkpoint; Codex cập nhật technical docs trong scope.
+
+### 12.8. Definition of Done
+Nội dung duyệt, đồng bộ tài liệu liên quan, sơ đồ cần thiết, commit GitHub và xác minh sau push. Các kiểm chứng phụ thuộc implementation thực hiện khi có implementation; cross-document audit và kiểm tra render còn là bước tiếp theo.
+
+### 12.9. Bước tiếp theo
+Cross-document audit (02 Research vẫn tạm hoãn), khởi tạo AGENTS.md, WORKFLOW.md, TASK_BOARD.md, DECISION_LOG.md, CURRENT_STATUS.md; chốt planning baseline; Phase 0 Foundation.
+
