@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.6  
+**Phiên bản:** 0.7  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -1338,7 +1338,313 @@ Controlled Shared State, 10 nhóm logic, validated structured updates, ownership
 
 ## 7. Adaptive Routing
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** Ánh xạ FR07.01–14; parallel execution thuộc P1. Hiệu quả và novelty cần thực nghiệm xác minh.
+
+### 7.1. Động cơ
+Routing thay đổi theo bài toán, state, verification và tài nguyên. Ví dụ 2x+6=14 có thể giải trực tiếp; chứng minh đường trung bình tam giác cần kế hoạch/tri thức; tam giác chỉ biết AB=3, AC=4 không đủ xác định BC. Không giả định vuông.
+
+
+```mermaid
+flowchart TD
+ I["Normalized Problem"] --> D{"Problem characteristics"}
+ D -->|Simple equation| R["Reasoner and SymPy"]
+ R --> V["Verifier"]
+ D -->|Geometry proof| P["Perception when needed"]
+ P --> L["Planner"]
+ L --> K["Retrieval"]
+ K --> Q["Reasoner"]
+ Q --> V
+ D -->|Missing data| U["Uncertainty Manager"]
+ U --> C["Clarification"]
+```
+
+
+### 7.2. Routing Types
+
+| ID | Type | Quyết định |
+|---|---|---|
+| RT01 | Agent Routing | Agent tiếp theo |
+| RT02 | Reasoning Level | L1/L2/L3 |
+| RT03 | Capability Routing | Retrieval hoặc tool |
+| RT04 | Model Routing | Model phù hợp |
+
+Nâng mức suy luận không bắt buộc đổi LLM.
+
+### 7.3. Routing Architecture
+
+
+```mermaid
+flowchart TD
+ S["Shared State"] --> F["Routing Feature Extractor"]
+ F --> R["Adaptive Router"]
+ C["Routing Configuration"] --> R
+ A["Agent Registry"] --> R
+ R --> P["Routing Decision"]
+ P --> G["Execution Guard"]
+ G --> V{"Valid and within budget?"}
+ V -->|Yes| O["LangGraph Orchestrator"]
+ V -->|No| B["Fallback or Safe Stop"]
+ O --> E["Agent or Deterministic Task"]
+ E --> U["Structured Update"]
+ U --> M["State Manager"]
+ M --> S
+```
+
+
+Feature Extractor lấy đặc trưng; Router đề xuất; Registry cung cấp năng lực; Guard kiểm tra; Orchestrator thực thi; State Manager cập nhật; Execution Tracing ghi quyết định và căn cứ. Không cần Supervisor Agent riêng.
+
+### 7.4. Routing Features
+
+
+```mermaid
+flowchart TD
+ P["Problem Features"] --> R["Adaptive Router"]
+ E["Execution Features"] --> R
+ K["Knowledge and Tool Features"] --> R
+ V["Verification Features"] --> R
+ B["Resource Features"] --> R
+```
+
+
+Problem: domain, task, complexity, modality, completeness. Execution: Agent đã gọi, bước hiện tại, tiến độ. Knowledge/tool: nhu cầu, applicability, capability. Verification: loại/vị trí lỗi, affected steps, status. Resource: calls, tokens, thời gian, cost, loops. Ưu tiên Python và dữ liệu Perception/Planner đã có; tránh gọi LLM trùng lặp.
+
+### 7.5. Reasoning Levels
+
+
+```mermaid
+flowchart TD
+ A["Normalized Problem"] --> L1["L1 Lightweight"]
+ A --> L2["L2 Structured"]
+ L1 --> R["Reasoner and tools when needed"]
+ L2 --> P["Planner"]
+ P --> K["Retrieval when needed"]
+ K --> R
+ R --> V["Verifier"]
+ V -->|Correction needed| L3["L3 Corrective"]
+ L3 --> C["Error analysis / replan / retrieve"]
+ C --> N["Reasoner Correction"]
+ N --> V
+ V -->|Accept or safe stop| F["Output"]
+```
+
+
+L1 trực tiếp; L2 phân rã/kế hoạch/năng lực cần thiết; L3 sửa lỗi dựa trên feedback. Có thể bắt đầu L2 hoặc L1 chuyển thẳng L3. L3 không bắt buộc giải lại toàn bài. Perception khi cần hiểu ảnh hoặc trích xuất ngữ nghĩa. L1/L2 đều kiểm chứng phù hợp.
+
+### 7.6. Routing Strategies
+
+| ID | Strategy | Cơ chế |
+|---|---|---|
+| RS01 | Static | Pipeline cố định |
+| RS02 | Rule-based | Đặc điểm đề, lựa chọn tuyến ban đầu |
+| RS03 | State-aware | Quy tắc theo trạng thái động |
+| RS04 | Hybrid Adaptive | State-aware và LLM hỗ trợ khi cần |
+
+
+
+```mermaid
+flowchart LR
+ A["RS01 Static"] --> B["RS02 Rule-based"]
+ B --> C["RS03 State-aware"]
+ C --> D["RS04 Hybrid"]
+```
+
+
+Đây là lộ trình triển khai, không phải kết quả đo chất lượng.
+
+### 7.7. Hybrid Routing Algorithm
+
+
+```mermaid
+flowchart TD
+ A["Read Shared State"] --> B{"Execution allowed?"}
+ B -->|No| Z["Safe Stop"]
+ B -->|Yes| C["Extract Routing Features"]
+ C --> D{"Mandatory action?"}
+ D -->|Yes| R["Rule-based Decision"]
+ D -->|No| E{"Rules sufficient?"}
+ E -->|Yes| R
+ E -->|No| F{"Existing Agent recommendation?"}
+ F -->|Yes| H["Evaluate Recommendation"]
+ F -->|No| G["LLM-assisted Decision within budget"]
+ G --> H
+ H --> V["Validate Routing Decision"]
+ R --> V
+ V --> J{"Valid?"}
+ J -->|Yes| O["Execute Action"]
+ J -->|No| K["Bounded Fallback"]
+ K --> L{"Fallback available?"}
+ L -->|Yes| V
+ L -->|No| Z
+ O --> U["Update Shared State"]
+ U --> A
+```
+
+
+Ưu tiên: hard constraints, mandatory business rules, deterministic rules, Agent recommendation, LLM-assisted, safe fallback/stop. Mọi fallback và LLM routing call chịu Guard/budget; không được bỏ qua kiểm chứng hoặc quyền tool. Tận dụng recommendation hợp lệ của Planner thay gọi LLM trùng lặp.
+
+### 7.8. Initial Routing Rules
+
+| ID | Điều kiện | Hành động |
+|---|---|---|
+| RR01 | Ảnh cần hiểu | Perception |
+| RR02 | Thiếu hoặc mâu thuẫn dữ kiện | Uncertainty Handling |
+| RR03 | Đơn giản, dữ kiện đủ | L1 |
+| RR04 | Nhiều bước hoặc cần kế hoạch | L2 |
+| RR05 | Thiếu tri thức cần thiết | Retrieval |
+| RR06 | Tính toán phù hợp tool | Tool Execution |
+| RR07 | Solution Candidate mới | Verification |
+| RR08 | Lỗi có thể sửa | L3 Correction |
+| RR09 | Plan không còn phù hợp | Replanning |
+| RR10 | Không đủ ngân sách | Safe Stop |
+| RR11 | Đáp án đủ căn cứ, đạt verification policy | Finalize |
+| RR12 | Người dùng bổ sung | Problem Version mới, đánh giá lại |
+
+Giải xung đột quy tắc bằng thứ tự ưu tiên và dependency; đây là bộ khởi đầu, chưa phải luật đầy đủ.
+
+### 7.9. Difficulty Assessment
+
+Feature-based: task type, step complexity, knowledge requirement, tool requirement, modality complexity, data sufficiency, reasoning feedback. LOW/MEDIUM/HIGH/UNKNOWN; không dùng điểm tự tin LLM tùy ý. Trọng số/ngưỡng hiệu chỉnh trên development dataset sau baseline.
+
+### 7.10. Routing Examples
+
+Minh họa giả định một call cho mỗi Agent task, tool local không tốn LLM call; không phải benchmark. Equation: Reasoner → SymPy → Verifier (2 calls); Geometry có ảnh: Perception → Planner → Retrieval → Reasoner → Verifier (5 calls); Missing: analysis → uncertainty clarification (1 call giả định). Nếu lỗi, correction và re-verification thêm 2 calls trong minh họa. Nếu budget không đủ thì dừng an toàn, không coi lời giải chưa kiểm chứng là VERIFIED.
+
+
+```mermaid
+flowchart TD
+ A["Select route by task"] --> B["Base route"]
+ B --> V{"Verification error?"}
+ V -->|No| F["Finalize if policy satisfied"]
+ V -->|Yes| G{"Correction budget available?"}
+ G -->|Yes| C["Correction and re-verification"]
+ C --> V
+ G -->|No| S["Safe Stop"]
+```
+
+
+### 7.11. Verification-guided Routing
+
+| Lỗi | Hành động |
+|---|---|
+| Hiểu sai ảnh | Perception lại phần liên quan |
+| Sai phương pháp | Planner/Replanning |
+| Thiếu điều kiện định lý | Retrieval + Reasoner |
+| Sai phép tính | Tool-assisted correction |
+| Sai lập luận | Reasoner Correction |
+| Thiếu/mâu thuẫn dữ kiện | Uncertainty |
+| Tool failure | Bounded retry hoặc tool thay thế |
+| Không xác minh được | Kiểm chứng bổ sung hoặc báo bất định |
+
+
+
+```mermaid
+flowchart TD
+ V["Verification Report"] --> E{"Error Type"}
+ E -->|Input| A["Perception"]
+ E -->|Knowledge| B["Retrieval"]
+ E -->|Planning| D["Planner"]
+ E -->|Reasoning| F["Reasoner Correction"]
+ E -->|Computation| T["Mathematical Tools"]
+ E -->|Uncertainty| H["Uncertainty Manager"]
+ A --> S["Update State and Dependencies"]
+ B --> S
+ D --> S
+ F --> S
+ T --> S
+ H --> S
+ S --> N["Adaptive Router"]
+```
+
+
+Verifier định vị lỗi, State Manager xác định phạm vi ảnh hưởng, Router chọn năng lực và kiểm chứng lại phiên bản mới.
+
+### 7.12. Adaptive Model Routing and 9Router
+
+Operational fallback do kết nối, rate limit hoặc provider unavailable thuộc gateway/9Router; reasoning escalation thuộc MATHK Model Policy. Free-first, capability-aware, configurable; model mạnh hơn có thể miễn phí. Không chuyển sang trả phí ngoài ngân sách được cho phép. Research mode kiểm soát fallback và actual model metadata theo 5.20.
+
+
+```mermaid
+flowchart TD
+ A["Agent Task"] --> P["Required Capability"]
+ P --> M["Model Policy"]
+ M --> F["Free Model Candidate"]
+ F --> G["Gateway and budget guard"]
+ G --> R["9Router or Direct Provider"]
+ R --> V["Validate Result"]
+ V --> D{"Result sufficient?"}
+ D -->|Yes| O["Structured Result"]
+ D -->|Operational failure| B["Bounded Fallback"]
+ B --> G
+ D -->|Reasoning failure| E["MATHK Escalation Decision"]
+ E --> H{"Allowed by budget?"}
+ H -->|Yes| S["Stronger Model Profile"]
+ S --> G
+ H -->|No| U["Uncertainty or Safe Stop"]
+```
+
+
+### 7.13. Routing Decision Schema
+
+Ví dụ minh họa, chưa chốt schema Python:
+
+```json
+{
+  "decision_id": "RD-012",
+  "state_version": 18,
+  "strategy": "hybrid",
+  "reasoning_level": "L3",
+  "next_action": {"type": "execute_agent", "agent_id": "AG04", "mode": "correction"},
+  "target_steps": ["STEP-003", "STEP-004"],
+  "trigger": "verification_failure",
+  "reason_code": "COMPUTATION_ERROR",
+  "evidence_refs": ["VER-002"],
+  "model_profile": "DEFAULT"
+}
+```
+
+Trace quyết định, phiên bản state, strategy, nguyên nhân, bằng chứng và phạm vi; không yêu cầu lưu suy nghĩ nội bộ LLM.
+
+### 7.14. Execution Guard and Resource Budget
+
+Ngân sách chung cấu hình hóa: max_llm_calls, max_tool_calls, max_correction_loops, max_retrieval_rounds, max_replanning_rounds, max_tokens, max_execution_time, max_cost, max_node_visits. Chưa chốt số cụ thể; xác định sau baseline. Tính cả retry/fallback thực tế nếu quan sát được; không tuyên bố kiểm soát chặt metadata mà proxy không cung cấp.
+
+
+```mermaid
+flowchart TD
+ A["Requested Action"] --> B["Validate Agent and Permissions"]
+ B --> C["Validate State and Dependencies"]
+ C --> D["Check Resource Budget"]
+ D --> F{"All checks passed?"}
+ F -->|Yes| E["Reserve Budget and Execute"]
+ E --> M["Record Actual Usage"]
+ F -->|No| G["Reject Action"]
+ G --> H["Fallback or Safe Stop"]
+```
+
+
+### 7.15. Termination Policy
+
+COMPLETED khi đủ căn cứ/đạt verification policy; WAITING_USER khi cần bổ sung; PAUSED khi có thể resume; ABSTAINED khi không đủ căn cứ; FAILED khi lỗi không khắc phục; CANCELLED khi hủy. Khi ngân sách hết, chỉ trả kết quả hiện có nếu đủ căn cứ với phạm vi verification và uncertainty tương ứng; không che lỗi hay gắn VERIFIED sai.
+
+### 7.16. Evaluation
+
+| Đặc điểm | RS01 | RS02 | RS03 | RS04 |
+|---|---|---|---|---|
+| Static pipeline | X | | | |
+| Problem-based rules | | X | X | X |
+| State-aware decisions | | | X | X |
+| Verification feedback for adaptive routing | | | X | X |
+| LLM-assisted routing | | | | X |
+
+Giữ model, dataset, tool capabilities, verification conditions tương đương khi cô lập routing strategy. Đo answer accuracy, solution correctness, calls/tokens/latency/cost, correction success, unnecessary agent calls (cần rubric), stop/skip rates. Adaptive Model Routing đánh giá riêng. Không dùng held-out test để hiệu chỉnh.
+
+### 7.17. Implementation Roadmap
+
+Static baseline → Rule-based → State-aware → Hybrid → Evaluation & Optimization. Không cần RL, learned router hoặc distributed Agents trong MVP.
+
+### 7.18. Quyết định
+
+Centralized Adaptive Router, deterministic-first hybrid, 5 nhóm feature, 4 routing types/strategies, 3 reasoning levels, RR01–12, feature-based difficulty, verification-guided recovery, free-first model policy, Execution Guard, shared resource budget, structured decisions, LangGraph + custom Python. Không learned Router trong MVP. Điều phối dựa trên evidence, không chỉ đánh giá chủ quan của Supervisor LLM.
 
 ## 8. Multimodal Processing
 
