@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.4
+**Phiên bản:** 0.5
 
 **Trạng thái:** Đang thảo luận
 
@@ -247,7 +247,57 @@ SYS01, SYS03, MOD03, EVA05 mục tiêu L2 tại phase này; nâng dần ở phas
 
 ## 5. Phase 1 — Mathematical Tool System
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 5.1. Mục tiêu
+Neuro-Symbolic AI: LLM hiểu đề, chọn phương pháp, biểu diễn và giải thích; Calculator/SymPy tính toán xác định trong phạm vi hỗ trợ. Phase 1 dùng request mô phỏng, tích hợp LLM thực ở Phase 2. Trọng tâm: neuro-symbolic 25%, kiến trúc tool 25%, correctness 20%, reliability/security 15%, cost/performance 15%.
+
+### 5.2. Mini Labs
+| ID | Lab | Phút | Thực nghiệm/minh chứng |
+|---|---|---|---|
+| P1-L01 | LLM vs Deterministic | 45–60 | Cùng đầu vào toán học, accuracy/latency/token/cost |
+| P1-L02 | Symbolic vs Numerical | 45–60 | Float, Fraction, căn thức, exact-first, sai số |
+| P1-L03 | SymPy Capabilities | 60–90 | Simplify/expand/factor/solve/system/inequality, giới hạn và unknown |
+| P1-L04 | Mathematical Domain | 60–90 | Điều kiện xác định, nghiệm ngoại lai, kiểm tra nghiệm |
+| P1-L05 | Tool Schema | 45–60 | Tên tool, mô tả tiếng Việt, JSON Schema, structured result |
+| P1-L06 | Registry & Execution | 45–60 | Direct function vs registry/executor, dispatch/trace |
+| P1-L07 | Safe Execution | 60–90 | Input sai, permission, complexity, timeout, safe rejection |
+| P1-L08 | Tool Evaluation | 45–60 | Unit/edge/property tests, benchmark nhỏ, latency/resources |
+
+AI tạo demo/experiment/test; người học dự đoán, phân tích, đặc tả, review. Ví dụ (x²−1)/(x−1) rút gọn x+1 nhưng phải giữ x≠1; exact-first với 1/3 và căn 2, gần đúng khi cần.
+
+### 5.3. Kiến trúc
+```mermaid
+flowchart TD
+ A["Tool Request"] --> B["Execution Guard"]
+ B --> C["Registry"]
+ C --> D["Argument Validator"]
+ D --> E["Restricted Parser"]
+ E --> F["Executor"]
+ F --> G["Calculator"]
+ F --> H["SymPy"]
+ G --> I["Normalizer"]
+ H --> I
+ I --> J["Structured Result"]
+ J --> K["Trace"]
+```
+Guard bắt buộc trước thực thi; không eval/exec hoặc parse_expr/sympify trực tiếp đầu vào không tin cậy. Giới hạn độ phức tạp, timeout, phân biệt unsupported/unknown với không có nghiệm. Bảo toàn điều kiện và exact arithmetic. Theo System Design mục 10.
+
+### 5.4. Tool scope
+MT01 calculate, MT02 simplify, MT03 expand, MT04 factor, MT05 solve_equation, MT06 solve_system, MT07 solve_inequality, MT08 check_equivalence, MT09 substitute (P0). MT10 compute_statistics, MT11 geometry_compute (P1, bổ sung khi cần).
+
+### 5.5. Thí nghiệm
+EXP-P1-01 LLM vs Calculator; 02 LLM vs SymPy; 03 exact vs numerical; 04 domain preservation; 05 normal vs invalid input; 06 runtime theo complexity. Đo accuracy, latency, tokens, cost, error rate, resources. Cùng đầu vào toán học, không đánh đồng hiểu ngôn ngữ với giải biểu thức; tập dev thăm dò, chưa benchmark chính thức.
+
+### 5.6. Deliverables
+domain/execution.py; tools/{calculator,symbolic,parser,registry,executor}.py; labs/phase_01/ gồm 8 lab; tests/unit/test_{calculator,symbolic,parser,registry,executor}.py. Tích hợp tăng dần, AI triển khai theo đặc tả.
+
+### 5.7. Năng lực
+AGT01 L2, SYS03 L3, SYS04 L2, REL01 L2, EVA01 L1, OPT04 L1.
+
+### 5.8. Definition of Done
+Hiểu neural/symbolic, exact/numerical/domain, schema/registry/executor/guard, phân tích quality/latency/cost; 9 tool P0 chạy trong phạm vi hỗ trợ, có test, không arbitrary code execution; Learning Gate, Engineering Gate, docs/CI/commit. 8 lab, 10–15 giờ, 7–10 phiên 90 phút.
+
 
 ## 6. Phase 2 — Single-Agent Solver
 
