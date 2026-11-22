@@ -1,10 +1,10 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.10
+**Phiên bản:** 1.0
 
-**Trạng thái:** Đang thảo luận
+**Trạng thái:** Đã chốt
 
-**Cấu trúc:** Đã duyệt 10 mục; nội dung từng mục chờ duyệt.
+**Cấu trúc:** Đã duyệt 10/10 mục. Tiêu chí triển khai chưa được kiểm chứng thực tế.
 
 **Giả định đã chốt:** Full API Inference + Local-first Deployment. Laptop 8 GB RAM; LLM/VLM/embedding/reranker (nếu dùng) qua API. Cloud thuê tạm thời qua SSH với RAM giả định 16 GB chỉ là phương án tùy chọn khi cần tài nguyên bổ sung, không phụ thuộc GPU hoặc provider cụ thể. Quyết định này thay thế giả định laptop 16 GB và local model inference mặc định trước đây; cần đồng bộ tài liệu liên quan.
 
@@ -412,4 +412,62 @@ Lightweight Local Observability; không ghi secrets, hạn chế overhead và đ
 
 ## 10. Deployment Checklist
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 10.1. Acceptance
+| ID | Tiêu chí | Priority |
+|---|---|---|
+| DA01 | Tái dựng từ uv.lock | P0 |
+| DA02 | Lightweight chạy trên laptop 8 GB | P0 |
+| DA03 | Full API, không GPU | P0 |
+| DA04 | Model Gateway hoạt động đúng | P0 |
+| DA05 | Config/secrets an toàn | P0 |
+| DA06 | Storage/checkpoint/recovery | P0 |
+| DA07 | CLI/Gradio | P0 |
+| DA08 | CI pass | P0 |
+| DA09 | Monitoring/budget tracking | P0 |
+| DA10 | Tái lập cấu hình thực nghiệm | P0 |
+| DA11 | Docker | P1 |
+| DA12 | Remote/public demo | P1 |
+
+### 10.2. Checklist
+- [ ] Python/uv đúng phiên bản
+- [ ] Locked dependencies
+- [ ] Kiểm thử laptop 8 GB
+- [ ] LLM/VLM/embedding API
+- [ ] Model capabilities
+- [ ] Retry/fallback/budget
+- [ ] API key an toàn
+- [ ] DB/index tương thích
+- [ ] Checkpoint/recovery
+- [ ] Ground truth isolation
+- [ ] CLI/Gradio
+- [ ] E2E tests
+- [ ] RAM/token/cost tracking
+- [ ] CI pass
+- [ ] Docs cập nhật
+- [ ] Artifacts lưu trữ
+- [ ] Learning checkpoint cập nhật
+
+### 10.3. Workflow
+```mermaid
+flowchart TD
+ A["Clone Repository"] --> B["Setup Environment"]
+ B --> C["Configuration and Secrets"]
+ C --> D["Initialize Storage and Index"]
+ D --> E["Validate APIs"]
+ E --> F["Run Tests"]
+ F --> G["Launch Application"]
+ G --> H["Monitor and Evaluate"]
+ H --> I{"Acceptance Passed?"}
+ I -->|Có| J["Release"]
+ I -->|Không| K["Fix and Revalidate"]
+ K --> F
+```
+
+### 10.4. Definition of Done
+P0 được kiểm chứng thực tế; không GPU/local model inference; tái dựng môi trường máy khác; phục hồi gián đoạn; hướng dẫn cài đặt/vận hành/xử lý lỗi; bảo toàn artifacts và kết quả nghiên cứu.
+
+### 10.5. Tổng kết
+Local-first + Full API; laptop 8 GB; Modular Monolith; Python 3.12/uv; custom gateway; SQLite/FAISS; CLI/Gradio; GitHub Actions; lightweight local observability; cloud/GPU không bắt buộc.
+
