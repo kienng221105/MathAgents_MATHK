@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.7
+**Phiên bản:** 0.8
 
 **Trạng thái:** Đang thảo luận
 
@@ -277,7 +277,44 @@ SQLite, SQLAlchemy, Alembic, FAISS CPU, local files, Embedding API. Không vecto
 
 ## 7. Application Deployment
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 7.1. Phương thức
+Python API, CLI, Gradio P0; Docker và public web demo P1.
+
+### 7.2. Entry points
+```mermaid
+flowchart TD
+ A["Python API"] --> D["Application Interface"]
+ B["CLI"] --> D
+ C["Gradio"] --> D
+ E["Benchmark Runner"] --> D
+ D --> F["MATHK Engine"]
+ F --> G["Local Components"]
+ F --> H["External Model APIs"]
+```
+Dùng chung engine, không nhân bản logic.
+
+### 7.3. Cài đặt dự kiến
+```bash
+git clone https://github.com/kienng221105/MathAgents_MATHK.git
+cd MathAgents_MATHK
+uv sync --locked
+```
+Thiết lập .env, runtime profile và kiểm tra API.
+
+### 7.4. CLI dự kiến
+uv run mathk solve; demo; resume; kb build; benchmark run; benchmark resume; benchmark export; trace (đều dùng tiền tố uv run mathk). Chưa phải lệnh đã triển khai.
+
+### 7.5. Gradio
+Localhost, public share mặc định tắt; Student/Research Mode. Giao diện nhập text/ảnh, hiện lời giải, đáp án, verification, model/tool calls theo chế độ. Không hiển thị Verified khi chưa có report hợp lệ.
+
+### 7.6. Docker/Remote
+Docker tùy chọn, không bắt buộc Docker Desktop. SSH và SSH port forwarding để truy cập Gradio remote không công khai cổng ứng dụng. Public demo cần đánh giá lại bảo mật.
+
+### 7.7. Startup validation
+Kiểm tra config/key cần thiết, storage writable, index compatibility, profile/budget, API connectivity theo tác vụ. Không bắt buộc mọi provider hoạt động để mở CLI/UI. Native uv là triển khai chính; Docker/remote bổ sung.
+
 
 ## 8. CI/CD & Release Management
 
