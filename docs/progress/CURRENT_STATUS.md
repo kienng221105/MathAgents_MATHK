@@ -1,9 +1,9 @@
 # Current Status — MATHK
 
 **Ngày checkpoint:** 2026-11-22
-**Giai đoạn:** Pre-Implementation → chuẩn bị Phase 0 (chưa bắt đầu code)
-**Milestone:** System Design v1.0 APPROVED; management bootstrap
-**Active Task:** Không có task Codex đang chạy
+**Giai đoạn:** Phase 0 — Foundation (planning approved; chưa có code)
+**Milestone:** Phase 0 planning APPROVED; P0-01 ASSIGNED
+**Active Task:** P0-01 đã giao prompt, chờ Codex thực hiện
 **Latest Verified Implementation Commit:** Chưa có implementation commit; repository đang ở baseline tài liệu
 **Latest Document Checkpoint:** Xem GitHub main và [Task Board](../management/TASK_BOARD.md)
 
@@ -24,11 +24,11 @@
 - Chưa kiểm chứng hiệu quả mô hình, chi phí API thực tế, visual quality 227 SVG.
 
 ## Next Action
-1. PM phân rã Phase 0 theo [Implementation §4](../05_IMPLEMENTATION.md) và [Project Structure §2.1](../04_PROJECT_STRUCTURE.md).
-2. Owner duyệt task/learning goals/acceptance trước khi giao Codex.
-3. Chỉ sau đó mới triển khai Phase 0 và cập nhật phase_00.md theo bằng chứng.
+1. Owner chuyển prompt P0-01 cho Codex; Codex chỉ làm P0-01.
+2. Owner gửi báo cáo về ChatGPT để review AC01–AC07.
+3. Sau nghiệm thu kỹ thuật, kiểm tra Learning Gate và checkpoint; mới giao P0-02.
 
 ## Relevant Context
 [AGENTS](../../AGENTS.md) · [Workflow](../management/WORKFLOW.md) · [Task Board](../management/TASK_BOARD.md) · [Traceability](../management/TRACEABILITY_MATRIX.md)
 
-**Checkpoint:** Đã khởi tạo bộ quản lý; chờ planning Phase 0.
+**Checkpoint:** [Phase 0 Planning Baseline](../management/PHASE_00_PLAN.md) đã duyệt; P0-01 ASSIGNED, chưa có kết quả coding.
