@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.9
+**Phiên bản:** 0.10
 
 **Trạng thái:** Đang thảo luận
 
@@ -481,7 +481,47 @@ Phát hiện, định vị, sửa lỗi trong phạm vi hỗ trợ; tái kiểm 
 
 ## 10. Phase 6 — Multimodal Reasoning
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 10.1. Mục tiêu
+Hiểu VLM, biểu diễn ảnh/text, fusion, sai sót nhận thức và tối ưu tài nguyên. Không tự huấn luyện OCR, detection, VLM.
+```mermaid
+flowchart TD
+ A["Văn bản + Hình ảnh"] --> B["Input Processing"]
+ B --> C["Perception Agent / VLM"]
+ C --> D["Structured Extraction"]
+ D --> E["Text-Image Fusion"]
+ E --> F{"Consistency Check"}
+ F -->|Đủ dữ kiện| G["Problem Representation"]
+ F -->|Mơ hồ| H["Uncertainty Manager"]
+ H -->|Đọc lại ảnh| C
+ H -->|Cần bổ sung| I["Clarification"]
+ G --> J["Reasoning Engine"]
+```
+Luồng logic, orchestrator/guard điều phối; giới hạn re-perception, cập nhật phiên bản và invalidate bước phụ thuộc khi dữ kiện thay đổi.
+
+### 10.2. Mini Labs
+| ID | Chủ đề | Trọng tâm |
+|---|---|---|
+| P6-L01 | Multimodal Fundamentals | VLM, biểu diễn ảnh và text |
+| P6-L02 | Image Preprocessing | Resolution, crop, chất lượng ảnh |
+| P6-L03 | VLM Selection | Khả năng nhận thức, chi phí |
+| P6-L04 | Structured Visual Extraction | Công thức, hình học, bảng biểu |
+| P6-L05 | Multimodal Fusion | Kết hợp dữ kiện ảnh/text |
+| P6-L06 | Visual Grounding | Nguồn gốc dữ kiện, hallucination |
+| P6-L07 | Visual Uncertainty | Mơ hồ, mâu thuẫn, đọc lại ảnh |
+| P6-L08 | Multimodal Optimization | Image tokens, resolution, latency |
+| P6-L09 | Multimodal Evaluation | Perception và reasoning accuracy |
+
+### 10.3. Thí nghiệm
+OCR-first vs VLM-only vs hybrid; các VLM trên cùng tập ảnh; ảnh gốc vs xử lý; image-only vs text-image (ghi rõ khác biệt thông tin); có/không consistency check; resolution/token/cost. Đo fact extraction accuracy, formula accuracy, hallucination rate, answer accuracy, tokens, latency, cost. Tập dev, kiểm soát biến, ghi nhận actual model, không bỏ guard bắt buộc.
+
+### 10.4. Deliverables
+Perception Agent và hỗ trợ VLM trong Model Gateway; image preprocessing; structured multimodal representation; fusion/consistency checker; targeted re-perception; Gradio UI nhập văn bản và hình ảnh; multimodal benchmark. MVP C — Adaptive Multimodal Multi-Agent. Tuân thủ System Design mục 8 và 14.
+
+### 10.5. Completion Gates
+Giải bài có ảnh trong phạm vi hỗ trợ, phân biệt observed/inferred facts, phát hiện mâu thuẫn, không tự bịa dữ kiện thiếu; người học giải thích lựa chọn VLM/pipeline và quality-cost trade-off. AI triển khai theo đặc tả, người học review/thực nghiệm. Test/CI/docs/checkpoint và learning gate. 9 lab, 15–20 giờ.
+
 
 ## 11. Phase 7 — Research & Evaluation
 
