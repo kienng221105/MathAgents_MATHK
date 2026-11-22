@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.2
+**Phiên bản:** 0.3
 
 **Trạng thái:** Đang thảo luận
 
@@ -71,7 +71,64 @@ ChatGPT đề xuất thiết kế, Owner phê duyệt; ChatGPT quản lý task v
 
 ## 3. Documentation Structure
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 3.1. Cấu trúc
+```text
+MathAgents_MATHK/
+├── README.md
+├── AGENTS.md
+├── docs/
+│   ├── 01_REQUIREMENTS.md
+│   ├── 02_RESEARCH.md
+│   ├── 03_SYSTEM_DESIGN.md
+│   ├── 04_PROJECT_STRUCTURE.md
+│   ├── 05_IMPLEMENTATION.md
+│   ├── 06_EVALUATION.md
+│   ├── 07_DEPLOYMENT.md
+│   ├── 08_DOCUMENTATION.md
+│   ├── management/
+│   │   ├── WORKFLOW.md
+│   │   ├── TASK_BOARD.md
+│   │   └── DECISION_LOG.md
+│   ├── progress/
+│   │   ├── CURRENT_STATUS.md
+│   │   └── phase_00.md ...
+│   ├── guides/
+│   │   ├── DEVELOPER_GUIDE.md
+│   │   ├── USER_GUIDE.md
+│   │   └── TROUBLESHOOTING.md
+│   ├── technical/
+│   │   ├── API_REFERENCE.md
+│   │   └── DATA_CONTRACTS.md
+│   └── research/
+│       ├── EXPERIMENT_LOG.md
+│       ├── RESULTS_ANALYSIS.md
+│       └── PAPER_DRAFT.md
+└── labs/
+    └── phase_00/ ...
+```
+
+### 3.2. Ownership
+ChatGPT: AGENTS, WORKFLOW, TASK_BOARD, DECISION_LOG, CURRENT_STATUS; ChatGPT + Owner: phase_XX; Codex: API_REFERENCE, DATA_CONTRACTS theo scope và review.
+
+### 3.3. Context
+```mermaid
+flowchart TD
+ A["Phiên mới"] --> B["CURRENT_STATUS.md"]
+ B --> C["TASK_BOARD.md"]
+ C --> D["Task hiện tại"]
+ D --> E["Tài liệu thiết kế liên quan"]
+ E --> F["Code và kết quả cần thiết"]
+ F --> G["Tiếp tục quản lý dự án"]
+```
+
+### 3.4. Thời điểm
+Trước Phase 0: AGENTS, WORKFLOW, TASK_BOARD, CURRENT_STATUS, DECISION_LOG. Phase 0–1: README, Developer Guide, Mini Labs. Phase 2–3: API Reference, Data Contracts. Phase 4–6: User Guide, Troubleshooting. Phase 7: Experiment Log, Results Analysis, Paper Draft.
+
+### 3.5. Nguyên tắc
+Không tạo file rỗng hàng loạt; tránh sao chép, dùng liên kết Markdown; mỗi thông tin một nguồn chính thức; cập nhật sau từng task/quyết định quan trọng. Ưu tiên bộ tài liệu quản lý agent trước Phase 0.
+
 
 ## 4. Project README
 
