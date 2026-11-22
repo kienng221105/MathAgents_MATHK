@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.8
+**Phiên bản:** 0.9
 
 **Trạng thái:** Đang thảo luận
 
@@ -348,7 +348,43 @@ Codex cập nhật kỹ thuật theo code; ChatGPT review nhất quán kiến tr
 
 ## 9. Research Documentation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 9.1. Mục tiêu
+Quản lý bằng chứng nghiên cứu từ phase đầu, không đợi Phase 7.
+
+### 9.2. Tổ chức
+02_RESEARCH.md: literature/gap/RQ; 06_EVALUATION.md: phương pháp; docs/research/EXPERIMENT_LOG.md, RESULTS_ANALYSIS.md, PAPER_DRAFT.md; experiments/configs, results, exports. Artifacts lớn/riêng tư không commit, quản lý manifest theo 04/06.
+
+### 9.3. Experiment Documentation
+Experiment ID, Objective, Hypothesis, Configuration, Controlled Variables, Dataset Version, Metrics, Results, Analysis, Limitations, Conclusion, Reproducibility (commit/config/artifact). Tham chiếu manifest thay sao chép metadata.
+
+### 9.4. Workflow
+```mermaid
+flowchart TD
+ A["Research Question"] --> B["Hypothesis"]
+ B --> C["Experiment Design"]
+ C --> D["ChatGPT giao Task"]
+ D --> E["Codex triển khai và chạy"]
+ E --> F["Raw Results"]
+ F --> G["ChatGPT và Owner phân tích"]
+ G --> H["Research Evidence"]
+ H --> I["Results Analysis"]
+ I --> J["Paper Draft"]
+```
+
+### 9.5. Paper
+Abstract, Introduction, Related Work, Methodology, Experimental Setup, Results, Discussion, Limitations, Conclusion, References. Bản thảo tiếng Việt; bản công bố quốc tế tiếng Anh.
+
+### 9.6. Research Integrity
+Không giả kết quả/cherry-pick/khẳng định novelty chưa kiểm chứng; phân biệt giả thuyết, quan sát và kết luận; bảo toàn reproducibility và ground truth isolation.
+
+### 9.7. Ownership
+ChatGPT + Owner: research design, literature review, error analysis, scientific writing. Codex: experiment implementation/execution. ChatGPT + Codex: statistical analysis. Owner phê duyệt kết luận.
+
+### 9.8. Thời điểm
+P0–2 model/prompt/tool; P3–4 multi-agent/retrieval/context; P5–6 adaptive routing/verification/correction/multimodal; P7 benchmark chính thức/baseline/ablation/statistics/paper. Phân biệt dev experiments với held-out; research hypotheses chưa duyệt vẫn chưa được coi là baseline. Evidence-driven, Reproducible, Incremental.
+
 
 ## 10. User & Deployment Guide
 
