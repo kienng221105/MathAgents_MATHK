@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.4
+**Phiên bản:** 0.5
 
 **Trạng thái:** Đang thảo luận
 
@@ -171,7 +171,55 @@ ChatGPT định hướng; Codex cập nhật lệnh/ví dụ thực tế; ChatGP
 
 ## 5. Developer Guide
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 5.1. Mục tiêu
+docs/guides/DEVELOPER_GUIDE.md hướng dẫn Owner, Codex và developer phát triển hệ thống, không dạy Python từ đầu.
+
+### 5.2. Cấu trúc
+Development Environment, Getting Started, Architecture Overview, Coding Standards, Dependency Management, Extension Guide, Testing Guide, Debugging Guide, Git Workflow, Contribution Rules.
+
+### 5.3. Extension Guide
+| Mở rộng | Thành phần |
+|---|---|
+| LLM Provider | Model Gateway |
+| Agent | Agent Contract, Orchestrator |
+| Math Tool | Tool Registry, Execution Guard |
+| Retrieval | Retrieval Interface |
+| Routing | Adaptive Router |
+| Verification | Verification Interface |
+| Metric | Evaluation Framework |
+| UI | Application Interface |
+
+Mỗi hướng dẫn gồm mục đích, module, data contract, sơ đồ luồng, ví dụ triển khai và kiểm thử.
+
+### 5.4. Workflow
+```mermaid
+flowchart TD
+ A["Task từ ChatGPT"] --> B["Đọc tài liệu và contracts"]
+ B --> C["Xác định scope"]
+ C --> D["Codex triển khai"]
+ D --> E["Local Testing"]
+ E --> F["Implementation Report"]
+ F --> G["ChatGPT Review"]
+ G --> H{"Đạt yêu cầu?"}
+ H -->|Không| D
+ H -->|Có| I["Commit / Push / CI"]
+ I --> J{"CI Passed?"}
+ J -->|Không| D
+ J -->|Có| K["Learning và Checkpoint"]
+```
+Owner chuyển tiếp prompt/report.
+
+### 5.5. Quy tắc
+Tuân thủ Modular Monolith và Dependency Rules; tái sử dụng interface, tránh abstraction thừa; dependency mới cần lý do/phê duyệt; thay đổi hành vi cần test; không bypass Execution Guard, không vượt scope; cập nhật tài liệu kỹ thuật khi interface đổi.
+
+### 5.6. Developer Guide và AGENTS.md
+Developer Guide giải thích kiến trúc, ví dụ, hướng dẫn mở rộng cho người và agent, cập nhật theo phase. AGENTS.md ngắn gọn, có tính chỉ thị, quy định hành vi và ràng buộc cho coding agent, cập nhật khi quy trình thay đổi.
+
+### 5.7. Ownership
+ChatGPT định hướng/review; Codex bổ sung theo implementation thực tế; Owner dùng tài liệu để học và đánh giá quyết định. Phát triển dần theo phase, ưu tiên Extension Guide và System Thinking.
+
 
 ## 6. AI Agent Instructions
 
