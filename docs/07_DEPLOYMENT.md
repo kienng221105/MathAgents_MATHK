@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.5
+**Phiên bản:** 0.6
 
 **Trạng thái:** Đang thảo luận
 
@@ -167,7 +167,45 @@ Chưa chốt model cụ thể. P0 connectivity; P2 LLM; P4 embedding API; P5 rou
 
 ## 5. Configuration & Secrets
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 5.1. Mục tiêu
+Thay model/provider/budget/workflow/experiment config không sửa code; bảo vệ secrets.
+
+### 5.2. Tổ chức
+configs/default.yaml, configs/profiles/{lightweight,standard,research}.yaml, experiments/configs/, .env, .env.example, .gitignore. Git lưu YAML và mẫu env; không lưu .env thật.
+
+### 5.3. Priority
+```mermaid
+flowchart TD
+ A["Default Configuration"] --> B["Runtime Profile"]
+ B --> C["Environment Variables"]
+ C --> D["Explicit Runtime / Experiment Overrides"]
+ D --> E["Pydantic Validation"]
+ E --> F["Validated Configuration"]
+ F --> G["MATHK Runtime"]
+```
+Tầng sau ghi đè tầng trước, ngoại trừ guard bắt buộc.
+
+### 5.4. Nhóm cấu hình
+models (ID/provider/params), gateway (endpoint/timeout/retry), agents (profile/capability), routing, retrieval (embedding API/top-k/hybrid), verification, budget, storage, logging, evaluation.
+
+### 5.5. Secrets
+Ví dụ .env.example:
+```dotenv
+MATHK_LLM_API_KEY=
+MATHK_VLM_API_KEY=
+MATHK_EMBEDDING_API_KEY=
+MATHK_9ROUTER_API_KEY=
+```
+Không hard-code hoặc lưu key trong YAML/prompt/log/trace. GitHub Actions Secrets chỉ khi CI cần API; secrets riêng khi thuê máy; thu hồi và tạo lại key bị lộ. Không Vault/Cloud Secrets Manager MVP.
+
+### 5.6. Validation
+Thiếu key cần thiết: báo lỗi rõ; capability không phù hợp: từ chối hoặc fallback hợp lệ; budget sai: không chạy; path sai: báo lỗi hoặc khởi tạo an toàn; fallback trái policy: từ chối; research config thay đổi: phiên bản experiment mới. Kiểm thử capability thực tế ngoài YAML validation.
+
+### 5.7. Reproducibility
+Lưu snapshot cấu hình hiệu lực đã loại secrets, config hash, model ID, prompt version và Git commit mỗi benchmark. YAML + Pydantic Settings + .env + GitHub Secrets khi cần.
+
 
 ## 6. Data & Persistence
 
