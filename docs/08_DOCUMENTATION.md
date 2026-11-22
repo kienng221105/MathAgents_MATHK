@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.5
+**Phiên bản:** 0.6
 
 **Trạng thái:** Đang thảo luận
 
@@ -221,9 +221,50 @@ Developer Guide giải thích kiến trúc, ví dụ, hướng dẫn mở rộng
 ChatGPT định hướng/review; Codex bổ sung theo implementation thực tế; Owner dùng tài liệu để học và đánh giá quyết định. Phát triển dần theo phase, ưu tiên Extension Guide và System Thinking.
 
 
-## 6. AI Agent Instructions
+## 6. AI Agent Instructions — AGENTS.md
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 6.1. Phân tầng chỉ thị
+AGENTS.md → Approved Design Documents → Task Prompt → Implementation Decisions. Đây là thứ tự quy tắc nội bộ dự án, không thay thế chỉ thị cấp hệ thống hoặc quyền hạn thực tế của agent. Mâu thuẫn phải dừng và báo cáo.
+
+### 6.2. Cấu trúc
+Project Context, Agent Role, Source of Truth, Architecture Rules, Coding Standards, Task Execution Protocol, Testing Requirements, Security Rules, Reporting Protocol, Git Rules, Context Management.
+
+### 6.3. Quyền hạn
+Tự triển khai code/test/sửa lỗi trong scope, đọc repo, cập nhật tài liệu kỹ thuật liên quan. Cần phê duyệt dependency mới, đổi kiến trúc, public interface ngoài task, chi phí ngoài budget. Commit/push theo task prompt; không tự xóa dữ liệu hoặc force push.
+
+### 6.4. Task Execution Protocol
+```mermaid
+flowchart TD
+ A["Nhận Task Prompt"] --> B["Đọc AGENTS.md và tài liệu liên quan"]
+ B --> C["Kiểm tra repository"]
+ C --> D["Phân tích yêu cầu"]
+ D --> E{"Có mâu thuẫn hoặc trở ngại?"}
+ E -->|Có| F["Dừng và báo cáo"]
+ E -->|Không| G["Triển khai trong Scope"]
+ G --> H["Chạy Tests"]
+ H --> I["Self Review"]
+ I --> J["Implementation Report"]
+ J --> K["ChatGPT Review"]
+ K --> L{"Đạt yêu cầu?"}
+ L -->|Không| G
+ L -->|Có| M["Nghiệm thu"]
+```
+Owner chuyển tiếp prompt/report.
+
+### 6.5. Implementation Report
+Task ID; Status (Completed/Partial/Blocked); Summary; Changed Files và lý do; Technical Decisions; Test Results (lệnh và kết quả thật); Acceptance Criteria (PASS/FAIL/NOT_RUN); Resource Usage (API/token/cost nếu có); Known Issues; Git Status (branch/commit/push); Learning Notes. ChatGPT review trước nghiệm thu.
+
+### 6.6. Learning-aware Coding
+Comment tiếng Việt tại logic quan trọng, giải thích lý do lựa chọn; dễ hiểu/test/mở rộng; Mini Lab có tham số thực nghiệm; nêu trade-off model/data/architecture/accuracy/cost; không comment từng dòng hoặc dạy cú pháp cơ bản.
+
+### 6.7. Context Optimization
+AGENTS.md mỗi phiên; CURRENT_STATUS khi bắt đầu/khôi phục; Task Prompt mỗi task; design sections liên quan; code module và dependencies; previous reports khi tiếp tục/sửa. AGENTS.md ngắn gọn, dẫn liên kết chi tiết.
+
+### 6.8. Ownership
+ChatGPT soạn/quản lý AGENTS.md, Codex không tự sửa nội quy. Codex tự chủ implementation trong scope, không tự quyết mục tiêu/kiến trúc/acceptance. Tạo AGENTS.md chính thức sau tài liệu 08, trước task đầu Phase 0.
+
 
 ## 7. Learning Documentation
 
