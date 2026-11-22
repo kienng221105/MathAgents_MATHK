@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.5
+**Phiên bản:** 0.6
 
 **Trạng thái:** Đang thảo luận
 
@@ -301,7 +301,49 @@ Hiểu neural/symbolic, exact/numerical/domain, schema/registry/executor/guard, 
 
 ## 6. Phase 2 — Single-Agent Solver
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 6.1. Mục tiêu
+Model Engineering, Prompt Engineering, Tool Calling, Context Engineering và Cost Optimization. Single-Agent giải toán văn bản kết hợp Calculator/SymPy; chưa cần LangGraph, Multi-Agent hoặc RAG.
+
+```mermaid
+flowchart TD
+ A["Đề bài"] --> B["Context Builder"]
+ B --> C["Reasoner Agent"]
+ C --> D["Model Gateway"]
+ D --> E["LLM"]
+ E --> F{"Action"}
+ F -->|Tool Call| G["Guard"]
+ G --> H["SymPy / Calculator"]
+ H --> B
+ F -->|Final Answer| I["Kết quả"]
+ F -->|Budget hoặc lỗi| J["Safe Stop"]
+```
+
+### 6.2. Mini Labs
+| ID | Chủ đề | Trọng tâm |
+|---|---|---|
+| P2-L01 | Model Selection | Chọn model theo nhiệm vụ |
+| P2-L02 | Prompt Engineering | Thiết kế và đánh giá prompt tiếng Việt |
+| P2-L03 | Structured Output | Schema adherence, validation |
+| P2-L04 | Tool Calling | Model lựa chọn và sử dụng tool |
+| P2-L05 | Agent Loop | Action, observation, termination |
+| P2-L06 | Context Engineering | Chọn lọc dữ kiện, quản lý token |
+| P2-L07 | Model Gateway | Provider independence, bounded fallback |
+| P2-L08 | Cost & Budget | Token, calls, latency, quota |
+| P2-L09 | Single-Agent Evaluation | Baseline, metrics, error analysis |
+
+Coding Agent tạo demo, experiment, test; người học phân tích, thiết kế, đặc tả và review.
+
+### 6.3. Thí nghiệm
+So sánh nhiều model trên cùng tập đề; zero-shot vs few-shot; LLM thuần vs LLM + tool; context đầy đủ vs chọn lọc; các mức ngân sách; mô phỏng API/schema/tool failure. Đo Accuracy, Tool Calling Accuracy, Schema Success Rate, Token Usage, Latency, Cost. Dùng tập dev, kiểm soát biến, ghi nhận model thực tế; research baseline cố định model và không fallback tùy ý. Guard bắt buộc không bị bỏ qua.
+
+### 6.4. Deliverables
+Reasoner Agent, Model Gateway, bounded Agent Loop, Context Builder, prompt tiếng Việt, tích hợp Mathematical Tool System, Application API và CLI giải toán văn bản, Benchmark Runner cơ bản và Direct LLM baseline. Hoàn thành MVP A — Text Solver.
+
+### 6.5. Completion Gates
+Agent giải toán trong phạm vi hỗ trợ, gọi tool có kiểm soát, xử lý lỗi và dừng trong ngân sách. Người học giải thích lựa chọn model/context, tool use và quality-cost trade-off. Kiểm thử, CI, docs và checkpoint GitHub. 9 lab, dự kiến 15–20 giờ.
+
 
 ## 7. Phase 3 — Multi-Agent Orchestration
 
