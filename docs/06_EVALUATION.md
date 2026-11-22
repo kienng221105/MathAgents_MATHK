@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.8
+**Phiên bản:** 0.9
 
 **Trạng thái:** Đang thảo luận
 
@@ -346,7 +346,59 @@ Phân biệt gateway requests và upstream calls; free không đồng nghĩa kh�
 
 ## 8. Reliability & Robustness Evaluation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 8.1. Mục tiêu
+Đánh giá dữ liệu không hoàn hảo, lỗi suy luận/kỹ thuật và giới hạn tài nguyên; nhận biết khi không đủ căn cứ trả lời.
+
+### 8.2. Nhóm đánh giá
+| ID | Nhóm | Nội dung |
+|---|---|---|
+| RR01 | Input Robustness | Chính tả, ảnh mờ, thiếu thông tin |
+| RR02 | Reasoning Reliability | Lập luận, tính toán, định lý |
+| RR03 | Correction Reliability | Sửa lỗi, giữ bước đúng |
+| RR04 | Uncertainty Handling | Thiếu, mâu thuẫn, mơ hồ |
+| RR05 | Fault Tolerance | API/tool/storage failure |
+| RR06 | Resource Safety | Token/thời gian/budget |
+| RR07 | Security | Prompt injection, tool permission |
+| RR08 | Recoverability | Checkpoint/resume |
+ID RR trong phạm vi evaluation, không đồng nhất routing rule IDs của System Design.
+
+### 8.3. Chiến lược
+```mermaid
+flowchart TD
+ A["Test Dataset"] --> B["Perturbation / Fault Injection"]
+ B --> C["MATHK Engine"]
+ C --> D["System Response"]
+ D --> E["Quality Evaluation"]
+ D --> F["Safety Evaluation"]
+ D --> G["Recovery Evaluation"]
+ E --> H["Reliability Report"]
+ F --> H
+ G --> H
+```
+Input perturbation và fault injection có kiểm soát.
+
+### 8.4. Kịch bản
+| Kịch bản | Hành vi mong đợi |
+|---|---|
+| Ảnh mờ/mất ký hiệu | Đọc lại hoặc hỏi bổ sung |
+| Thiếu dữ kiện | Hỏi lại hoặc trả lời có điều kiện |
+| Lỗi tính toán | Phát hiện, sửa, tái kiểm chứng |
+| API 429 | Retry giới hạn |
+| JSON không hợp lệ | Validate và xử lý lỗi |
+| SymPy timeout | Dừng tool an toàn |
+| Vượt budget | Dừng theo giới hạn |
+| Prompt injection | Không thực thi trái phép |
+| Benchmark gián đoạn | Resume checkpoint |
+Giữ nguyên Threat Model và Fault Injection trong System Design mục 16.
+
+### 8.5. Metrics
+Robustness Drop, Error Detection F1, Recovery Success Rate, Technical Failure Rate, False Abstention Rate, Unsupported Answer Rate, Budget Violation Rate, Security Violation Rate. Phân biệt perturbation giữ nguyên đáp án với biến đổi làm thay đổi dữ kiện/ground truth.
+
+### 8.6. An toàn
+Không chạy tool trái phép, lộ secret, lặp vô hạn, vượt giới hạn kiểm soát, sai lệch state khi resume hoặc khẳng định verified khi thiếu bằng chứng. Tiêu chí an toàn bắt buộc đạt trong phạm vi bộ test, không đánh đổi lấy accuracy/cost. Pass test không bảo đảm an toàn tuyệt đối.
+
 
 ## 9. Experiment Protocol & Reproducibility
 
