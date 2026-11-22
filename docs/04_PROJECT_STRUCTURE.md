@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.7
+**Phiên bản:** 0.8
 
 **Trạng thái:** Đang thảo luận
 
@@ -451,4 +451,39 @@ Conventional Commits: feat, fix, docs, test, refactor, chore, ci, perf; scope kh
 
 ## 8. Cấu trúc mở rộng theo Phase
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 8.1. Phase 0–7
+Foundation → Mathematical Tools → Single-Agent → Multi-Agent Orchestration → Agentic RAG → Verification & Adaptive Routing → Multimodal → Research & Evaluation.
+
+### 8.2. Repository Evolution
+| Phase | Mở rộng chính | Đầu ra |
+|---|---|---|
+| 0 | configs, src/mathk root, tests, CI | CLI tối thiểu, config, môi trường |
+| 1 | domain, tools, tests/unit | Công cụ toán học có schema, validation và test |
+| 2 | agents, application, infrastructure/models, prompts, evaluation, bootstrap khi cần | Single-Agent solver |
+| 3 | orchestration, infrastructure/persistence, tracing, tests/integration | Shared State, guard, checkpoint, multi-agent |
+| 4 | knowledge, data/knowledge, data/runtime/indexes | Grounded retrieval và applicability |
+| 5 | verification, uncertainty | Correction và adaptive routing |
+| 6 | multimodal, interfaces, data/runtime/assets | Multimodal solver và demo |
+| 7 | data/datasets, experiments/{configs,results,exports}, tests/system | Reproducible benchmark và ablation |
+Mỗi phase có labs/phase_0N. Đây là thời điểm phát triển chính, không cấm CLI, gateway, logging, evaluation cơ bản sớm hơn. Tên file theo mục 2–3, tạo theo nhu cầu.
+
+### 8.3. MVP
+```mermaid
+flowchart LR
+ A["MVP A: P0–P2 Text Solver"] --> B["MVP B: P3–P4 Grounded Multi-Agent"]
+ B --> C["MVP C: P5–P6 Adaptive Multimodal"]
+ C --> D["MVP D: P7 Research"]
+```
+Mỗi MVP có bản chạy/demo được.
+
+### 8.4. Nguyên tắc
+Không cài dependency/tạo folder/class rỗng trước nhu cầu; nền tảng ổn định trước phase tiếp; test/log/eval xuyên suốt; refactor khi cần; cập nhật docs và commit.
+
+### 8.5. Completion Gates
+Engineering: chức năng chạy, test/CI đạt, docs cập nhật, commit. Learning: hiểu nguyên lý, tự làm lab, debug/test, giải thích thiết kế, trả lời câu hỏi củng cố. Cả hai đều cần đạt.
+
+### 8.6. Checkpoints
+docs/progress/CURRENT_STATUS.md và phase_00.md, phase_01.md... tạo theo nhu cầu; lưu phase hiện tại, việc đang làm, next step, kiến thức, bài tập, kết quả, vấn đề. Cập nhật sau nhóm công việc hoặc trước kết thúc phiên dài. GitHub là Single Source of Truth.
+
