@@ -1,12 +1,12 @@
 # MATHK — Deployment
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.0.1
 
 **Trạng thái:** Đã chốt
 
 **Cấu trúc:** Đã duyệt 10/10 mục. Tiêu chí triển khai chưa được kiểm chứng thực tế.
 
-**Giả định đã chốt:** Full API Inference + Local-first Deployment. Laptop 8 GB RAM; LLM/VLM/embedding/reranker (nếu dùng) qua API. Cloud thuê tạm thời qua SSH với RAM giả định 16 GB chỉ là phương án tùy chọn khi cần tài nguyên bổ sung, không phụ thuộc GPU hoặc provider cụ thể. Quyết định này thay thế giả định laptop 16 GB và local model inference mặc định trước đây; cần đồng bộ tài liệu liên quan.
+**Giả định đã chốt:** Full API Inference + Local-first Deployment. Laptop 8 GB RAM; LLM/VLM/embedding/reranker (nếu dùng) qua API. Cloud thuê tạm thời qua SSH với RAM giả định 16 GB chỉ là phương án tùy chọn khi cần tài nguyên bổ sung, không phụ thuộc GPU hoặc provider cụ thể. Quyết định này thay thế giả định laptop 16 GB và local model inference mặc định trước đây; đã đồng bộ giả định chính vào tài liệu 03–06; kiểm chứng runtime khi triển khai.
 
 ## 1. Deployment Strategy
 
@@ -105,7 +105,7 @@ flowchart TD
 pyproject.toml và uv.lock là nguồn chính; không duy trì requirements.txt song song nếu không cần.
 
 ### 3.4. Theo Phase
-P0 Pydantic/pytest/Ruff/mypy; P1 SymPy/NumPy; P2 OpenAI SDK/HTTPX; P3 LangGraph/SQLAlchemy; P4 rank-bm25/faiss-cpu; P5 theo nhu cầu; P6 Pillow/Gradio; P7 pandas/Matplotlib/SciPy tùy chọn. Bổ sung theo nhu cầu, không cài tất cả từ đầu.
+P0 Pydantic/PyYAML/pytest/Ruff/mypy; OpenAI SDK/HTTPX khi cần cho Mini Lab P0-L05/L06 (kết nối thử nghiệm, chưa gateway production); P1 SymPy/NumPy; P2 tích hợp OpenAI SDK/HTTPX vào Model Gateway chính thức; P3 LangGraph/SQLAlchemy; P4 rank-bm25/faiss-cpu; P5 theo nhu cầu; P6 Pillow/Gradio; P7 pandas/Matplotlib/SciPy tùy chọn. Bổ sung theo nhu cầu, không cài tất cả từ đầu.
 
 ### 3.5. Resource Management
 Lazy loading, sequential lightweight, không load AI model local, bounded context/state, giải phóng ảnh và dữ liệu trung gian, đo RAM bằng psutil.
