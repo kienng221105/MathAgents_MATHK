@@ -1,22 +1,22 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.1
+**Phiên bản:** 0.2
 
 **Trạng thái:** Đang thảo luận
 
-Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design](03_SYSTEM_DESIGN.md), [Project Structure v1.0](04_PROJECT_STRUCTURE.md).
+Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design](03_SYSTEM_DESIGN.md), [Project Structure v1.1](04_PROJECT_STRUCTURE.md).
 
 ## 1. Phương pháp học và triển khai
 
 **Trạng thái: Đã chốt.**
 
 ### 1.1. Learning by Building và Scaffolding
-Theory → Mini Lab → Framework (khi cần) → Integration → Mastery. Tăng dần độ phức tạp; kiểm tra nhanh kiến thức đã biết, không ép đủ mọi tầng.
+System-first, Model & Data-centric, Evaluation-driven, AI-assisted Engineering. Understand → Observe → Predict → Experiment → Design → Delegate → Review → Master. Coding Agent tạo code và lab; người học đọc hiểu, dự đoán, thực nghiệm, đặc tả, kiểm chứng; không bắt buộc tự gõ code. Tăng dần độ phức tạp; kiểm tra nhanh kiến thức đã biết, không ép đủ mọi tầng.
 ```mermaid
 flowchart LR
- T["Theory"] --> L["Mini Lab"]
- L --> F["Framework"]
- F --> I["Integration"]
+ T["Understand"] --> L["Observe and Predict"]
+ L --> F["Experiment and Design"]
+ F --> I["Delegate and Review"]
  I --> M["Mastery"]
 ```
 
@@ -52,16 +52,22 @@ Các guard bắt buộc phải có trước khi cho phép thực thi thật.
 Basic: một khái niệm ít dependency; Intermediate: kết hợp, framework; Advanced: lỗi, edge cases, integration. Chỉ tăng mức khi hiểu nền tảng; có thể bỏ qua phần đã thành thạo sau kiểm tra.
 
 ### 1.5. Phiên học
-Linh hoạt 45/90/120 phút; gợi ý 10% ôn, 20% lý thuyết/ví dụ, 40% tự lab, 20% review/integration, 10% tổng kết/checkpoint. Lab khó có thể nhiều buổi.
+Linh hoạt 45/90/120 phút; gợi ý 20% nguyên lý, 25% đọc/phân tích code, 20% thực nghiệm/debug, 25% thiết kế/tích hợp/review, 10% ôn/checkpoint. Lab khó có thể nhiều buổi.
 
 ### 1.6. Mentor
-H1 câu hỏi gợi mở; H2 thuật toán/hướng giải; H3 pseudocode/skeleton; H4 lời giải đầy đủ kèm giải thích. Mặc định H1–H2 khi gặp khó; AI hỗ trợ trực tiếp boilerplate/CI/Git không phải năng lực trọng tâm.
+H1 câu hỏi gợi mở; H2 thuật toán/hướng giải; H3 pseudocode/skeleton; H4 lời giải đầy đủ kèm giải thích. Mức hỗ trợ linh hoạt; AI cung cấp code minh họa và triển khai module/test theo đặc tả. Mentor giải thích, hướng dẫn thí nghiệm, review; người học quyết định và kiểm chứng. Không bắt buộc tự code.
 
 ### 1.7. Ôn tập
-Concept, Implementation, Debugging, Design; ôn kiến thức liên quan đầu phase. Engineering Gate và Learning Gate theo tài liệu 04.
+Concept, đọc hiểu/dự đoán hành vi, Debugging, Design, phân tích metrics/trade-off; ôn kiến thức liên quan đầu phase. Engineering Gate và Learning Gate theo tài liệu 04.
 
 ### 1.8. Tiến độ
 docs/progress/ lưu năng lực, phase, mức L0–L4, minh chứng lab/test/integration/commit, phần chưa xong và bước tiếp theo. Checkpoint thường xuyên, GitHub là nguồn chuẩn.
+
+### 1.9. Trọng tâm AI Systems Engineering
+Tỷ trọng định hướng: System Design 25%, Model Engineering 20%, Data/Knowledge 15%, Evaluation/Research 15%, Cost/Performance 15%, Software Engineering/Code Review 10%. Không phải lịch cứng.
+Mini Lab là technical experiment: câu hỏi, giả thuyết, ví dụ nhỏ do AI tạo, biến kiểm soát, metrics, phân tích kết quả, quyết định tích hợp. Ví dụ model selection (accuracy/schema success/token/latency/cost), context toàn bộ/chọn lọc/RAG, direct/single/multi-agent, static/adaptive routing, LLM verification/SymPy. Đo quality, token, calls, latency, cost từ khi dùng LLM; không đợi Phase 7. So sánh Pareto, không mặc định multi-agent tốt hơn.
+P0 môi trường/hệ thống; P1 deterministic vs LLM; P2 model/prompt/tool/loop; P3 architecture/state/reliability; P4 data/retrieval/context; P5 verification/routing/cost; P6 VLM/fusion; P7 benchmark/ablation/research.
+L0 chưa biết; L1 giải thích; L2 đọc hiểu/dự đoán/thực nghiệm; L3 thiết kế/đặc tả/delegate/review/test; L4 kiến trúc/trade-off/debug/chuyển giao. Mục tiêu L3 hướng L4. Đọc code và sửa nhỏ khi cần là kỹ năng hỗ trợ.
 
 ## 2. Kiến thức tiên quyết
 
