@@ -2,9 +2,9 @@
 
 **Ngày checkpoint:** 2026-11-22
 **Giai đoạn:** Phase 0 — Foundation (P0-01/P0-02 completed)
-**Milestone:** P0-01 và P0-02 COMPLETED; P0-03 Engineering source review + Learning Gate L2 PASS, Checkpoint pending
-**Active Task:** P0-03 chờ commit/push source và kiểm chứng checkpoint; P0-04 chưa giao
-**Latest Verified Implementation Commit:** b84ea2d07bd158df1ca23654cdde9ef0e804abcd (P0-02, 9 file đã source review)
+**Milestone:** P0-01, P0-02 và P0-03 COMPLETED (Engineering + Learning + Checkpoint)
+**Active Task:** Không có task đang triển khai; P0-04 chưa giao
+**Latest Verified Implementation Commit:** 8bbde0983011c2d3482eb1b85231fe2363d739dc (P0-03, 4 file GitHub verified)
 **Latest Document Checkpoint:** Xem GitHub main và [Task Board](../management/TASK_BOARD.md)
 
 ## Engineering Progress
@@ -15,7 +15,7 @@
 - P0-01 đã có package Python Foundation, CLI, uv.lock và hai mini labs.
 - P0-02 có Pydantic config, YAML/env/explicit overrides, 22 tests PASS theo báo cáo Codex, hai mini labs L03/L04; source review PASS. CI, benchmark và thực nghiệm chưa có.
 
-- P0-03: lab L05 offline mock, Pydantic request/response/usage, latency perf_counter; source review ba file lab PASS, 40/40 tests theo báo cáo Codex; source chưa commit/push, README dự án chưa review độc lập.
+- P0-03: lab L05 offline mock, Pydantic request/response/usage, latency perf_counter; [commit 8bbde09](https://github.com/kienng221105/MathAgents_MATHK/commit/8bbde0983011c2d3482eb1b85231fe2363d739dc) có đúng 4 file đã xác minh trên GitHub; source review PASS, 40/40 tests theo báo cáo Codex. Cảnh báo quyền truy cập `.pytest_cache` cục bộ chưa xác minh.
 
 ## Learning Progress
 - P0-L01/L02: Learning Gate L2 cơ bản được Technical Lead chấp nhận qua hỏi đáp: src-layout/import path, uv lock + uv sync --locked, thay formatter qua tham số hàm. Ban đầu có hiểu nhầm, đã sửa được qua kiểm tra lại; chưa chứng minh thành thạo toàn Phase 0.
@@ -30,8 +30,8 @@
 - Chưa kiểm chứng hiệu quả mô hình, chi phí API thực tế, visual quality 227 SVG.
 
 ## Next Action
-1. Codex commit/push đúng bốn file P0-03 sau khi kiểm tra Git sạch ngoài phạm vi task và sync an toàn; không tự triển khai P0-04.
-2. Technical Lead kiểm tra commit GitHub và checkpoint rồi mới đánh dấu P0-03 COMPLETED.
+1. Chuẩn bị P0-04 — 9Router Connectivity Lab (P0-L06) để Owner xem xét.
+2. Chưa giao P0-04 khi Owner chưa duyệt.
 3. Giữ tách biệt mock metrics và API metrics thực tế.
 
 ## Relevant Context
