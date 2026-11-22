@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.4
+**Phiên bản:** 0.5
 
 **Trạng thái:** Đang thảo luận
 
@@ -127,7 +127,51 @@ Báo cáo toàn benchmark và theo nhóm; phân biệt sai toán, lỗi kỹ thu
 
 ## 4. Component-level Evaluation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 4.1. Mục tiêu
+Cô lập thành phần trước khi tích hợp, xác định nguyên nhân lỗi, chọn công nghệ và tránh chạy toàn pipeline khi thay module.
+
+### 4.2. Đối tượng
+| ID | Component | Nội dung |
+|---|---|---|
+| CE01 | Model Gateway | Structured output, tool calling, latency, cost |
+| CE02 | Perception Agent | Dữ kiện, hiểu ảnh |
+| CE03 | Planning Agent | Kế hoạch hợp lý, đầy đủ |
+| CE04 | Retrieval Agent | Relevance, applicability |
+| CE05 | Reasoning Agent | Đáp án, lập luận, tool use |
+| CE06 | Verifier Agent | Phát hiện và định vị lỗi |
+| CE07 | Mathematical Tools | Tính toán, miền xác định |
+| CE08 | Adaptive Router | Quyết định định tuyến |
+| CE09 | Context Builder | Chất lượng context, tokens |
+| CE10 | Uncertainty Manager | Phát hiện, hành động |
+| CE11 | Correction Engine | Sửa lỗi, bảo toàn bước đúng |
+| CE12 | Knowledge Store & Retrieval | Chất lượng dữ liệu, truy xuất |
+
+### 4.3. Kiến trúc
+```mermaid
+flowchart TD
+ A["Component Test Dataset"] --> B["Component Evaluator"]
+ B --> C["Controlled Input"]
+ C --> D["Target Component"]
+ D --> E["Actual Output"]
+ A --> F["Expected Output"]
+ E --> G["Comparison"]
+ F --> G
+ G --> H["Metrics"]
+ G --> I["Error Analysis"]
+```
+Đầu vào chuẩn, fake agent/mock service khi phù hợp để cô lập thành phần; ground truth không đưa vào target component.
+
+### 4.4. Thí nghiệm
+LLM/VLM ứng viên; zero-shot vs few-shot; tools exact và edge cases; BM25/dense/hybrid; full vs selected context; LLM-only/symbolic/hybrid verification; full regeneration vs local correction; rule-based/state-aware/hybrid routing. Duy trì guard bắt buộc.
+
+### 4.5. Testing và Evaluation
+Software testing kiểm tra hành vi đúng đặc tả (pass/fail, pytest/mock, CI offline); AI evaluation đo chất lượng đầu ra bằng metrics, có thể cần model thật. Ví dụ tool từ chối tham số sai vs agent chọn đúng tool. Hai hoạt động bổ sung, không thay thế nhau.
+
+### 4.6. Lộ trình
+P0–1 configuration/tools; P2 model/prompt/reasoner/context; P3 agent/orchestration/router; P4 knowledge/retrieval; P5 verification/correction/uncertainty; P6 perception/VLM; P7 hoàn thiện/tái đánh giá. Xây bộ đánh giá khi triển khai thành phần tương ứng; lưu kết quả cho regression evaluation.
+
 
 ## 5. End-to-End Evaluation
 
