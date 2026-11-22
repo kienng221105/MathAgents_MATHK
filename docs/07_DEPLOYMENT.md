@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.2
+**Phiên bản:** 0.3
 
 **Trạng thái:** Đang thảo luận
 
@@ -28,7 +28,46 @@ flowchart TD
 
 ## 2. Deployment Architecture
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 2.1. Kiến trúc
+```mermaid
+flowchart TD
+ subgraph L["Laptop - 8 GB RAM"]
+ A["Gradio / CLI / Benchmark"] --> B["MATHK Engine"]
+ B --> C["LangGraph / Agents"]
+ C --> D["Model Gateway"]
+ C --> E["SymPy / Calculator"]
+ C --> F["BM25 / FAISS"]
+ C --> G["SQLite / Checkpoint"]
+ end
+ subgraph R["External APIs"]
+ H["LLM API"]
+ I["VLM API"]
+ J["Embedding API"]
+ end
+ D --> H
+ D --> I
+ D --> J
+```
+
+### 2.2. Runtime Profiles
+| Thuộc tính | Lightweight | Standard | Research |
+|---|---|---|---|
+| RAM mục tiêu | 8 GB | 16 GB | 8–16 GB |
+| Inference và embedding | API | API | API |
+| Concurrency | 1 | Giới hạn | Cố định theo thí nghiệm |
+| Retrieval | BM25/Hybrid | Hybrid | Configurable |
+| Trace | Cơ bản | Chi tiết | Đầy đủ metadata |
+| Fallback | Cho phép | Cho phép | Mặc định tắt |
+Không bỏ guard hoặc verification bắt buộc.
+
+### 2.3. Hạ tầng
+Modular Monolith; không cần thuê GPU, CUDA, PyTorch/Transformers cho local inference hoặc Docker Desktop trong phát triển. Cloud 16 GB dự phòng khi cần tài nguyên bổ sung.
+
+### 2.4. Rủi ro
+Rate limit: bounded retry; outage: configurable fallback; cost: execution budget; mất mạng: checkpoint/resume; model miễn phí thay đổi: gateway; thiếu RAM: sequential execution/lazy loading. Đồng bộ giả định Full API và RAM 8 GB vào tài liệu trước.
+
 
 ## 3. Environment & Dependencies
 
