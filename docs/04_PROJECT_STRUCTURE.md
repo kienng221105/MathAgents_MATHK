@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 
 **Trạng thái:** Đã chốt
 
@@ -14,7 +14,7 @@ Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design v0.16.1](03_SYS
 - Tổ chức theo module chức năng, mở rộng dần theo Phase; không tạo hàng loạt abstraction hoặc thư mục rỗng từ đầu.
 - Mini Lab độc lập trong `labs/`; AI Core không phụ thuộc vào labs.
 - Tích hợp kiểm thử ngay từ đầu.
-- Learning by Building: nguyên lý trước framework, mini lab, tự triển khai, kiểm thử, giải thích, commit. Ma trận năng lực chi tiết sẽ thuộc 05_IMPLEMENTATION.md.
+- Learning by Building: nguyên lý trước framework, mini lab do AI hỗ trợ, phân tích hành vi, thiết kế, review, kiểm thử, giải thích, commit. Ma trận năng lực chi tiết sẽ thuộc 05_IMPLEMENTATION.md.
 
 ```mermaid
 flowchart LR
@@ -71,7 +71,7 @@ __init__.py: package/public API; __main__.py: entry point; config.py: configurat
 Các package chức năng nằm trong src/mathk.
 
 ### 2.5. Mini Labs
-Theo phase và năng lực. Ví dụ labs/phase_03/README.md và 01_agent_loop, 02_shared_state, 03_orchestration, 04_langgraph, 05_routing, 06_guardrails, 07_checkpointing. Mỗi lab có lý thuyết, yêu cầu thực hành, test, câu hỏi kiểm tra; người học tự thử trước khi xem lời giải. Chi tiết Competency Matrix ở 05_IMPLEMENTATION.md.
+Theo phase và năng lực. Ví dụ labs/phase_03/README.md và 01_agent_loop, 02_shared_state, 03_orchestration, 04_langgraph, 05_routing, 06_guardrails, 07_checkpointing. Mỗi lab có lý thuyết, yêu cầu thực hành, test, câu hỏi kiểm tra; AI tạo ví dụ nhỏ có giải thích; người học dự đoán, thực nghiệm, phân tích kết quả. Chi tiết Competency Matrix ở 05_IMPLEMENTATION.md.
 
 
 ## 3. Package & Module Structure
@@ -378,26 +378,26 @@ flowchart TD
 ```
 
 ### 6.7. Mini Labs
-labs/phase_03/README.md và 03_orchestration/{README.md,exercise.py,test_exercise.py,notes.md}. README lý thuyết/ví dụ/yêu cầu, exercise do người học viết, test kiểm chứng, notes tự giải thích. Không bắt buộc đủ mọi file.
+labs/phase_03/README.md và 03_orchestration/{README.md,exercise.py,test_exercise.py,notes.md}. README lý thuyết/ví dụ/yêu cầu, exercise do Coding Agent tạo hoặc người học chỉnh sửa khi cần, test kiểm chứng, notes tự giải thích. Không bắt buộc đủ mọi file.
 
 ### 6.8. Learning Workflow
 ```mermaid
 flowchart TD
- A["Theory"] --> B["Mini Example"]
- B --> C["Exercise"]
- C --> D["Code Review"]
+ A["Understand"] --> B["Observe and Predict"]
+ B --> C["Experiment and Design"]
+ C --> D["Delegate and Review"]
  D --> E["Integration"]
  E --> F["Testing"]
  F --> G["Reflection"]
  G --> H["Commit"]
 ```
-Có thể quay lại bước trước khi chưa hiểu; mentor gợi ý trước lời giải.
+Có thể quay lại bước trước khi chưa hiểu; mentor giải thích nguyên lý, code và kết quả; không bắt buộc tự gõ code.
 
 ### 6.9. Competency Matrix
-L0 chưa học; L1 hiểu/giải thích; L2 tự làm lab; L3 tích hợp/test; L4 thiết kế, trade-off, chuyển giao sang dự án khác. Năng lực cốt lõi mục tiêu L3 hướng L4. Ví dụ prompt engineering, structured output, tool calling, agent loop, orchestration, state, guardrails, context, agentic RAG, routing, checkpoint, evaluation. Ma trận đầy đủ tại 05_IMPLEMENTATION.md; đánh giá bằng minh chứng, không chỉ đánh dấu.
+L0 chưa học; L1 hiểu/giải thích; L2 đọc hiểu code, dự đoán và thực nghiệm; L3 thiết kế, giao việc Coding Agent, review/test; L4 làm chủ kiến trúc, trade-off, debug và chuyển giao sang dự án khác. Năng lực cốt lõi mục tiêu L3 hướng L4. Ví dụ prompt engineering, structured output, tool calling, agent loop, orchestration, state, guardrails, context, agentic RAG, routing, checkpoint, evaluation. Ma trận đầy đủ tại 05_IMPLEMENTATION.md; đánh giá bằng minh chứng, không chỉ đánh dấu.
 
 ### 6.10. Vai trò
-Người học đọc, tự code lab/module, debug/test, giải thích; mentor giảng, thiết kế bài, hướng dẫn kiến trúc, review, gợi ý lỗi, câu hỏi phỏng vấn. AI coding hỗ trợ nhưng ưu tiên tự triển khai năng lực cốt lõi.
+Người học tập trung system/model/data/context/cost/performance/evaluation, thiết kế, đặc tả, đọc hiểu, debug, review và kiểm chứng. Mentor giảng, thiết kế lab/thí nghiệm, hướng dẫn kiến trúc, review và kiểm tra năng lực. Coding Agent sinh code/lab/test, tích hợp, refactor theo đặc tả; không bắt buộc tự viết module. Người học chịu trách nhiệm quyết định và kiểm chứng.
 
 
 ## 7. Naming & Coding Conventions
@@ -482,7 +482,7 @@ Mỗi MVP có bản chạy/demo được.
 Không cài dependency/tạo folder/class rỗng trước nhu cầu; nền tảng ổn định trước phase tiếp; test/log/eval xuyên suốt; refactor khi cần; cập nhật docs và commit.
 
 ### 8.5. Completion Gates
-Engineering: chức năng chạy, test/CI đạt, docs cập nhật, commit. Learning: hiểu nguyên lý, tự làm lab, debug/test, giải thích thiết kế, trả lời câu hỏi củng cố. Cả hai đều cần đạt.
+Engineering: chức năng chạy, test/CI đạt, docs cập nhật, commit. Learning: hiểu nguyên lý, đọc hiểu lab, dự đoán/thực nghiệm, phân tích metrics và trade-off, debug/test, giải thích thiết kế, trả lời câu hỏi củng cố. Cả hai đều cần đạt.
 
 ### 8.6. Checkpoints
 docs/progress/CURRENT_STATUS.md và phase_00.md, phase_01.md... tạo theo nhu cầu; lưu phase hiện tại, việc đang làm, next step, kiến thức, bài tập, kết quả, vấn đề. Cập nhật sau nhóm công việc hoặc trước kết thúc phiên dài. GitHub là Single Source of Truth.
