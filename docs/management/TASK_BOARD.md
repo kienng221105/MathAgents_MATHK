@@ -1,13 +1,13 @@
 # Task Board — MATHK
 
-**Trạng thái:** Phase 0 planning đã được Owner phê duyệt. P0-01 đã giao qua prompt, chờ Codex thực hiện.
+**Trạng thái:** P0-01 ACCEPTED kỹ thuật sau source review commit bdb0c45; chờ Learning Gate để COMPLETED.
 
 | Task | Nội dung | Phase | Trạng thái | Bằng chứng / Ghi chú |
 |---|---|---|---|---|
 | PRE-001 | Mermaid Validation 227 sơ đồ | Pre-Implementation | COMPLETED | [AUDIT_LOG](AUDIT_LOG.md): ACCEPTED theo báo cáo Codex; đính chính bảng 05 Implementation 12 Render PASS |
 | PRE-002 | Chốt System Design v1.0 và khởi tạo quản lý | Pre-Implementation | COMPLETED | [System Design](../03_SYSTEM_DESIGN.md), AGENTS, WORKFLOW, TASK_BOARD, DECISION_LOG, CURRENT_STATUS |
 | P0-PLAN | Phân rã Phase 0 Foundation thành task và lab | Phase 0 (planning) | COMPLETED | [Planning Baseline](PHASE_00_PLAN.md) đã được Owner duyệt |
-| P0-01 | Python Foundation & Project Skeleton | Phase 0 | ASSIGNED | [Task Contract](PHASE_00_PLAN.md#p0-01-task-contract); chờ báo cáo Codex |
+| P0-01 | Python Foundation & Project Skeleton | Phase 0 | ACCEPTED | [Commit bdb0c45](https://github.com/kienng221105/MathAgents_MATHK/commit/bdb0c45d6dbb631eed00a87a032c69a6a7d415f9); 11 file đã review; lệnh PASS theo báo cáo Codex; chờ Learning Gate |
 | P0-02 | Data Contracts & Configuration | Phase 0 | PLANNED | P0-L03–L04 |
 | P0-03 | LLM API Anatomy | Phase 0 | PLANNED | P0-L05 |
 | P0-04 | 9Router Connectivity Lab | Phase 0 | PLANNED | P0-L06 |
