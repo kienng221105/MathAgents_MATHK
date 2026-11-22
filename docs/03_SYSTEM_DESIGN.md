@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.13  
+**Phiên bản:** 0.14  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -2930,7 +2930,130 @@ Hybrid storage, relational–JSON, DG01–08, repository, separate SQLite checkp
 
 ## 14. Interface & API Design
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** FR01, FR09, FR10, UC09.
+
+### 14.1. Interface Architecture
+Gradio, CLI và Benchmark Runner dùng cùng Python Application API; tách UI khỏi AI Core.
+```mermaid
+flowchart TD
+ U["Student - Gradio"] --> A["Python Application API"]
+ D["Developer - CLI"] --> A
+ R["Researcher - Benchmark Runner"] --> A
+ A --> E["MATHK Reasoning Engine"]
+```
+
+### 14.2. UI Choice
+Gradio Blocks phù hợp AI demo, hỗ trợ ảnh và LaTeX, chi phí phát triển thấp. Streamlit phù hợp dashboard nhưng không chọn; Next.js + FastAPI cần thêm công sức. Ưu tiên AI Core.
+
+### 14.3. Mathematical Workspace
+Nhập text/LaTeX, nhiều ảnh, chọn chế độ trình bày, giải, bổ sung dữ kiện, xem lời giải, nguồn, kiểm chứng và trace. Không sao chép toàn bộ ChatGPT.
+
+### 14.4. Usage Modes
+Student: nhập đề, ảnh, lời giải, định lý, clarification, verification. Research: cấu hình model/routing, trace, tool calls, retrieval, tokens/latency/cost. Hai chế độ trình bày, không phải hai engine hay phân quyền tài khoản. Không bypass safety.
+
+### 14.5. Python Application API
+Facade che giấu orchestration, agents, tools và state.
+```python
+from mathk import MathEngine, ProblemInput
+
+engine = MathEngine.from_config("config.yaml")
+result = engine.solve(ProblemInput(text="Giải phương trình 2x + 6 = 14"))
+print(result.final_answer)
+```
+Ví dụ API chưa triển khai.
+```mermaid
+flowchart LR
+ A["Application"] --> F["MathEngine Facade"]
+ F --> O["Orchestrator"]
+ O --> R["Router"]
+ O --> G["Agents"]
+ O --> S["State Manager"]
+ O --> T["Tool System"]
+```
+
+### 14.6. API Methods
+solve(), resume(), get_result(), get_status(), get_trace(), cancel(). Config/request options thay nhiều tham số. Synchronous-first; streaming/async nâng cao tùy nhu cầu. Cancel tại ranh giới an toàn, không bảo đảm thu hồi API đã gửi; trace chỉ nội dung được phép.
+
+### 14.7. Input Contract
+ProblemInput thống nhất, Pydantic v2; text, LaTeX, một/nhiều ảnh, mixed P0; PDF/handwriting/multi-problem P1. Ví dụ:
+```json
+{"text":"Cho hình vẽ. Tính BC.","assets":[{"asset_id":"IMG-001","type":"image","mime_type":"image/png"}],"options":{"output_mode":"detailed","language":"vi"}}
+```
+```mermaid
+flowchart TD
+ T["Text"] --> V["Input Validation"]
+ I["Images"] --> V
+ M["Mixed Input"] --> V
+ V --> P["ProblemInput"]
+ P --> E["Engine"]
+```
+
+### 14.8. Canonical Output Contract
+SolveResult: session_id, run_id, execution_status, problem_summary, given_facts, objectives, assumptions, solution_steps, final_answer, knowledge_references, verification, uncertainties, clarification_request, execution_summary, trace_id. Trường không áp dụng có thể vắng/null; thiếu dữ kiện có thể không có đáp án. Schema cuối ở implementation. Renderer không sửa toán, giả thiết hay verification.
+```mermaid
+flowchart TD
+ E["Engine"] --> R["Canonical SolveResult"]
+ R --> G["Gradio Renderer"]
+ R --> C["CLI Renderer"]
+ R --> J["JSON Serializer"]
+ R --> B["Benchmark Evaluator"]
+```
+
+### 14.9. Presentation Modes
+Quick: đáp án và cảnh báo/kiểm chứng thiết yếu; Detailed: lời giải từng bước, LaTeX, nguồn; Technical: bổ sung facts, tool/agent metadata và phạm vi kiểm chứng. Cùng canonical result; Quick không bỏ verification; không ẩn giả thiết/cảnh báo quan trọng.
+
+### 14.10. Clarification Interface
+```mermaid
+sequenceDiagram
+ participant U as User
+ participant I as Interface
+ participant E as Engine
+ participant S as Checkpoint
+ U->>I: Submit problem
+ I->>E: solve
+ E->>S: Save state
+ E-->>I: WAITING_USER and question
+ I-->>U: Clarification request
+ U->>I: Additional information
+ I->>E: resume
+ E->>S: Restore state
+ E-->>I: Updated result
+ I-->>U: Display solution
+```
+Core quản lý version, invalidation, resume; UI chỉ nhận và hiển thị.
+
+### 14.11. Execution Trace Interface
+Agent events, routing, retrieval, tool calls, verification, token, latency, chi phí; chỉ sự kiện quan sát được, không private chain-of-thought. Trace viewer hỗ trợ research.
+
+### 14.12. CLI
+argparse khởi điểm; lệnh dự kiến: mathk solve, resume, demo, kb build, benchmark run, benchmark resume, benchmark export, trace. Ví dụ mathk solve --text "2x + 6 = 14"; mathk benchmark run --config experiments/baseline.yaml. Chưa triển khai.
+
+### 14.13. REST API
+Không mặc định MVP; FastAPI sau nếu cần tích hợp HTTP, gọi cùng Python API.
+```mermaid
+flowchart LR
+ A["Gradio or CLI"] --> P["Python API"]
+ P --> C["Core"]
+```
+```mermaid
+flowchart LR
+ W["Future Web or Mobile"] --> F["FastAPI"]
+ F --> P["Python API"]
+ P --> C["Core"]
+```
+
+### 14.14. Errors and Feedback
+Sai ảnh: tải lại; thiếu dữ kiện: clarify; rate limit: bounded retry/fallback; mất kết nối: báo và checkpoint nếu có thể; tool unsupported: giới hạn và route; budget: safe stop; chưa verify: đúng status; checkpoint incompatible: từ chối resume. Thông báo dễ hiểu, trace đã redaction; minh bạch gửi dữ liệu tới LLM bên ngoài.
+
+### 14.15. Stack
+Gradio Blocks, Python API, Pydantic v2, Markdown/LaTeX, argparse, Python renderer, Gradio/JSONL trace viewer, YAML/Pydantic config, JSON/CSV export. FastAPI tương lai. Không React/Next.js/login/WebSocket riêng MVP.
+
+### 14.16. Learning by Building
+Phase 0–1 CLI cơ bản; Phase 2 API/contracts; Phase 3 status/checkpoint/trace; Phase 4–5 grounded output/verification/clarification; Phase 6 Gradio multimodal; Phase 7 benchmark CLI/metrics/export. Demo nhỏ có thể sớm hơn, không trì hoãn core.
+
+### 14.17. Decisions
+Interface separation; Gradio Blocks; Python Facade; CLI/Benchmark Runner; Student/Research; ProblemInput/SolveResult; Quick/Detailed/Technical; interrupt/resume; observable trace; synchronous-first; optional REST.
+
 
 ## 15. Evaluation & Observability
 
