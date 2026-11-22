@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.15  
+**Phiên bản:** 0.16  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -3262,4 +3262,201 @@ Separate evaluation; EL01–04, development/held-out, config-driven EG01–07, E
 
 ## 16. Security, Reliability & Resource Management
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** NFR02–04, NFR09, NFR11–12, BR11, TAC04–08, TAC10.
+
+### 16.1. Objectives
+Security, reliability, resource management; local-first trên laptop RAM 16 GB, ưu tiên API miễn phí, không bắt buộc GPU server.
+
+### 16.2. Security Architecture
+M07 kiểm soát quyền và ngân sách; không Security Agent riêng.
+```mermaid
+flowchart TD
+ U["User Input"] --> V["Input Validation"]
+ V --> C["Core"]
+ C --> G["Execution Guard"]
+ G --> M["Model Gateway"]
+ G --> T["Tool Registry"]
+ M --> P["External Provider"]
+ T --> L["Validated Local Tools"]
+ C --> O["Output Validation"]
+ O --> I["Interface"]
+ C --> R["Log Redaction"]
+ R --> S["Trace"]
+```
+
+### 16.3. Threat Model
+| ID | Risk | Control |
+|---|---|---|
+| ST01 | Secret leakage | Secret management |
+| ST02 | Prompt injection | Trust boundary |
+| ST03 | Arbitrary Python | Restricted parser |
+| ST04 | Unauthorized tool | Allowlist |
+| ST05 | Oversized input | Input limits |
+| ST06 | Infinite loops | Budget |
+| ST07 | Unexpected cost | Cost guard |
+| ST08 | Personal data leakage | Minimization |
+| ST09 | Corrupt checkpoint | Validation/recovery |
+| ST10 | Ground truth leakage | Evaluation isolation |
+Local MVP, không tuyên bố chống mọi tấn công.
+
+### 16.4. Trust Boundary
+Trusted: validated system configuration, policies, budget, permissions, registry. Untrusted: user input, images, retrieved contents, model outputs, tool results. Không cho dữ liệu ghi đè policy, kể cả KB.
+```mermaid
+flowchart LR
+ D["Untrusted Data"] --> V["Validation"]
+ P["Trusted Policies"] --> G["Guard"]
+ V --> G
+ G --> E["Authorized Execution"]
+```
+
+### 16.5. Prompt Injection
+Tách system instructions và dữ liệu; structured extraction/output, schema validation; không secret trong context, guard mọi tool call; không tự cấp quyền/budget. Prompt không bảo đảm chống injection hoàn toàn.
+```mermaid
+flowchart TD
+ A["Untrusted Input"] --> B["Structured Problem"]
+ B --> C["Agent Proposal"]
+ C --> D{"Authorized?"}
+ D -->|Yes| E["Execute"]
+ D -->|No| F["Reject and Record"]
+```
+
+### 16.6. Secret Management
+Environment variables; .env không commit, .env.example chỉ placeholder, .gitignore và config.yaml không secret. Chỉ gateway/adapters cần xác thực truy cập; không secret trong prompt/log/dataset. Key lộ phải revoke/rotate, không chỉ xóa commit mới.
+
+### 16.7. Input Validation
+Text length/encoding/nonempty; LaTeX syntax/support; ảnh actual format/bytes/pixels, số lượng/tổng dung lượng; expression symbols/complexity/depth; config schema/ranges; resume session/status/version. Limits đo và hiệu chỉnh khi triển khai.
+
+### 16.8. Mathematical Tool Security
+Allowlist và restricted mathematical parser tạo SymPy objects hợp lệ; không eval/exec hay untrusted sympify/parse_expr trực tiếp. Bounded worker cho symbolic phức tạp, không coi worker là arbitrary-code sandbox.
+
+### 16.9. Agent Permissions
+Tất cả đọc context được cấp và đề xuất state update. AG03 retrieval; AG04/05 Calculator/SymPy, có thể đề xuất retrieval qua orchestrator. Không agent nào đổi budget, đọc key, shell, gọi agent khác trực tiếp. Registry + guard enforce bằng code.
+
+### 16.10. Privacy
+Chỉ gửi dữ liệu cần thiết; không toàn bộ history/KB/local data. Thông báo rõ input/image có thể gửi provider; local-first không đồng nghĩa offline.
+```mermaid
+flowchart TD
+ A["Original Input"] --> B["Local Validation"]
+ B --> C["Required Data Selection"]
+ C --> D["Context Builder"]
+ D --> E["External Gateway"]
+ A --> F["Controlled Local Storage"]
+```
+
+### 16.11. Reliability
+```mermaid
+flowchart TD
+ A["Operation"] --> B{"Success?"}
+ B -->|Yes| C["Validate and Commit"]
+ B -->|No| D["Classify Failure"]
+ D --> E{"Recoverable and Budget Available?"}
+ E -->|Yes| F["Bounded Retry or Fallback"]
+ F --> A
+ E -->|No| G["Safe Stop"]
+ G --> H["Preserve Valid Results"]
+ H --> I["Status and Error"]
+```
+
+### 16.12. Failure Taxonomy
+FT01 network bounded retry; FT02 rate limit backoff/allowed fallback; FT03 auth stop/config error; FT04 invalid model output validate/bounded retry; FT05 tool error classify/correct params; FT06 timeout terminate/alternative; FT07 storage preserve committed data; FT08 incompatible checkpoint reject resume; FT09 exhausted resources safe stop; FT10 internal error trace/status. Technical failure không đồng nghĩa mathematical impossibility.
+
+### 16.13. Retry and Fallback
+Bounded exponential backoff + jitter khi phù hợp, Retry-After trong deadline/budget. Development free fallback theo policy; benchmark default off, ghi actual model nếu bật. Kiểm soát nested SDK/proxy/MATHK retries.
+```mermaid
+flowchart TD
+ A["Primary Model"] --> B{"Operational Failure?"}
+ B -->|No| C["Validate Output"]
+ B -->|Yes| D{"Allowed and Within Budget?"}
+ D -->|Yes| E["Alternative Model"]
+ D -->|No| F["Safe Stop"]
+```
+
+### 16.14. Unified Execution Budget
+max_llm_calls, max_tool_calls, max_tokens, max_node_visits, max_correction_loops, max_retrieval_rounds, max_replanning_rounds, max_execution_time, max_cost. Shared across agents; numerical defaults after development baseline.
+
+### 16.15. Reservation and Accounting
+Reserve estimate before call, reconcile actual metadata after; unknown upstream usage explicit, no absolute cost guarantee.
+```mermaid
+sequenceDiagram
+ participant A as Agent
+ participant G as Guard
+ participant S as State Manager
+ participant M as Gateway
+ A->>G: Propose call
+ G->>S: Check and reserve
+ alt Available
+ G->>M: Authorized call
+ M-->>G: Result and usage
+ G->>S: Reconcile
+ G-->>A: Validated result
+ else Insufficient
+ G-->>A: Denied
+ end
+```
+
+### 16.16. Safe Termination
+COMPLETED, WAITING_USER, PAUSED, ABSTAINED, FAILED, CANCELLED. Separate verification state; budget exhaustion không cấp VERIFIED. Bảo toàn phần hợp lệ và cảnh báo.
+
+### 16.17. Memory
+Lazy loading, batch reads, shared embedding instance, bounded context, release resources. API agents là logical roles không phải 5 local LLM.
+```mermaid
+flowchart TD
+ R["RAM - Active State Context Embedding"] <--> D["Disk - SQLite Assets Index Logs Dataset"]
+```
+
+### 16.18. Resource Profiles
+RP01 Lightweight: API LLM, API embedding hoặc BM25, concurrency 1, basic trace/checkpoint khi cần. RP02 Standard: API LLM, local/API embedding, bounded concurrency, structured trace/checkpoint. RP03 Research: pinned models/config, fixed concurrency, required metadata/checkpoint. Không bỏ safety/mandatory verification hoặc thay experiment conditions.
+
+### 16.19. Concurrency
+Sequential-first dependency flow; inter-agent parallel P1. Benchmark 1 worker trước, configurable bounded concurrency sau đo RAM/quota/SQLite writes. Không Celery/RabbitMQ/Kafka.
+```mermaid
+flowchart TD
+ D["Dataset"] --> Q["Bounded Worker Pool"]
+ Q --> A["Problem A"]
+ Q --> B["Problem B"]
+ A --> S["Persistent Results"]
+ B --> S
+```
+
+### 16.20. Cache
+Tool P1 input/domain/version; retrieval optional KB/index/query version; embeddings reuse compatible model/data; LLM responses not default; experiment resume valid records. Cache không bypass permissions/domain/version; trace hits và consistent benchmark policy.
+
+### 16.21. Fault Injection
+| ID | Fault | Expected |
+|---|---|---|
+| FI01 | HTTP 429 | Bounded retry/backoff |
+| FI02 | Network outage | Preserve committed data |
+| FI03 | Invalid JSON | Reject/bounded retry |
+| FI04 | Slow SymPy | Timeout/terminate worker |
+| FI05 | Unauthorized tool | Deny |
+| FI06 | Token exhaustion | Safe stop |
+| FI07 | Incompatible checkpoint | Reject resume |
+| FI08 | Oversized image | Reject before model |
+| FI09 | Secret extraction prompt | No secret access |
+| FI10 | Interrupted benchmark | Recover valid records |
+pytest/mock, chưa chạy test.
+
+### 16.22. Local Deployment Security
+uv.lock, validated config, parameterized queries/ORM, safe paths, redacted logs, Gradio localhost default/public share off, secret scanning/review. Public deployment cần threat reassessment, auth/authorization/HTTPS/per-user limits.
+
+### 16.23. Stack
+Pydantic v2/Pillow, env vars, custom guard/parser, Python retry or optional Tenacity, provider timeout/worker process, psutil, uv, pytest/mock/Hypothesis, redaction, SQLite/LangGraph checkpointer.
+
+### 16.24. Learning by Building
+Phase 0 secrets/config/dependencies; Phase 1 safe tools/parser/timeout; Phase 2 API errors/schema/retries; Phase 3 guard/permissions/shared budget; Phase 4–5 untrusted retrieval/verification/correction/recovery; Phase 6 image/privacy/memory/local UI; Phase 7 fault injection/repro/quota/benchmark recovery.
+
+### 16.25. Decisions
+Guard-based security, ST01–10, trust boundaries, env secrets, restricted tools, registry permissions, minimization, FT01–10, bounded backoff/fallback, unified budget and safe stop, lazy loading, RP01–03, sequential-first, controlled cache, fault injection, local-first deployment.
+
+### Learning workflow
+System Design là tài liệu tra cứu, không phải nội dung phải học thuộc. Mỗi phase: lý thuyết cần dùng, Mini Lab, code MATHK, kiểm thử, giải thích lại, commit.
+```mermaid
+flowchart LR
+ A["Learn"] --> B["Mini Lab"]
+ B --> C["Implement"]
+ C --> D["Test"]
+ D --> E["Explain"]
+ E --> F["Commit"]
+ F --> A
+```
+
