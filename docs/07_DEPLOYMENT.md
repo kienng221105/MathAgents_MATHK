@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.3
+**Phiên bản:** 0.4
 
 **Trạng thái:** Đang thảo luận
 
@@ -71,7 +71,48 @@ Rate limit: bounded retry; outage: configurable fallback; cost: execution budget
 
 ## 3. Environment & Dependencies
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 3.1. Môi trường
+Windows 11, Linux remote khi cần, laptop 8 GB RAM, Python 3.12, uv, VS Code, Codex, Git/GitHub, Full API inference; không yêu cầu CUDA.
+
+### 3.2. Dependencies
+| Nhóm | Thư viện |
+|---|---|
+| Core | Pydantic, PyYAML |
+| Model Integration | OpenAI SDK, HTTPX |
+| Orchestration | LangGraph |
+| Mathematics | SymPy, NumPy |
+| Retrieval | rank-bm25, faiss-cpu |
+| Persistence | SQLAlchemy, Alembic |
+| Multimodal | Pillow |
+| Interface | Gradio |
+| Evaluation | pandas, NumPy, Matplotlib |
+| Monitoring | psutil |
+| Testing | pytest, Hypothesis |
+| Code Quality | Ruff, mypy |
+SciPy, LiteLLM, OpenCV khi cần; không PyTorch, Transformers, Sentence Transformers hoặc GPU inference dependencies mặc định.
+
+### 3.3. Quản lý
+```mermaid
+flowchart TD
+ A["pyproject.toml"] --> B["uv Dependency Resolution"]
+ B --> C["uv.lock"]
+ C --> D["uv sync --locked"]
+ D --> E["Virtual Environment"]
+ E --> F["MATHK Runtime"]
+```
+pyproject.toml và uv.lock là nguồn chính; không duy trì requirements.txt song song nếu không cần.
+
+### 3.4. Theo Phase
+P0 Pydantic/pytest/Ruff/mypy; P1 SymPy/NumPy; P2 OpenAI SDK/HTTPX; P3 LangGraph/SQLAlchemy; P4 rank-bm25/faiss-cpu; P5 theo nhu cầu; P6 Pillow/Gradio; P7 pandas/Matplotlib/SciPy tùy chọn. Bổ sung theo nhu cầu, không cài tất cả từ đầu.
+
+### 3.5. Resource Management
+Lazy loading, sequential lightweight, không load AI model local, bounded context/state, giải phóng ảnh và dữ liệu trung gian, đo RAM bằng psutil.
+
+### 3.6. Acceptance
+Dựng lại từ uv.lock; kiểm chứng chạy trên laptop 8 GB; Windows/Linux trong phạm vi hỗ trợ; không cần GPU/CUDA; dependencies theo nhu cầu.
+
 
 ## 4. Model Provider & Gateway
 
