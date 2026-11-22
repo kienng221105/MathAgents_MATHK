@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.6
+**Phiên bản:** 0.7
 
 **Trạng thái:** Đang thảo luận
 
@@ -229,7 +229,72 @@ MVP A text solver; B grounded multi-agent; C adaptive multimodal multi-agent; D 
 
 ## 6. Baseline & Ablation Study
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 6.1. Mục tiêu
+Baseline đo lợi ích so với kiến trúc đơn giản hơn; ablation xác định đóng góp của từng thành phần.
+
+### 6.2. Cấu hình chính
+| ID | Cấu hình |
+|---|---|
+| B01 | Direct LLM |
+| B02 | Single-Agent + Tool |
+| B03 | Static Multi-Agent |
+| B04 | Adaptive Multi-Agent (MATHK) |
+B01–03 đối chứng, B04 hệ thống đề xuất; chung evaluation framework.
+```mermaid
+flowchart LR
+ I["Input"] --> B1["Direct LLM"]
+ I --> B2["Single Agent + Tools"]
+ I --> B3["Fixed Workflow"]
+ I --> B4["Adaptive Workflow"]
+ B1 --> E["Evaluator"]
+ B2 --> E
+ B3 --> E
+ B4 --> E
+```
+
+### 6.3. Nhóm thực nghiệm
+| ID | Nhóm | So sánh |
+|---|---|---|
+| EG01 | Architecture | Single vs Multi-Agent |
+| EG02 | Tool Use | LLM-only vs Calculator vs SymPy vs Both |
+| EG03 | RAG | No RAG vs Static vs Agentic |
+| EG04 | Verification | LLM-only vs Hybrid; correction strategies |
+| EG05 | Routing | Static vs Rule-based vs State-aware vs Hybrid |
+| EG06 | Multimodal | OCR-first vs VLM-only vs Hybrid |
+| EG07 | Uncertainty | No specialized module vs LLM-only vs Hybrid |
+Ưu tiên EG04/05; giữ các biến thể chi tiết trong System Design.
+
+### 6.4. Ablation
+| ID | Cấu hình |
+|---|---|
+| AB00 | MATHK đầy đủ |
+| AB01 | Không Mathematical Tools |
+| AB02 | Không RAG |
+| AB03 | Không Applicability Check |
+| AB04 | LLM-only thay Hybrid Verification |
+| AB05 | Full Regeneration thay Targeted Correction |
+| AB06 | Static thay Adaptive Routing |
+| AB07 | VLM-only thay Hybrid Multimodal |
+| AB08 | Không Uncertainty Module chuyên biệt |
+Mỗi ablation thay đổi một cơ chế chính; guard an toàn bắt buộc vẫn duy trì.
+
+### 6.5. Minh họa phân tích
+Số liệu giả lập, không phải kết quả MATHK:
+| Config | Accuracy | LLM Calls/bài |
+|---|---:|---:|
+| Full | 90% | 3.2 |
+| AB01 | 72% | 3.0 |
+| AB02 | 84% | 2.5 |
+| AB04 | 81% | 3.0 |
+| AB05 | 88% | 5.1 |
+| AB06 | 89% | 6.0 |
+Adaptive routing có thể mang lại giá trị giảm chi phí hơn là tăng accuracy; phải kiểm chứng thực nghiệm.
+
+### 6.6. Nguyên tắc
+Cùng dataset/model nếu không phải biến nghiên cứu; kiểm soát budget và ghi actual usage, cùng tiêu chuẩn chấm; lưu prompt/model/KB/config versions; không loại tùy ý kết quả bất lợi, không mặc định vượt baseline. YAML tại experiments/configs/. Số lần chạy và danh sách chính thức xác định theo ngân sách và RQ trước held-out test.
+
 
 ## 7. Cost & Performance Evaluation
 
