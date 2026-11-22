@@ -1,8 +1,8 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.11
+**Phiên bản:** 1.0
 
-**Trạng thái:** Đang thảo luận
+**Trạng thái:** Đã chốt
 
 Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design](03_SYSTEM_DESIGN.md), [Project Structure v1.1](04_PROJECT_STRUCTURE.md).
 
@@ -569,4 +569,54 @@ Tái lập trong điều kiện đã công bố, so sánh công bằng, không t
 
 ## 12. Quản lý tiến độ và đánh giá năng lực
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 12.1. Tổng quan
+| Phase | Chủ đề | Labs | Giờ |
+|---|---|---:|---:|
+| 0 | Foundation | 8 | 8–12 |
+| 1 | Mathematical Tools | 8 | 10–15 |
+| 2 | Single-Agent | 9 | 15–20 |
+| 3 | Multi-Agent | 10 | 18–25 |
+| 4 | Agentic RAG | 9 | 15–20 |
+| 5 | Verification & Routing | 10 | 20–30 |
+| 6 | Multimodal | 9 | 15–20 |
+| 7 | Research & Evaluation | 10 | 20–30 |
+| Tổng | | 73 | 121–172 |
+
+Ước tính ban đầu, linh hoạt theo năng lực và phát sinh nghiên cứu; 12 giờ/tuần tương đương khoảng 11–15 tuần.
+
+### 12.2. Trách nhiệm
+| Công việc | Người học | ChatGPT | Codex |
+|---|---|---|---|
+| Nguyên lý | Chính | Hướng dẫn | Hỗ trợ |
+| Thiết kế | Quyết định | Phân tích/review | Góp ý |
+| Mini Lab | Quan sát | Thiết kế | Triển khai |
+| Implementation | Đặc tả | Review | Viết code |
+| Thực nghiệm | Phân tích | Hướng dẫn | Hỗ trợ chạy |
+| Debugging | Hiểu nguyên nhân | Hướng dẫn | Sửa code |
+| Evaluation | Kết luận | Phản biện | Hỗ trợ đo |
+| Documentation | Phê duyệt | Soạn thảo | Cập nhật |
+
+### 12.3. Quy trình phiên học
+```mermaid
+flowchart TD
+ A["Đọc checkpoint GitHub"] --> B["Xác định mục tiêu"]
+ B --> C["Học nguyên lý"]
+ C --> D["Quan sát và thực nghiệm Mini Lab"]
+ D --> E["Thiết kế giải pháp"]
+ E --> F["Coding Agent triển khai"]
+ F --> G["Review và Evaluation"]
+ G --> H["Lưu kiến thức và checkpoint"]
+```
+Không bắt buộc hoàn thành toàn bộ trong một phiên.
+
+### 12.4. Quản lý context và tiến độ
+GitHub là Single Source of Truth. Tạo docs/progress/CURRENT_STATUS.md và phase_00.md, phase_01.md... khi cần. Lưu phase/lab hiện tại, việc đã hoàn thành, minh chứng năng lực, quyết định kỹ thuật, lỗi chưa xử lý và bước tiếp theo. Đọc checkpoint trước phiên mới; lưu/commit/push thường xuyên, không đợi context đầy; xác minh commit/readback. Không coi đề xuất chưa duyệt là quyết định.
+
+### 12.5. Đánh giá năng lực
+Theo 40 năng lực mục 3: L0 chưa học; L1 giải thích nguyên lý; L2 hiểu code/dự đoán/phân tích thực nghiệm; L3 thiết kế/đặc tả/review/test; L4 đánh giá trade-off/debug/vận dụng. Chỉ nâng level khi có minh chứng, không dựa số dòng code hoặc số lab đã học.
+
+### 12.6. Điều kiện chuyển Phase
+Learning Gate: hiểu nguyên lý, kiến trúc, lựa chọn công nghệ và kết quả thực nghiệm. Engineering Gate: chức năng hoạt động, test đạt, đáp ứng yêu cầu. Checkpoint Gate: tài liệu, tiến độ, quyết định và code đã lưu GitHub. Cần cả ba gate; có thể bỏ lab đã thành thạo nếu có minh chứng.
+
