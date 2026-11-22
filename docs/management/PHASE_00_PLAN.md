@@ -8,7 +8,7 @@
 | Task | Scope | Labs | Acceptance Criteria | Trạng thái |
 |---|---|---|---|---|
 | P0-01 | Python Foundation & Project Skeleton: Python 3.12, uv, src-layout, packaging, CLI tối thiểu, README hướng dẫn chạy | P0-L01–L02 | Import package; `uv sync --locked`; `uv run python -m mathk`; không thêm framework ngoài Phase 0 | COMPLETED — Engineering + Learning L2 cơ bản + Checkpoint |
-| P0-02 | Data Contracts & Configuration: Pydantic, YAML/env, config validation và secrets | P0-L03–L04 | Valid config chạy; invalid/missing bị từ chối; không lộ key | PLANNED |
+| P0-02 | Data Contracts & Configuration: Pydantic, YAML/env, config validation và secrets | P0-L03–L04 | Valid config chạy; invalid/missing bị từ chối; không lộ key | COMPLETED — Engineering + Learning L2 cơ bản + Checkpoint |
 | P0-03 | LLM API Anatomy lab: request/response/model ID/usage/latency | P0-L05 | Demo/mock, missing usage được ghi nhận; không giả API metrics | PLANNED |
 | P0-04 | 9Router Connectivity lab, quan sát quota/errors, không production Gateway | P0-L06 | Cấu hình provider độc lập; auth/quota failure rõ; API thật chỉ khi Owner cho phép | PLANNED |
 | P0-05 | Testing, Failure Handling & CI: fake model, timeout, pytest, Ruff, mypy, Actions | P0-L07–L08 | Tests/lint/type/CI chạy; lỗi có evidence | PLANNED |
