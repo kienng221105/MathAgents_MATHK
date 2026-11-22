@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.10
+**Phiên bản:** 0.11
 
 **Trạng thái:** Đang thảo luận
 
@@ -428,7 +428,49 @@ Người mới tái dựng môi trường, cấu hình API, chạy bài mẫu, �
 
 ## 11. Context & Progress Management
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 11.1. Persistent Project Memory
+GitHub là nguồn bộ nhớ dài hạn chính thức. Project: 01–08; agent: AGENTS.md; management: WORKFLOW.md; task: TASK_BOARD.md; decision: DECISION_LOG.md; working: CURRENT_STATUS.md; learning: phase_XX.md; research: EXPERIMENT_LOG.md; implementation: code/tests/Git history.
+
+### 11.2. CURRENT_STATUS.md
+Current Phase, Milestone, Lab, Active Task, Engineering Progress, Learning Progress, Latest Verified Implementation Commit, Pending Decisions, Blockers, Next Action, Relevant Context (links), Last Checkpoint. Chỉ giữ trạng thái hiện tại, không tích lũy lịch sử.
+
+### 11.3. Task Lifecycle
+```mermaid
+flowchart TD
+ A["PLANNED"] --> B["ASSIGNED"]
+ B --> C["IN_PROGRESS"]
+ C --> D["IN_REVIEW"]
+ D --> E["NEEDS_REVISION"]
+ E --> C
+ D --> F["ACCEPTED"]
+ F --> G["COMPLETED"]
+```
+ACCEPTED: nghiệm thu kỹ thuật. COMPLETED: Engineering Gate + Learning Gate + Checkpoint Gate.
+
+### 11.4. Checkpoint Strategy
+Bắt buộc khi chốt thiết kế, giao task, nghiệm thu, hoàn thành lab/phase; khi nhận báo cáo lưu trạng thái và bằng chứng; trước chuyển phiên nếu có thể; chủ động lưu định kỳ khi hội thoại dài. Không thể đo chính xác context còn lại, nên lưu sớm và thường xuyên.
+
+### 11.5. Context Recovery
+```mermaid
+flowchart TD
+ A["Phiên mới"] --> B["CURRENT_STATUS.md"]
+ B --> C["TASK_BOARD.md"]
+ C --> D["Active Task"]
+ D --> E["Quyết định và thiết kế liên quan"]
+ E --> F["Code và Git history"]
+ F --> G["Learning Context"]
+ G --> H["Tiếp tục công việc"]
+```
+Prompt khôi phục: Tiếp tục quản lý dự án MATHK. Đọc checkpoint mới nhất trên GitHub và tiếp tục công việc đang thực hiện.
+
+### 11.6. Just-in-Time Context
+Chỉ đọc phần thiết kế, cấu hình, code và bằng chứng cần cho task hiện tại; không nạp toàn bộ tám tài liệu mỗi lần.
+
+### 11.7. Nguyên tắc
+Phân biệt đề xuất/đã duyệt/implementation; không hoàn thành thiếu bằng chứng; lưu lịch sử quyết định; không lưu secrets/dữ liệu nhạy cảm; xác minh commit và nội dung sau push; theo dõi song song kỹ thuật và học tập. Persistent Project Memory + Event-driven Checkpoint + Just-in-Time Context + Dual Progress Tracking.
+
 
 ## 12. Documentation Maintenance
 
