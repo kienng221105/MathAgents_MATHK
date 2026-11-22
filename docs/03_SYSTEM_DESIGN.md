@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.16  
+**Phiên bản:** 0.16.1  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -2262,7 +2262,7 @@ Hybrid Mathematical Knowledge; Structured Knowledge Units KT01–06, semi-automa
 
 ### 10.1. Neuro-Symbolic Architecture
 
-LLM hiểu đề, lập kế hoạch, xây dựng biểu thức, diễn giải; SymPy/Calculator tính toán; Verifier kiểm tra cả mô hình hóa đề và kết quả. Ví dụ (x+2)/3+(x-1)/2=5 có nghiệm 31/5 (đính chính phép tính minh họa trong thảo luận).
+LLM hiểu đề, lập kế hoạch, xây dựng biểu thức, diễn giải; SymPy/Calculator tính toán; Verifier kiểm tra cả mô hình hóa đề và kết quả. Ví dụ (x+2)/3+(x-1)/2=5 có nghiệm 29/5 (nhân hai vế với 6: 5x+1=30).
 
 ### 10.2. Integration
 
@@ -3287,16 +3287,16 @@ flowchart TD
 ### 16.3. Threat Model
 | ID | Risk | Control |
 |---|---|---|
-| ST01 | Secret leakage | Secret management |
-| ST02 | Prompt injection | Trust boundary |
-| ST03 | Arbitrary Python | Restricted parser |
-| ST04 | Unauthorized tool | Allowlist |
-| ST05 | Oversized input | Input limits |
-| ST06 | Infinite loops | Budget |
-| ST07 | Unexpected cost | Cost guard |
-| ST08 | Personal data leakage | Minimization |
-| ST09 | Corrupt checkpoint | Validation/recovery |
-| ST10 | Ground truth leakage | Evaluation isolation |
+| TH01 | Secret leakage | Secret management |
+| TH02 | Prompt injection | Trust boundary |
+| TH03 | Arbitrary Python | Restricted parser |
+| TH04 | Unauthorized tool | Allowlist |
+| TH05 | Oversized input | Input limits |
+| TH06 | Infinite loops | Budget |
+| TH07 | Unexpected cost | Cost guard |
+| TH08 | Personal data leakage | Minimization |
+| TH09 | Corrupt checkpoint | Validation/recovery |
+| TH10 | Ground truth leakage | Evaluation isolation |
 Local MVP, không tuyên bố chống mọi tấn công.
 
 ### 16.4. Trust Boundary
@@ -3446,7 +3446,7 @@ Pydantic v2/Pillow, env vars, custom guard/parser, Python retry or optional Tena
 Phase 0 secrets/config/dependencies; Phase 1 safe tools/parser/timeout; Phase 2 API errors/schema/retries; Phase 3 guard/permissions/shared budget; Phase 4–5 untrusted retrieval/verification/correction/recovery; Phase 6 image/privacy/memory/local UI; Phase 7 fault injection/repro/quota/benchmark recovery.
 
 ### 16.25. Decisions
-Guard-based security, ST01–10, trust boundaries, env secrets, restricted tools, registry permissions, minimization, FT01–10, bounded backoff/fallback, unified budget and safe stop, lazy loading, RP01–03, sequential-first, controlled cache, fault injection, local-first deployment.
+Guard-based security, TH01–10, trust boundaries, env secrets, restricted tools, registry permissions, minimization, FT01–10, bounded backoff/fallback, unified budget and safe stop, lazy loading, RP01–03, sequential-first, controlled cache, fault injection, local-first deployment.
 
 ### Learning workflow
 System Design là tài liệu tra cứu, không phải nội dung phải học thuộc. Mỗi phase: lý thuyết cần dùng, Mini Lab, code MATHK, kiểm thử, giải thích lại, commit.
