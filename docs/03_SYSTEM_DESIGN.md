@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.9  
+**Phiên bản:** 0.10  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -2258,7 +2258,186 @@ Hybrid Mathematical Knowledge; Structured Knowledge Units KT01–06, semi-automa
 
 ## 10. Neuro-Symbolic Tool System
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** FR05; schema minh họa.
+
+### 10.1. Neuro-Symbolic Architecture
+
+LLM hiểu đề, lập kế hoạch, xây dựng biểu thức, diễn giải; SymPy/Calculator tính toán; Verifier kiểm tra cả mô hình hóa đề và kết quả. Ví dụ (x+2)/3+(x-1)/2=5 có nghiệm 31/5 (đính chính phép tính minh họa trong thảo luận).
+
+### 10.2. Integration
+
+Direct Function Calling MVP; không arbitrary Python; MCP mở rộng. Code execution không chọn.
+
+```mermaid
+flowchart TD
+ A[Agent] --> B[Tool Request]
+ B --> C[Execution Guard]
+ C --> D[Tool Registry]
+ D --> E[Python Function]
+ E --> F[SymPy or Calculator]
+```
+
+### 10.3. Tool Architecture
+
+M15 gồm Registry, Guard, Validator, Restricted Parser, Executor, Calculator/SymPy adapters, Result Normalizer, tracing; không thêm Agent.
+
+```mermaid
+flowchart TD
+ A[Request] --> G[Guard and Registry]
+ G --> V[Parameter Validator]
+ V --> P[Restricted Parser]
+ P --> E[Executor]
+ E --> C[Calculator]
+ E --> S[SymPy]
+ C --> N[Result Normalizer]
+ S --> N
+ N --> M[State Manager]
+ E --> T[Tracing]
+```
+
+### 10.4. Registry
+
+MT01 calculate; MT02 simplify; MT03 expand; MT04 factor; MT05 solve_equation; MT06 solve_system; MT07 solve_inequality; MT08 check_equivalence; MT09 substitute (P0). MT10 compute_statistics, MT11 geometry_compute (P1).
+
+### 10.5. Capabilities
+
+Số học, biến đổi đại số, phương trình/hệ, bất phương trình, tương đương và phép thế. Agent chọn thao tác; tool không tự chọn toàn bộ chiến lược.
+
+### 10.6. Definition Schema
+
+Tool ID/name/version/description/backend/allowed_agents/input_schema/output_schema/enabled/timeout_profile. Pydantic v2 sinh JSON schema; schema cuối ở implementation.
+
+### 10.7. Request and Response
+
+ToolRequest: call_id, agent_id, tool_name, arguments, problem_version, step_ref. Ví dụ solve_equation left=x^2-5*x+6 right=0 variable=x domain=real. ToolResult: call_id, tool_name, status, typed result finite_set values 2,3 exact=true domain=real, warnings, execution_time_ms. Thành công với tập rỗng khác không tìm được kết quả.
+
+### 10.8. Typed Results
+
+Integer, Rational, Decimal, Symbolic Expression, Finite Set, Interval, Union, Empty Set, Infinite Set, Conditional Set, Boolean, Undetermined; serialize có cấu trúc, không chỉ str(result).
+
+### 10.9. Exact-first
+
+Giữ integer/rational/căn/pi; chỉ xấp xỉ theo yêu cầu, ghi precision và sai số khi phù hợp; không mặc định float.
+
+### 10.10. Domain-aware Computation
+
+Bảo toàn domain, assumptions, constraints, excluded_values, result_conditions. (x^2-1)/(x-1) rút gọn x+1 với x khác 1. Trích điều kiện trước khi simplify; không khẳng định tương đương nếu chưa xác định được miền.
+
+```mermaid
+flowchart TD
+ A[Original Expression] --> B[Extract Constraints]
+ A --> C[Symbolic Operation]
+ B --> D[Preserve Domain]
+ C --> D
+ D --> E[Typed Result]
+```
+
+### 10.11. Safe Parser
+
+Restricted grammar + allowlist ký hiệu/toán tử/hàm; kiểm tra độ dài và độ phức tạp, tạo SymPy objects từ AST đã xác thực. Không eval/exec hoặc sympify/parse_expr trực tiếp với dữ liệu không tin cậy.
+
+```mermaid
+flowchart TD
+ A[Untrusted Expression] --> B[Complexity Limits]
+ B --> C[Restricted Parser]
+ C --> D{Allowed Syntax}
+ D -->|No| E[Reject]
+ D -->|Yes| F[Validated Structure]
+ F --> G[Construct SymPy Objects]
+```
+
+### 10.12. Execution Lifecycle
+
+Validate schema, permission, budget, mathematical arguments; execute bounded; normalize/validate output; trace call_id và dependencies; State Manager cập nhật.
+
+```mermaid
+flowchart TD
+ A[Request] --> B[Schema Permission Budget Checks]
+ B --> C[Validate Arguments]
+ C --> D[Bounded Execution]
+ D --> E{Status}
+ E -->|Success| F[Normalize and Validate]
+ E -->|Failure| G[Structured Error]
+ F --> H[Trace]
+ G --> H
+ H --> I[State Manager]
+```
+
+### 10.13. LLM Compatibility
+
+Native Function Calling nếu endpoint được kiểm thử; structured JSON fallback; cùng canonical ToolRequest; bounded retry nếu sai schema.
+
+```mermaid
+flowchart TD
+ A[Native Call] --> C[Normalizer]
+ B[JSON Response] --> C
+ C --> D[Canonical Tool Request]
+ D --> E[Guard]
+ E --> F[Executor]
+```
+
+### 10.14. Access Control
+
+AG04/AG05 dùng math tools; AG03 retrieval; AG01/AG02 không có quyền math tools mặc định. Orchestrator điều phối yêu cầu retrieval, Registry/Guard enforce quyền.
+
+### 10.15. Multi-tool Reasoning
+
+Ví dụ (x^2-9)/(x-3)=8: x khác 3, factor, simplify x+3=8, solve x=5, substitute vào đề gốc, verify S={5}. Có thể chọn tuyến ngắn hơn.
+
+### 10.16. Tool-aware Verification
+
+Numerical equality, expression equivalence, equation equivalence, solution membership, constraint satisfaction, implication. x=2 suy ra x^2=4 nhưng không tương đương trên R. UNKNOWN/UNDETERMINED nếu không đủ khả năng.
+
+### 10.17. Verification Examples
+
+Phân thức và x+1 không cùng miền toàn R, tương đương trên R loại 1; x=2 và x^2=4 tương đương trên x>=0, không trên R; khai triển (x+1)^2 tương đương đa thức trên R.
+
+### 10.18. Error Handling
+
+TE01 TOOL_NOT_FOUND; TE02 PERMISSION_DENIED; TE03 INVALID_ARGUMENTS; TE04 UNSUPPORTED_EXPRESSION; TE05 DOMAIN_ERROR; TE06 EXECUTION_TIMEOUT; TE07 RESOURCE_LIMIT; TE08 EXECUTION_ERROR; TE09 INVALID_OUTPUT; TE10 UNDETERMINED_RESULT (hạn chế toán học, không nhất thiết lỗi kỹ thuật). Retry có giới hạn; sửa tham số, đổi phương pháp hoặc uncertainty; không retry để vượt quyền.
+
+### 10.19. Resource Isolation
+
+Input limits: length, variable count, nesting, exponent, complexity. Execution limits: timeout, calls, CPU/RAM; local worker multiprocessing có thể dừng cho symbolic tốn tài nguyên. Output limits. Worker không phải sandbox để chạy mã tùy ý. Benchmark giới hạn; calculator đơn giản có thể chạy trực tiếp sau validation.
+
+### 10.20. Caching
+
+P1 in-memory, không Redis. Key tool/backend version, normalized arguments, domain, assumptions, precision, relevant dependencies. Cache hit vẫn qua guard và trace; kiểm soát warm/cold cache khi benchmark.
+
+```mermaid
+flowchart TD
+ A[Validated Request] --> B[Cache Key]
+ B --> C{Cache Hit}
+ C -->|Yes| D[Result]
+ C -->|No| E[Execute and Validate]
+ E --> F[Store]
+ F --> D
+ D --> G[Trace]
+```
+
+### 10.21. Extensibility
+
+MathematicalTool Protocol name/version/execute(ToolRequest)->ToolResult; schemas, permissions/limits, unit/security tests, register. Không trực tiếp mutate Shared State.
+
+```mermaid
+flowchart TD
+ A[New Tool] --> B[Interface and Schemas]
+ B --> C[Permissions and Limits]
+ C --> D[Tests]
+ D --> E[Register]
+```
+
+### 10.22. Evaluation
+
+Tool-level: accuracy, domain preservation, success, invalid rejection, timeout, latency; pytest/Hypothesis, expand(factor(P)) tương đương P trong phạm vi đa thức. Agent-tool: selection, arguments, schema compliance, utilization, recovery, unnecessary calls. End-to-end NS01 LLM-only, NS02 Calculator, NS03 SymPy, NS04 cả hai; kiểm soát biến, accuracy/computational error/solution correctness/tokens/latency.
+
+### 10.23. Stack
+
+SymPy, Python math/Fraction/Decimal, NumPy, SciPy tùy chọn, restricted parser, Pydantic v2, custom registry, multiprocessing khi cần, LangGraph/Model Gateway, pytest/Hypothesis, psutil, in-memory cache P1, MCP mở rộng.
+
+### 10.24. Decisions
+
+Direct functions, 9 P0 + 2 P1, exact-first/domain-aware typed results, native/JSON adapters, safe parser, permission, bounded execution, trace, multi-tool, local worker khi cần, cache P1; đánh giá 3 cấp.
 
 ## 11. Verification & Self-correction
 
