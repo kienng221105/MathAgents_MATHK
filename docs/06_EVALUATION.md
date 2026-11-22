@@ -1,10 +1,10 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.10
+**Phiên bản:** 1.0
 
-**Trạng thái:** Đang thảo luận
+**Trạng thái:** Đã chốt
 
-**Cấu trúc:** Đã duyệt 10 mục; nội dung từng mục chờ duyệt.
+**Cấu trúc:** Đã duyệt toàn bộ 10 mục.
 
 Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design — mục 15](03_SYSTEM_DESIGN.md), [Implementation Roadmap](05_IMPLEMENTATION.md), [Research](02_RESEARCH.md).
 
@@ -468,4 +468,43 @@ Python runner, Pydantic/YAML config, SQLite/JSONL kết quả và checkpoint, Nu
 
 ## 10. Acceptance Criteria & Reporting
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 10.1. Mục tiêu
+Nghiệm thu hệ thống, thực nghiệm và chuẩn hóa báo cáo nghiên cứu.
+
+### 10.2. Acceptance Criteria
+| ID | Nhóm | Điều kiện |
+|---|---|---|
+| AC01 | Functional | Đáp ứng FR P0 |
+| AC02 | Integration | Pipeline end-to-end hoạt động |
+| AC03 | Reliability | Xử lý lỗi và bất định đúng thiết kế |
+| AC04 | Safety | Pass kiểm thử an toàn bắt buộc |
+| AC05 | Reproducibility | Chạy lại bằng cấu hình lưu |
+| AC06 | Benchmark | Hoàn thành đánh giá chính thức |
+| AC07 | Research | Baseline và Ablation Study |
+| AC08 | Reporting | Kết quả và giới hạn đầy đủ |
+| AC09 | Documentation | Hướng dẫn sử dụng, triển khai, thực nghiệm |
+Bổ sung, không thay thế Acceptance Criteria trong 01_REQUIREMENTS.md.
+
+### 10.3. Ngưỡng định lượng
+Answer Accuracy: pilot baseline; Solution Correctness: human rubric; Correction Success và Error Introduction: EG04 trên dev; Cost/Latency: ngân sách thực tế; Technical Failure: pilot. Security Violation và Budget Violation: 0 trong bộ kiểm thử bắt buộc đối với giới hạn kiểm soát. Không đặt ngưỡng accuracy tùy ý; xác định trên dev và freeze trước official experiment.
+
+### 10.4. Báo cáo
+R01 Benchmark Dataset Overview; R02 Experimental Setup; R03 Component Evaluation; R04 End-to-End Results; R05 Baseline Comparison; R06 Ablation Study; R07 Quality–Cost Analysis; R08 Reliability & Robustness; R09 Error Analysis; R10 Limitations & Conclusions.
+
+### 10.5. Biểu đồ
+Baseline comparison (bar chart), Pareto frontier, error distribution, performance heatmap theo chủ đề/độ khó. Dùng dữ liệu thực nghiệm, phân biệt hình minh họa.
+
+### 10.6. Definition of Done
+- [ ] Benchmark Dataset được versioning.
+- [ ] Evaluation Framework hoạt động.
+- [ ] Hoàn thành Baseline Comparison.
+- [ ] Hoàn thành Ablation Study ưu tiên.
+- [ ] Có Quality–Cost Analysis.
+- [ ] Có Reliability & Error Analysis.
+- [ ] Lưu cấu hình và kết quả thực nghiệm.
+- [ ] Có báo cáo khoa học và giới hạn nghiên cứu.
+
+Nghiệm thu kỹ thuật khác với xác nhận giả thuyết. Kết quả không vượt baseline vẫn có giá trị nếu phương pháp đúng; báo cáo trung thực.
+
