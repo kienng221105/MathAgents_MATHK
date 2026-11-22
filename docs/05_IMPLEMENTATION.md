@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.3
+**Phiên bản:** 0.4
 
 **Trạng thái:** Đang thảo luận
 
@@ -184,7 +184,66 @@ Ngoài phạm vi MVP: LLM training/fine-tuning quy mô lớn, distributed infere
 
 ## 4. Phase 0 — Foundation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 4.1. Mục tiêu
+Hiểu runtime, kiến trúc, config, contracts, API, gateway và metrics. Kết nối model thử nghiệm trong lab, gateway chính thức ở Phase 2.
+```mermaid
+flowchart TD
+ U["User / CLI"] --> A["Application"]
+ C["Configuration"] --> A
+ A --> G["Model Gateway"]
+ G --> R["9Router"]
+ R --> M["LLM Provider"]
+ M --> R
+ R --> G
+ G --> A
+ A --> O["Output"]
+ G -.-> L["Execution Metrics"]
+```
+### 4.2. Trọng tâm
+Kiến trúc/luồng 30%, API/gateway/9Router 30%, config/contracts 20%, testing/reliability 10%, công cụ phát triển 10%; định hướng linh hoạt.
+
+### 4.3. Mini Labs
+| ID | Chủ đề | Phút | Thực nghiệm và minh chứng |
+|---|---|---|---|
+| P0-L01 | Python Project & Runtime | 30–45 | So sánh môi trường, dependency, lock; hiểu uv và tái lập |
+| P0-L02 | Modular Architecture | 45–60 | Một file vs module, theo dõi dependency, thay implementation |
+| P0-L03 | Data Contracts & Pydantic | 45–60 | Dữ liệu đúng/sai/thiếu/vượt giới hạn, static vs runtime validation |
+| P0-L04 | Configuration-driven System | 30–45 | YAML/env, thay model/timeout/budget, config sai, secrets |
+| P0-L05 | LLM API Anatomy | 45–60 | Request/response/model ID/usage/latency |
+| P0-L06 | Model Gateway & 9Router | 60–90 | Tuyến model khả dụng, quota, usage, provider independence |
+| P0-L07 | Testing & Failure Handling | 45–60 | Fake model, timeout, response/config sai, pytest |
+| P0-L08 | Reproducibility & CI | 30–45 | CI pass/fail, code/config/dependency versions |
+
+### 4.4. Lab API và chi phí
+Quan sát model ID, messages, temperature/max output (nếu hỗ trợ), generated output, actual model, usage, finish reason. Thực nghiệm độ dài prompt, yêu cầu output, temperature, model, giới hạn output, lỗi API. Chi phí ước tính = tổng (input tokens × đơn giá input + output tokens × đơn giá output)/1 triệu nếu đơn giá theo triệu token; tính trên từng call, lưu ý cache, retry, phí khác và usage thiếu. Model miễn phí vẫn đo token/quota/rate limit/latency. Giá minh họa không phải giá thực.
+
+### 4.5. Cấu trúc lab
+labs/phase_00/05_llm_api_anatomy/{README.md,demo.py,experiment.py,test_demo.py,notes.md}. README nguyên lý/sơ đồ/hướng dẫn, demo và experiment do Coding Agent tạo, test khi cần, notes kết luận người học. Không bắt buộc mọi file.
+
+### 4.6. Tích hợp tăng dần
+L01–02 project structure; L03–04 contracts/config; L05–06 connectivity trong lab; L07–08 tests/CI. Không đợi hết lab mới tích hợp. Coding Agent triển khai theo thiết kế đã duyệt.
+
+### 4.7. Deliverables
+Skeleton theo tài liệu 04 mục 2.1: .github/workflows/ci.yml, configs/default.yaml, docs/, labs/phase_00/, src/mathk/{__init__.py,__main__.py,config.py}, tests/test_config.py, .env.example, .gitignore, .python-version, pyproject.toml, uv.lock, README.md. Chưa agent thật, LangGraph, RAG, SymPy. Kết nối 9Router ở lab.
+
+### 4.8. Năng lực
+SYS01, SYS03, MOD03, EVA05 mục tiêu L2 tại phase này; nâng dần ở phase sau.
+
+### 4.9. Definition of Done
+- Giải thích repo và luồng thực thi.
+- Hiểu contracts/runtime validation.
+- Hiểu config/env/secrets.
+- Đọc hiểu LLM API request/response.
+- Hiểu 9Router và gateway.
+- Phân tích token/chi phí.
+- Đọc test/CI.
+- Foundation chạy, kiểm thử/CI đạt, docs và commit GitHub.
+
+### 4.10. Thời lượng
+8 lab, 8–12 giờ gồm lab/review/tích hợp/tổng kết, khoảng 6–8 phiên 90 phút; rút ngắn nếu đã thành thạo.
+
 
 ## 5. Phase 1 — Mathematical Tool System
 
