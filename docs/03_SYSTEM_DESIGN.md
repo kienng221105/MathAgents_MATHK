@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.16.2  
+**Phiên bản:** 0.16.3  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -497,7 +497,7 @@ LangGraph là framework thực thi, không phải đóng góp nghiên cứu. Rou
 
 ### 4.4. LLM Integration
 
-Custom Model Gateway chuẩn hóa request, response, structured output, tool calls, lỗi, token usage và metadata. 9Router Adapter dùng endpoint OpenAI-compatible sau kiểm thử, LiteLLM Adapter cho provider trực tiếp; Native SDK khi cần. Không bắt buộc xếp chồng hai adapter. 9Router là proxy tùy chọn, hỗ trợ kết nối và monitoring LLM, không thay LangGraph. Model/Provider cụ thể chọn sau thử nghiệm.
+Custom Model Gateway chuẩn hóa request, response, structured output, tool calls, lỗi, token usage và metadata. 9Router Adapter dùng endpoint OpenAI-compatible sau kiểm thử, OpenAI SDK/HTTPX cho kết nối trực tiếp theo Deployment; LiteLLM Adapter tùy chọn, Native SDK khi cần. Không bắt buộc xếp chồng hai adapter. 9Router là proxy tùy chọn, hỗ trợ kết nối và monitoring LLM, không thay LangGraph. Model/Provider cụ thể chọn sau thử nghiệm.
 
 
 ```mermaid
@@ -623,7 +623,7 @@ pytest cho unit/integration, Hypothesis cho property-based testing, unittest.moc
 
 ### 4.12. Evaluation & Observability
 
-Custom Benchmark Runner và Evaluator, SymPy + custom mathematical evaluation, pandas/NumPy, SciPy nếu cần, Matplotlib, logging và JSONL, SQLite metadata, JSON/CSV export. LLM-as-Judge P1, Langfuse/LangSmith tùy chọn. Ground truth không đưa vào Engine.
+Custom Benchmark Runner và Evaluator, SymPy + custom mathematical evaluation, pandas/NumPy, SciPy nếu cần, Matplotlib, logging và JSONL, SQLite metadata, JSON/CSV export. LLM-as-Judge P1, Langfuse/LangSmith ngoài MVP. Ground truth không đưa vào Engine.
 
 ```mermaid
 flowchart TD
@@ -2877,12 +2877,12 @@ data/
   datasets/
     raw/
     processed/
-  experiments/
-    configs/
-    results/
-    exports/
+experiments/
+  configs/
+  results/
+  exports/
 ```
-SQLite lưu asset ID, internal path, MIME, size, hash khi cần. Repo structure chốt ở tài liệu 04.
+SQLite lưu asset ID, internal path, MIME, size, hash khi cần. Root experiments/ theo cấu trúc đã chốt tại tài liệu 04.
 
 ### 13.13. Versioning
 Schema, problem, solution, knowledge, index, dataset, prompt, config, git commit; lưu actual model/settings và snapshot liên quan đến experiment. Không đảm bảo LLM deterministic.
@@ -3253,7 +3253,7 @@ flowchart TD
 ```
 
 ### 15.23. Stack
-Python, SymPy, pandas/NumPy, SciPy optional, Matplotlib, logging, JSONL, SQLite, psutil, YAML/Pydantic, JSON/CSV. Judge P1; LangSmith/Langfuse optional later.
+Python, SymPy, pandas/NumPy, SciPy optional, Matplotlib, logging, JSONL, SQLite, psutil, YAML/Pydantic, JSON/CSV. Judge P1; LangSmith/Langfuse ngoài MVP.
 
 ### 15.24. Learning by Building
 Phase 0–1 pytest/logging/tools; Phase 2 small single-agent baseline; Phase 3 agent/state/routing traces; Phase 4 retrieval metrics; Phase 5 verification/correction; Phase 6 visual/uncertainty/E2E; Phase 7 freeze, benchmark/ablation/statistics/error analysis. Evaluate từ đầu.
