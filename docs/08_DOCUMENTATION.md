@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.1
+**Phiên bản:** 0.2
 
 **Trạng thái:** Đang thảo luận
 
@@ -33,7 +33,41 @@ Trọng tâm học: system/model/data thinking, cost optimization, research meth
 
 ## 2. Documentation Strategy
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 2.1. Mục tiêu
+DO01 nhất quán kiến trúc; DO02 khôi phục context; DO03 hướng dẫn coding agent; DO04 tiến độ/năng lực; DO05 quyết định kỹ thuật; DO06 tái lập nghiên cứu; DO07 bàn giao/vận hành.
+
+### 2.2. Phân loại
+Design (8 tài liệu), Management (task/workflow/decisions), Agent (AGENTS.md), Learning (labs/competency), Technical (API/schema/interface), Research (benchmark/experiment/paper), Operational (setup/vận hành/lỗi).
+
+### 2.3. Single Source of Truth
+```mermaid
+flowchart TD
+ A["GitHub Repository"] --> B["Design Baseline"]
+ A --> C["Task and Progress"]
+ A --> D["Source Code and Tests"]
+ A --> E["Research Artifacts"]
+ B --> F["ChatGPT Manager"]
+ C --> F
+ D --> F
+ B --> G["Codex Engineer"]
+ C --> G
+ F --> H["Task Assignment"]
+ H --> G
+ G --> I["Implementation Report"]
+ I --> F
+ F --> J["Review and Checkpoint"]
+ J --> A
+```
+Owner chuyển tiếp prompt/report; đọc trạng thái GitHub trước khi giao task trong phiên mới. Artifacts lớn hoặc riêng tư lưu ngoài Git, manifest và tham chiếu version hóa theo tài liệu 04/06.
+
+### 2.4. Principles
+Docs-first, Single Source of Truth, Living Documentation, Traceability (Requirement → Design → Task → Code → Test), Incremental Documentation, Context-efficient, Vietnamese-first.
+
+### 2.5. Quyền quản lý
+ChatGPT đề xuất thiết kế, Owner phê duyệt; ChatGPT quản lý task và kiểm tra nhất quán; Codex cập nhật tài liệu kỹ thuật theo code trong scope; ChatGPT và Owner cập nhật learning checkpoint. Codex không tự sửa baseline để hợp thức hóa code sai. Documentation-driven Development + AI-assisted Project Management.
+
 
 ## 3. Documentation Structure
 
