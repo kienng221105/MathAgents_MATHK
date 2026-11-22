@@ -2,9 +2,9 @@
 
 **Ngày checkpoint:** 2026-11-22
 **Giai đoạn:** Phase 0 — Foundation (planning approved; chưa có code)
-**Milestone:** Phase 0 planning APPROVED; P0-01 ASSIGNED
-**Active Task:** P0-01 đã giao prompt, chờ Codex thực hiện
-**Latest Verified Implementation Commit:** Chưa có implementation commit; repository đang ở baseline tài liệu
+**Milestone:** P0-01 Engineering ACCEPTED; Learning Gate pending
+**Active Task:** P0-01 chờ Owner Learning Gate; P0-02 chưa giao
+**Latest Verified Implementation Commit:** bdb0c45d6dbb631eed00a87a032c69a6a7d415f9 (P0-01, 11 file đã source review)
 **Latest Document Checkpoint:** Xem GitHub main và [Task Board](../management/TASK_BOARD.md)
 
 ## Engineering Progress
@@ -12,7 +12,7 @@
 - PRE-001 Mermaid 227/227 parse/render PASS **theo báo cáo Codex**; SVG đã xóa, chưa audit bố cục trực quan. [Audit Log](../management/AUDIT_LOG.md).
 - Traceability Matrix 259 FR/NFR/BR đã khởi tạo, mapping cấp nhóm; chưa có test coverage từng ID.
 - 02_RESEARCH.md v0.1 tạm hoãn, không phải baseline được duyệt.
-- Chưa có source code Foundation, tests/CI, benchmark hoặc kết quả thực nghiệm.
+- P0-01 đã có package Python Foundation, CLI, uv.lock và hai mini labs; source review PASS, các lệnh chạy PASS theo báo cáo Codex. Chưa có tests/CI chính thức, benchmark hoặc kết quả thực nghiệm.
 
 ## Learning Progress
 - 73 Mini Labs / 40 competencies là kế hoạch theo Implementation; chưa ghi nhận mức L1–L4 hoặc lab đã hoàn thành.
@@ -24,11 +24,11 @@
 - Chưa kiểm chứng hiệu quả mô hình, chi phí API thực tế, visual quality 227 SVG.
 
 ## Next Action
-1. Owner chuyển prompt P0-01 cho Codex; Codex chỉ làm P0-01.
-2. Owner gửi báo cáo về ChatGPT để review AC01–AC07.
-3. Sau nghiệm thu kỹ thuật, kiểm tra Learning Gate và checkpoint; mới giao P0-02.
+1. Owner trả lời câu hỏi Learning Gate P0-L01/L02; Technical Lead đánh giá và lưu evidence.
+2. Nếu đạt, cập nhật P0-01 COMPLETED; chuẩn bị P0-02, chưa tự giao task mới.
+3. Cài uv/Python 3.12 ở môi trường của Owner nếu muốn tự chạy lab.
 
 ## Relevant Context
 [AGENTS](../../AGENTS.md) · [Workflow](../management/WORKFLOW.md) · [Task Board](../management/TASK_BOARD.md) · [Traceability](../management/TRACEABILITY_MATRIX.md)
 
-**Checkpoint:** [Phase 0 Planning Baseline](../management/PHASE_00_PLAN.md) đã duyệt; P0-01 ASSIGNED, chưa có kết quả coding.
+**Checkpoint:** P0-01 Engineering ACCEPTED theo source review commit bdb0c45 và báo cáo Codex; chờ Learning Gate trước khi COMPLETED.
