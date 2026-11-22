@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.7
+**Phiên bản:** 0.8
 
 **Trạng thái:** Đang thảo luận
 
@@ -298,7 +298,51 @@ Cùng dataset/model nếu không phải biến nghiên cứu; kiểm soát budge
 
 ## 7. Cost & Performance Evaluation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 7.1. Mục tiêu
+Đo hiệu quả tài nguyên, xác định bottleneck, cân bằng chất lượng/tốc độ/chi phí.
+
+### 7.2. Metrics
+| ID | Metric | Đơn vị |
+|---|---|---|
+| CP01 | Input Tokens | token/bài |
+| CP02 | Output Tokens | token/bài |
+| CP03 | LLM Calls | lần/bài |
+| CP04 | Tool Calls | lần/bài |
+| CP05 | Estimated Cost | USD/bài |
+| CP06 | End-to-End Latency | giây |
+| CP07 | Component Latency | ms |
+| CP08 | Peak RAM | MB |
+| CP09 | CPU Utilization | % |
+| CP10 | Retry & Fallback | lần/bài |
+| CP11 | Throughput | bài/phút |
+| CP12 | Budget Exhaustion Rate | % |
+Latency báo cáo mean, median, P95.
+
+### 7.3. Kiến trúc
+```mermaid
+flowchart TD
+ A["Model Gateway"] --> T["Resource Tracker"]
+ B["Agent Execution"] --> T
+ C["Mathematical Tools"] --> T
+ D["Retrieval Pipeline"] --> T
+ E["System Resource Monitor"] --> T
+ T --> F["Execution Trace"]
+ F --> G["Resource Evaluator"]
+ G --> H["Cost & Performance Report"]
+```
+Resource Tracker là trách nhiệm đo lường logic, dùng gateway/trace/logging/psutil; không thêm monitoring phức tạp. Đồng hồ monotonic, RAM lấy mẫu, ghi phạm vi đo.
+
+### 7.4. Quality–Cost Trade-off
+Pareto analysis theo mục tiêu đã chọn. Ví dụ giả lập (accuracy %, calls/bài): Direct 68,1; Single 79,2; Adaptive 88,3; Multi-Agent V1 84,5; Static 90,7. Multi-Agent V1 bị Adaptive dominate; Adaptive và Static có trade-off. Không phải số liệu MATHK.
+
+### 7.5. Thí nghiệm
+Model nhẹ/mạnh; context selection/token budget; retrieval top-k/embedding; local/full correction; execution budget; RAM/concurrency/caching. Kiểm soát biến theo mục 6.
+
+### 7.6. Nguyên tắc
+Phân biệt gateway requests và upstream calls; free không đồng nghĩa không token/quota. Chi phí ước tính ghi pricing/model version; tính retry/fallback/thất bại; tách evaluator/judge cost; metadata thiếu ghi unknown không gán 0. Áp dụng cho 9Router. Chưa đặt ngưỡng cost/latency cứng; đo baseline trên dev rồi xác định ngân sách trước held-out.
+
 
 ## 8. Reliability & Robustness Evaluation
 
