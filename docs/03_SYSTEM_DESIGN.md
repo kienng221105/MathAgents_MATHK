@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.12  
+**Phiên bản:** 0.13  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -2731,7 +2731,202 @@ Centralized M13; hybrid evidence; UC01–06; bốn severity; structured signals 
 
 ## 13. Data & Storage Design
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 13.1. Storage Strategy
+SQLite là nguồn dữ liệu nghiệp vụ; FAISS là index xây dựng lại được; local files lưu ảnh, nguồn, dataset, trace và export; RAM chỉ giữ working state/context cần thiết.
+
+### 13.2. Architecture
+```mermaid
+flowchart TD
+ A["MATHK Core"] --> R["Repository Interfaces"]
+ A --> M["Active State in RAM"]
+ R --> D["Persistence Adapter"]
+ D --> O["SQLAlchemy"]
+ O --> DB[("SQLite")]
+ D --> F["Local Files"]
+ D --> V["FAISS Index"]
+ F --> I["Assets and Documents"]
+ F --> L["JSONL Traces"]
+ F --> E["Datasets and Exports"]
+```
+Agent không trực tiếp SQL; thay adapter tương lai vẫn cần migration/test.
+
+### 13.3. Data Groups
+| ID | Group |
+|---|---|
+| DG01 | Session Data |
+| DG02 | Problem Data |
+| DG03 | Solution Data |
+| DG04 | Verification Data |
+| DG05 | Knowledge Data |
+| DG06 | Execution Data (calls, routing, uncertainty, checkpoint) |
+| DG07 | Experiment Data |
+| DG08 | Configuration Data |
+Nhóm logic không đồng nghĩa bảng hay database riêng.
+
+### 13.4. Conceptual ERD
+```mermaid
+erDiagram
+ SESSION ||--o{ REASONING_RUN : contains
+ SESSION ||--o{ PROBLEM_VERSION : maintains
+ PROBLEM_VERSION ||--o{ SOLUTION_VERSION : has
+ SOLUTION_VERSION ||--o{ REASONING_STEP : contains
+ SOLUTION_VERSION ||--o{ VERIFICATION_REPORT : receives
+ PROBLEM_VERSION ||--o{ FACT : contains
+ REASONING_RUN ||--o{ TOOL_CALL : executes
+ REASONING_RUN ||--o{ UNCERTAINTY_SIGNAL : detects
+ REASONING_RUN ||--o{ CHECKPOINT : creates
+ KNOWLEDGE_UNIT ||--o{ KNOWLEDGE_VERSION : maintains
+ KNOWLEDGE_VERSION ||--o{ KNOWLEDGE_REFERENCE : supports
+ REASONING_STEP ||--o{ KNOWLEDGE_REFERENCE : uses
+```
+Conceptual model, chưa chốt physical schema/PK/FK/index.
+
+### 13.5. Identity and Version
+session_id: phiên tương tác; run_id: một lần chạy workflow; state_version: shared state; problem_version: dữ kiện/mục tiêu; solution_version: lời giải; attempt_id: lần thử tác vụ. Resume cùng run; chủ động chạy lại tạo run mới.
+```mermaid
+flowchart TD
+ S["Session"] --> R["Run 1"]
+ R --> P["Problem v1"]
+ P --> L["Solution v1 if available"]
+ L --> W["WAITING_USER"]
+ W --> U["Problem v2 after clarification"]
+ U --> V["Solution v2"]
+ S --> N["Run 2 - explicit rerun"]
+```
+
+### 13.6. Hybrid Relational–JSON
+Cột SQL cho identity, quan hệ, trạng thái, version, timestamp; JSON cho nội dung toán học phức tạp, validate bằng Pydantic. Không nhét toàn bộ dữ liệu vào một JSON. Verification status chỉ có hiệu lực với report đúng version.
+
+### 13.7. Table Candidates
+| Group | Candidate tables |
+|---|---|
+| Session & Problem | sessions, reasoning_runs, problem_versions, assets, facts |
+| Reasoning & Verification | solution_versions, reasoning_steps, step_dependencies, verification_reports, verification_errors, uncertainty_signals, clarification_requests |
+| Knowledge | knowledge_units, knowledge_versions, knowledge_sources, knowledge_relationships, knowledge_references, index_manifests |
+| Execution | model_calls, tool_calls, routing_decisions |
+| Experiment | datasets, dataset_versions, experiments, experiment_runs, experiment_results, evaluation_metrics |
+
+27 ứng viên; tạo theo nhu cầu từng phase, có thể gộp. LangGraph quản lý bảng checkpoint nội bộ.
+
+### 13.8. Repository Pattern
+Core phụ thuộc interface (Python Protocol), adapter SQLAlchemy triển khai save/get; không tạo repository chưa có nhu cầu.
+```mermaid
+flowchart LR
+ C["Core"] --> R["Repository Interface"]
+ R --> A["SQLAlchemy Adapter"]
+ A --> D[("SQLite")]
+```
+
+### 13.9. Checkpoint
+Reasoning checkpoint phục hồi workflow tại ranh giới đã lưu; experiment checkpoint tiếp tục bài chưa hoàn thành. Hai tệp SQLite: application database và LangGraph checkpointer; JSONL là event trace. Không phải database riêng mỗi Agent.
+```mermaid
+flowchart LR
+ A["Perception"] --> B["CP1"]
+ B --> C["Planning"]
+ C --> D["CP2"]
+ D --> E["Reasoning"]
+ E --> F["CP3"]
+ F --> G["Verification"]
+```
+
+### 13.10. Consistency and Recovery
+Transaction cho cập nhật nghiệp vụ liên quan; operation ID/idempotency chống trùng nghiệp vụ; kiểm tra committed records khi resume; validate schema/config/version. Không có transaction chung giữa API, application DB và checkpoint, không đảm bảo exactly-once API calls. Reconcile hoặc bounded retry, ghi nhận gọi lại và chi phí.
+```mermaid
+flowchart TD
+ A["Operation ID"] --> B["Execute"]
+ B --> C["Validate"]
+ C --> D["Persist result"]
+ D --> E["Commit state boundary"]
+ E --> F["Mark completed"]
+ H["Restart"] --> I["Inspect persisted records"]
+ I --> J{"Committed result compatible?"}
+ J -->|Yes| K["Reuse"]
+ J -->|No| L["Reconcile or bounded retry"]
+```
+
+### 13.11. KB Index Consistency
+SQLite nguồn gốc; build temporary index, validate rồi publish version. Manifest corpus version, embedding identity, vector dimension, index type, normalization, count, index version, content hash. BGE-M3/1024/IndexFlatIP/L2/300 units chỉ ví dụ; model chưa chốt. Kiểm tra tương thích query/index, rebuild khi cần.
+```mermaid
+flowchart TD
+ S[("SQLite KB")] --> E["Embedding"]
+ E --> T["Temporary index"]
+ T --> V["Validate"]
+ V --> P["Publish version"]
+ P --> F[("FAISS")]
+ F --> R["Retrieval"]
+ S --> R
+```
+
+### 13.12. Local Files
+Cấu trúc vùng dữ liệu đề xuất:
+```text
+data/
+  runtime/
+    mathk.sqlite
+    checkpoints.sqlite
+    assets/
+    indexes/
+    traces/
+  knowledge/
+    sources/
+    processed/
+  datasets/
+    raw/
+    processed/
+  experiments/
+    configs/
+    results/
+    exports/
+```
+SQLite lưu asset ID, internal path, MIME, size, hash khi cần. Repo structure chốt ở tài liệu 04.
+
+### 13.13. Versioning
+Schema, problem, solution, knowledge, index, dataset, prompt, config, git commit; lưu actual model/settings và snapshot liên quan đến experiment. Không đảm bảo LLM deterministic.
+```mermaid
+flowchart TD
+ E["Experiment Run"] --> D["Dataset Version"]
+ E --> K["Knowledge Version"]
+ E --> I["Index Version"]
+ E --> P["Prompt Version"]
+ E --> M["Actual Model and Settings"]
+ E --> C["Config Snapshot"]
+ E --> G["Git Commit"]
+```
+
+### 13.14. Ground Truth Isolation
+Benchmark Runner cấp problem input only cho engine; ground truth chỉ Runner/Evaluator, không Agent/Verifier/Shared State/Context hay KB dưới dạng đáp án test. Cách ly kiến trúc và luồng dữ liệu, không phải OS security boundary.
+```mermaid
+flowchart TD
+ D["Dataset"] --> B["Benchmark Runner"]
+ B --> Q["Problem Input Only"]
+ Q --> E["MATHK Engine"]
+ E --> P["Prediction"]
+ D --> T["Ground Truth"]
+ T --> V["Evaluator"]
+ P --> V
+ V --> R["Metrics"]
+```
+
+### 13.15. Migration
+Alembic, không xóa DB mỗi lần đổi schema. Ví dụ tiến hóa: session/solution, steps/DAG, KB, verification/correction/uncertainty. Không phải migration plan chính thức.
+
+### 13.16. Retention and Resources
+RAM active only; history disk; images on-demand; KB queries; FAISS load needed index; dataset từng bài/batch; JSONL tuần tự; export on demand. Giới hạn log, dọn temp, backup SQLite nhất quán, xóa runtime theo yêu cầu; bảo toàn kết quả nghiên cứu. Chưa chốt retention time.
+
+### 13.17. Git and Data
+Commit code/docs/migrations/prompts/sample configs, dataset mẫu có quyền sử dụng, kết quả tổng hợp đã kiểm tra. Không commit secrets/.env, runtime/checkpoint DB, generated index, private images, raw logs, dataset lớn/hạn chế bản quyền. Manifest/version/checksum/provenance; Git LFS/DVC tùy nhu cầu sau MVP.
+
+### 13.18. Stack
+SQLite, SQLAlchemy 2.x, Alembic, Pydantic v2, LangGraph SQLite checkpointer, FAISS, BM25, pathlib, JSONL, hashlib SHA-256, JSON/CSV export, Python repositories.
+
+### 13.19. Learning by Building
+Phase 0–1 file/JSON/Pydantic/logging; Phase 2 SQLite/SQLAlchemy/repository; Phase 3 state/checkpoint/transaction/recovery; Phase 4 KB/index/version; Phase 5–6 history/uncertainty/DAG/assets; Phase 7 dataset versions/experiment checkpoint/ground truth isolation. Không học hết storage trước khi bắt đầu.
+
+### 13.20. Decisions
+Hybrid storage, relational–JSON, DG01–08, repository, separate SQLite checkpoint file, two checkpoint types, rebuildable FAISS, local files, transaction/idempotency/recovery, versioning, ground truth isolation, Alembic, lazy/on-demand loading. Redis/MongoDB/PostgreSQL/Neo4j không yêu cầu MVP.
+
 
 ## 14. Interface & API Design
 
