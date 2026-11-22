@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.8  
+**Phiên bản:** 0.9  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -1951,7 +1951,310 @@ VLM-first + Hybrid Representation; single-problem; Pillow-first; geometry object
 
 ## 9. Knowledge Base & Agentic RAG
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** Ánh xạ FR04.01–12; original context retrieval và conflict detection thuộc P1. Hiệu quả và novelty cần thực nghiệm.
+
+### 9.1. Mathematical RAG
+Phân biệt relevance (liên quan) và applicability (đủ điều kiện áp dụng). Ví dụ Pythagoras liên quan đến bài tính cạnh tam giác nhưng không được áp dụng cho cạnh đối diện góc A nếu chưa xác lập góc A vuông. Đơn vị tri thức có điều kiện, kết luận, nguồn; không chỉ context văn bản.
+### 9.2. Architecture
+So sánh document-based chunks, structured knowledge, hybrid. Chọn Hybrid Mathematical Knowledge, ưu tiên structured units P0, trực tiếp truy xuất đoạn gốc P1.
+
+
+```mermaid
+flowchart LR
+ D["Documents"] --> C["Chunks"]
+ C --> I["Vector Index"]
+ I --> R["Retrieved Context"]
+```
+
+
+
+
+```mermaid
+flowchart LR
+ D["Mathematical Sources"] --> K["Knowledge Units"]
+ K --> I["Retrieval Index"]
+ I --> R["Structured Knowledge"]
+```
+
+
+
+
+```mermaid
+flowchart TD
+ D["Original Sources"] --> K["Structured Knowledge Units"]
+ D --> C["Original Context"]
+ K --> I["Hybrid Retrieval"]
+ I --> B["Knowledge Bundle"]
+ C -->|P1 direct retrieval| B
+ B --> R["Reasoner"]
+ B --> V["Verifier"]
+```
+
+
+### 9.3. Knowledge Units
+| ID | Type | Ví dụ |
+|---|---|---|
+| KT01 | Definition | Trung điểm |
+| KT02 | Formula | Diện tích tam giác |
+| KT03 | Theorem | Pythagoras |
+| KT04 | Property | Góc đối đỉnh |
+| KT05 | Mathematical Rule | Biến đổi phương trình |
+| KT06 | Solution Method | Phương pháp thế |
+
+Mỗi unit là khái niệm/mệnh đề tương đối hoàn chỉnh, không mặc định chunk 256/512 token.
+### 9.4. Schema
+Identity, classification (domain/grade/topic), statement, conditions, conclusions, representation (LaTeX/structured), provenance (nguồn/mục/trang/version), relationships. Ví dụ minh họa chưa publish:
+```json
+{
+ "knowledge_id":"GEO-THM-001",
+ "name":"Định lý Pythagoras",
+ "type":"theorem",
+ "domain":"geometry",
+ "topic":"right_triangle",
+ "statement":"Trong tam giác vuông, bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông.",
+ "conditions":[{"predicate":"triangle","arguments":["A","B","C"]},{"predicate":"perpendicular","arguments":["AB","AC"]}],
+ "conclusions":[{"expression":"BC^2 = AB^2 + AC^2"}],
+ "keywords":["tam giác vuông","cạnh huyền","Pythagoras","Pitago"],
+ "source_refs":[],
+ "status":"draft",
+ "version":1
+}
+```
+A/B/C là biến mẫu cần binding với đối tượng thực tế; chưa chốt schema cuối. Không publish thiếu nguồn xác minh.
+### 9.5. Condition–Conclusion
+Điều kiện P1 AND ... AND Pn suy ra Q. Ví dụ ABC tam giác, M/N trung điểm AB/AC suy ra MN song song BC và MN=BC/2. Structured predicates, Python rules, SymPy cho đại số, LLM-assisted matching khi cần, uncertainty nếu chưa rõ. Không cần formal logic engine hoàn chỉnh; LLM không phải bằng chứng hình thức.
+
+
+```mermaid
+flowchart TD
+ K["Knowledge Unit"] --> P["Required Conditions"]
+ K --> Q["Mathematical Conclusion"]
+ F["Problem Facts"] --> M["Condition Matching"]
+ P --> M
+ M --> V{"Conditions satisfied?"}
+ V -->|Yes| A["Applicable Knowledge"]
+ V -->|Contradicted| N["Not Applicable"]
+ V -->|Unknown| U["Need Additional Evidence"]
+ A --> Q
+```
+
+
+### 9.6. Taxonomy
+
+
+```mermaid
+flowchart TD
+ K["THCS Mathematical Knowledge"] --> A["Arithmetic"]
+ K --> B["Algebra"]
+ K --> C["Equations and Systems"]
+ K --> D["Inequalities"]
+ K --> E["Functions and Graphs"]
+ K --> F["Plane Geometry"]
+ K --> G["Statistics and Probability"]
+ K --> H["Word Problems"]
+ F --> F1["Triangles"]
+ F --> F2["Parallel Lines"]
+ F --> F3["Quadrilaterals"]
+ F --> F4["Circles"]
+ C --> C1["Linear Equations"]
+ C --> C2["Quadratic Equations"]
+ C --> C3["Equation Systems"]
+```
+
+
+Metadata domain/topic/subtopic/grade_levels/knowledge_type/language/curriculum/status/version. Đối chiếu chương trình khi xây corpus. Relationships bằng ID trong SQLite, không cần graph DB.
+### 9.7. Ingestion
+
+
+```mermaid
+flowchart TD
+ S["Mathematical Sources"] --> E["Extract Knowledge"]
+ E --> N["Normalize Text and LaTeX"]
+ N --> C["Create Knowledge Units"]
+ C --> M["Metadata and Conditions"]
+ M --> D["Deduplication"]
+ D --> V["Schema and Mathematical Review"]
+ V --> Q{"Approved?"}
+ Q -->|No| R["Revise or Reject"]
+ R --> C
+ Q -->|Yes| P["Publish to SQLite"]
+ P --> B["Build BM25 Index"]
+ P --> F["Build FAISS Index"]
+```
+
+
+Semi-automatic: người thu thập nguồn; LLM hỗ trợ trích xuất/điều kiện; Python+LLM chuẩn hóa; Python validate schema; người+tools kiểm duyệt toán học; publish và indexing tự động sau approval. Kiểm tra quyền sử dụng/trích dẫn/phân phối. 200–500 units dự kiến, không phải tiêu chí nghiệm thu.
+### 9.8. Hybrid Retrieval
+
+
+```mermaid
+flowchart TD
+ Q["Knowledge Query"] --> N["Query Normalization"]
+ N --> A["BM25 Retrieval"]
+ N --> B["Embedding Gateway"]
+ B --> C["FAISS Dense Retrieval"]
+ A --> F["Reciprocal Rank Fusion"]
+ C --> F
+ F --> M["Metadata Filtering"]
+ M --> R["Candidate Knowledge Units"]
+ R --> E["Relevance and Applicability Evaluation"]
+ E --> K["Knowledge Bundle"]
+```
+
+
+Hard filters published/language/corpus trước sử dụng; topic filters có thể nới rộng trong budget để tránh mất tri thức liên ngành. BM25 có lợi thế tiềm năng từ khóa chính xác, dense cho diễn đạt ngữ nghĩa; hybrid cần benchmark.
+### 9.9. RRF
+RRF(d) = sum over r of 1/(k + rank_r(d)); rank bắt đầu từ 1, tài liệu không có trong danh sách đóng góp 0. k/top_k_bm25/top_k_dense/top_k_fusion configurable. Ví dụ minh họa k=60, Pythagoras rank (1,4), cosine (2,1), Thales (3,2), đường trung bình (4,3); không phải kết quả thực tế.
+### 9.10. Query Construction
+
+
+```mermaid
+flowchart TD
+ P["Problem Representation"] --> Q["Query Builder"]
+ L["Reasoning Plan"] --> Q
+ N["Current Knowledge Need"] --> Q
+ Q --> B["Keyword Query"]
+ Q --> D["Semantic Query"]
+ Q --> M["Metadata Filters"]
+ B --> R["Hybrid Retrieval"]
+ D --> R
+ M --> R
+```
+
+
+KnowledgeRequest ví dụ request_id KR-001, domain geometry, objective calculate_hypotenuse, required_knowledge theorem/formula, query "Tính cạnh huyền biết hai cạnh góc vuông", fact_refs F01–03. Truy vấn theo từng nhiệm vụ, không chỉ nguyên đề.
+### 9.11. Agentic RAG Loop
+
+
+```mermaid
+flowchart TD
+ A["Knowledge Request"] --> Q["Construct Query"]
+ Q --> R["Hybrid Retrieval"]
+ R --> E["Evaluate Relevance"]
+ E --> C["Check Applicability"]
+ C --> D{"Sufficient evidence?"}
+ D -->|Yes| K["Knowledge Bundle"]
+ D -->|No| B{"Retrieval budget available?"}
+ B -->|Yes| F["Refine Query or Filters"]
+ F --> R
+ B -->|No| U["Insufficient Knowledge Signal"]
+ K --> N["Reasoner"]
+ U --> O["Adaptive Router"]
+```
+
+
+Planner/Reasoner/Verifier có thể đề xuất truy xuất; Orchestrator quyết định. Cho phép skip; bounded query refinement.
+### 9.12. Relevance and Applicability
+Hai lớp độc lập. Liên quan cao và áp dụng được ưu tiên; liên quan cao nhưng chưa áp dụng giữ như candidate cần chứng minh điều kiện, không sử dụng như kết luận; ít liên quan không ưu tiên dù đủ điều kiện.
+| Status | Ý nghĩa |
+|---|---|
+| APPLICABLE | Điều kiện đã xác lập |
+| CONDITIONAL | Điều kiện còn thiếu đã nhận diện |
+| NOT_APPLICABLE | Điều kiện bị phủ định |
+| UNKNOWN | Chưa đủ căn cứ đánh giá |
+
+Không dùng confidence tùy ý như xác suất.
+### 9.13. Condition Matching
+Ví dụ Pythagoras: ABC là tam giác và A=90 thì áp dụng BC^2=AB^2+AC^2; A=60 thì không áp dụng với BC là cạnh huyền đối diện A; chưa biết A hoặc chưa xác lập tam giác thì conditional nếu xác định được điều kiện thiếu. Kiểm tra có căn cứ, không coi LLM là proof.
+
+
+```mermaid
+flowchart TD
+ A["Bind theorem variables to facts"] --> B{"Any contradicted condition?"}
+ B -->|Yes| N["NOT_APPLICABLE"]
+ B -->|No| C{"All necessary conditions established?"}
+ C -->|Yes| Y["APPLICABLE"]
+ C -->|No| D{"Missing conditions identified?"}
+ D -->|Yes| E["CONDITIONAL"]
+ D -->|No| U["UNKNOWN"]
+```
+
+
+### 9.14. Knowledge Bundle
+
+
+```mermaid
+flowchart TD
+ B["Knowledge Bundle"] --> K["Selected Knowledge Units"]
+ B --> R["Relevance Assessment"]
+ B --> A["Applicability Assessment"]
+ B --> E["Supporting Fact References"]
+ B --> M["Missing Conditions"]
+ B --> S["Source References"]
+```
+
+
+Ví dụ bundle_id KB-001, request_id KR-001, problem_version 1, items gồm knowledge_id GEO-THM-001, knowledge_version 1, relevance high, applicability APPLICABLE, supporting_facts F01–03, missing_conditions []. Tham chiếu chính xác version/source; không chỉ nối text top-k.
+### 9.15. Knowledge-guided Verification
+
+
+```mermaid
+flowchart TD
+ S["Reasoning Step"] --> K["Knowledge Reference"]
+ K --> D["Load Knowledge Version"]
+ D --> C["Required Conditions"]
+ F["Problem Facts"] --> V["Verifier"]
+ C --> V
+ S --> V
+ V --> R{"Valid application?"}
+ R -->|Yes| P["Verification Evidence"]
+ R -->|No| E["Knowledge Application Error"]
+ E --> A["Adaptive Router"]
+```
+
+
+Đúng định lý đủ điều kiện: chấp nhận phạm vi kiểm tra; thiếu điều kiện: bổ sung/chứng minh; sai định lý: retrieval/replan. Reasoning step tham chiếu unit/version nếu dùng KB.
+### 9.16. Storage and Index Management
+
+
+```mermaid
+flowchart TD
+ M["Knowledge Management"] --> S["SQLite Source of Truth"]
+ S --> B["Rebuildable BM25 Index"]
+ S --> F["Rebuildable FAISS Index"]
+ S --> O["Original File References"]
+```
+
+
+SQLite lưu units/conditions/conclusions/versions/sources/relationships; FAISS vectors; BM25 local index; tài liệu gốc local files; index manifest SQLite hoặc JSON. Schema DB mục 13.
+### 9.17. Versioning
+
+
+```mermaid
+flowchart TD
+ K1["Knowledge Base v1"] --> I1["Indexes v1"]
+ I1 --> E1["Experiment Run 001"]
+ K1 --> U["Knowledge Update"]
+ U --> K2["Knowledge Base v2"]
+ K2 --> I2["Indexes v2"]
+ I2 --> E2["Experiment Run 002"]
+```
+
+
+Manifest corpus_version, embedding_model, embedding_dimension, normalization_config, index_version, build_timestamp, content_hash. Đổi model cần kiểm tra tương thích/rebuild; cùng số chiều không đồng nghĩa cùng embedding space.
+### 9.18. Vietnamese Retrieval
+Chuẩn hóa/mở rộng Pitago/Pytago/Pythagoras, tam giác vuông/right triangle, AB vuông góc AC, x²/x^2, căn bậc hai/sqrt, ký hiệu tam giác. Không làm mất ý nghĩa dấu, số mũ, bất đẳng thức. BGE-M3 ứng viên chưa chốt. Với 200–500 units ưu tiên FAISS exact search IndexFlatIP + normalization cho cosine; chưa cần ANN.
+### 9.19. Evaluation
+| ID | Retrieval |
+|---|---|
+| RET01 | BM25 |
+| RET02 | Dense |
+| RET03 | Hybrid RRF |
+| RET04 | Hybrid + Applicability Filtering |
+
+Recall@K, Precision@K, MRR, nDCG, applicability accuracy; nhãn relevance và applicability riêng.
+| ID | End-to-end |
+|---|---|
+| RAG01 | No RAG |
+| RAG02 | Static RAG |
+| RAG03 | Agentic RAG |
+| RAG04 | Agentic RAG + Applicability Checking |
+
+Kiểm soát model/tools/other components khi cô lập biến. Answer Accuracy, Solution Correctness, Theorem Application Accuracy, Knowledge Citation Accuracy, tokens/calls/latency. Không chứa lời giải/đáp án benchmark trong KB; chống leakage. Ablation chỉ thay thành phần thử nghiệm, không tắt yêu cầu an toàn bắt buộc.
+### 9.20. Stack
+Pydantic v2, custom Python, SQLite, SQLAlchemy, BM25, FAISS, Sentence Transformers/API, BGE-M3 candidate, RRF, Python/SymPy/LLM condition matching, AG03+LangGraph, local files, custom evaluation. Không Elasticsearch/Qdrant/Milvus/Neo4j/fine-tuning embedding trong MVP.
+### 9.21. Quyết định
+Hybrid Mathematical Knowledge; Structured Knowledge Units KT01–06, semi-automatic human-reviewed construction, condition–conclusion, BM25+dense+RRF, bounded Agentic RAG, relevance/applicability và 4 statuses, Knowledge Bundle, condition matching, SQLite/FAISS, corpus/unit/index versioning, tiếng Việt, dự kiến 200–500 units; không bắt buộc KG hay Web Search Agent; retrieval/end-to-end evaluation. Applicability-aware Agentic RAG là hướng thiết kế cần kiểm chứng, không tuyên bố novelty.
 
 ## 10. Neuro-Symbolic Tool System
 
