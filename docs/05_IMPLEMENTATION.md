@@ -1,10 +1,12 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 
 **Trạng thái:** Đã chốt
 
-Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design](03_SYSTEM_DESIGN.md), [Project Structure v1.1](04_PROJECT_STRUCTURE.md).
+Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design](03_SYSTEM_DESIGN.md), [Project Structure v1.2](04_PROJECT_STRUCTURE.md).
+
+**Đồng bộ Deployment v1.0:** Laptop mục tiêu 8 GB RAM, Full API Inference (LLM/VLM/embedding/reranker nếu dùng); BM25/FAISS, math tools, orchestration và storage chạy local. Không cần local AI model hoặc GPU; cloud thuê tạm chỉ tùy chọn. Xem [Deployment](07_DEPLOYMENT.md).
 
 ## 1. Phương pháp học và triển khai
 
@@ -418,7 +420,7 @@ Luồng dữ liệu logic; Orchestrator/Guard điều phối, không gọi trự
 | P4-L01 | Knowledge Representation | Schema tri thức toán học |
 | P4-L02 | Data Processing | Làm sạch, chuẩn hóa, deduplication |
 | P4-L03 | Sparse Retrieval | BM25, lexical matching |
-| P4-L04 | Dense Retrieval | Embedding, BGE-M3 ứng viên, FAISS |
+| P4-L04 | Dense Retrieval | Embedding API (BGE-M3 ứng viên nếu có API phù hợp), FAISS |
 | P4-L05 | Hybrid Retrieval | RRF, metadata filtering |
 | P4-L06 | Knowledge Applicability | Điều kiện áp dụng định lý |
 | P4-L07 | Context Optimization | Top-k, token budget, noise |
