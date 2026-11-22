@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.10
+**Phiên bản:** 0.11
 
 **Trạng thái:** Đang thảo luận
 
@@ -525,7 +525,47 @@ Giải bài có ảnh trong phạm vi hỗ trợ, phân biệt observed/inferred
 
 ## 11. Phase 7 — Research & Evaluation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 11.1. Mục tiêu
+Tư duy nghiên cứu AI, thực nghiệm có kiểm soát, đánh giá hệ thống và bảo vệ quyết định kỹ thuật bằng số liệu.
+```mermaid
+flowchart TD
+ A["Research Questions"] --> B["Benchmark Dataset"]
+ B --> C["Experiment Design"]
+ C --> D["Baselines"]
+ C --> E["Proposed System"]
+ D --> F["Evaluation"]
+ E --> F
+ F --> G["Ablation Study"]
+ G --> H["Error Analysis"]
+ H --> I["Quality-Cost Analysis"]
+ I --> J["Research Report"]
+```
+
+### 11.2. Mini Labs
+| ID | Chủ đề | Trọng tâm |
+|---|---|---|
+| P7-L01 | Research Methodology | Giả thuyết, biến kiểm soát |
+| P7-L02 | Benchmark Design | Dataset, sampling, leakage |
+| P7-L03 | Evaluation Metrics | Accuracy, reliability |
+| P7-L04 | Baseline Design | So sánh công bằng |
+| P7-L05 | Ablation Study | Đóng góp từng thành phần |
+| P7-L06 | Statistical Analysis | Độ biến thiên, ý nghĩa thống kê |
+| P7-L07 | Error Analysis | Phân loại, nguyên nhân |
+| P7-L08 | Cost–Quality Optimization | Pareto Frontier |
+| P7-L09 | Reproducibility | Dataset/config/model version |
+| P7-L10 | Scientific Reporting | Bảng biểu, kết luận, limitations |
+
+### 11.3. Thí nghiệm chính thức
+B01 Direct LLM; B02 Single-Agent + Tool; B03 Static Multi-Agent; B04 Adaptive Multi-Agent (MATHK). Ablation tool use, agentic RAG, hybrid verification, dependency-based correction, adaptive routing, multimodal fusion; duy trì guard bắt buộc. Đánh giá quality (accuracy, reasoning correctness), reliability (error/correction/uncertainty), efficiency (tokens/cost/latency/RAM). Chi tiết RQ, benchmark, cấu hình, metrics và thống kê chốt riêng trong 02_RESEARCH.md và 06_EVALUATION.md; không mặc định cải thiện hoặc novelty.
+
+### 11.4. Deliverables
+Benchmark dataset/evaluation framework, experiment runner/config, baseline/ablation/error analysis, quality-cost report, reproducibility package, báo cáo nghiên cứu và bản thảo bài báo. MVP D — Research-ready System.
+
+### 11.5. Completion Gates
+Tái lập trong điều kiện đã công bố, so sánh công bằng, không tối ưu trên held-out test, không kết luận vượt bằng chứng. Người học thiết kế thí nghiệm, đánh giá kiến trúc và bảo vệ quyết định bằng số liệu; Coding Agent hỗ trợ triển khai. Test/CI/docs/checkpoint và learning gate. 10 lab, 20–30 giờ.
+
 
 ## 12. Quản lý tiến độ và đánh giá năng lực
 
