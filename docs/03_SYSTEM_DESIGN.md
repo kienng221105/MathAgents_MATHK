@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.4  
+**Phiên bản:** 0.5  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -449,7 +449,7 @@ Kiểm soát tài nguyên, cấu hình và ghi log ở mức tối thiểu từ 
 |---|---|
 | Language & Environment | Python 3.12, uv, pyproject.toml, uv.lock |
 | Agent Orchestration | LangGraph + Custom Agent Logic |
-| Model Integration | LiteLLM + Custom Model Gateway; Native SDK Adapter khi cần |
+| Model Integration | Custom Model Gateway; 9Router Adapter hoặc LiteLLM Adapter; Native SDK khi cần |
 | Validation | Pydantic v2 |
 | Symbolic & Numerical Math | SymPy, NumPy, math, decimal, fractions |
 | Multimodal | Pillow + VLM qua Model Gateway |
@@ -495,21 +495,23 @@ LangGraph là framework thực thi, không phải đóng góp nghiên cứu. Rou
 
 ### 4.4. LLM Integration
 
-Custom Model Gateway chuẩn hóa request, response, structured output, tool calls, lỗi, token usage và metadata. LiteLLM là adapter chính; Native SDK Adapter là đường mở rộng khi chức năng provider không tương thích. Model cụ thể và provider đầu tiên sẽ chọn sau thử nghiệm. Không bắt buộc dùng nhiều provider.
+Custom Model Gateway chuẩn hóa request, response, structured output, tool calls, lỗi, token usage và metadata. 9Router Adapter dùng endpoint OpenAI-compatible sau kiểm thử, LiteLLM Adapter cho provider trực tiếp; Native SDK khi cần. Không bắt buộc xếp chồng hai adapter. 9Router là proxy tùy chọn, hỗ trợ kết nối và monitoring LLM, không thay LangGraph. Model/Provider cụ thể chọn sau thử nghiệm.
+
 
 ```mermaid
 flowchart TD
  A["MATHK Agents"] --> G["Model Gateway"]
- G --> I["Model Port"]
- I --> L["LiteLLM Adapter"]
- L --> O["OpenAI"]
- L --> P["Google Gemini"]
- L --> R["OpenRouter"]
- L --> X["Other Providers"]
- I --> N["Native SDK Adapter khi cần"]
+ G --> R["9Router Adapter"]
+ G --> L["LiteLLM Adapter"]
+ R --> X["9Router Proxy"]
+ X --> P["External Providers"]
+ L --> P
+ G --> N["Native SDK when needed"]
+ N --> P
 ```
 
-Model Profiles: DEFAULT (suy luận thông thường), MULTIMODAL (văn bản và hình ảnh), ADVANCED (suy luận hoặc sửa lỗi phức tạp), EMBEDDING (vector, qua Embedding Gateway). Các profile có thể dùng chung model; giữ model cố định khi cần cô lập biến thực nghiệm. LLM/VLM qua API bên ngoài trong MVP.
+
+Model Profiles: DEFAULT, MULTIMODAL, ADVANCED, EMBEDDING (qua Embedding Gateway). Có thể dùng chung model. LLM/VLM qua API ngoài trong MVP. Model Policy và kiểm soát retry/fallback xem 5.20.
 
 ### 4.5. Data Validation
 
@@ -637,13 +639,29 @@ flowchart TD
 
 Benchmark Runner chỉ chuyển dữ liệu đề bài được phép tới Engine, không chuyển nhãn ground truth.
 
+**Monitoring bổ sung:** 9Router hỗ trợ theo dõi API usage, provider, quota và log theo khả năng phiên bản; token/cost/latency cần kiểm chứng. MATHK vẫn tự ghi agent path, tool/RAG, verification/correction, resource và benchmark trace bằng logging, JSONL, SQLite, psutil. Không phụ thuộc 9Router để tái lập thực nghiệm; actual model metadata phải xác minh. Không ghi bí mật vào log.
+
+
+```mermaid
+flowchart TD
+ A["MATHK Agents and Tools"] --> T["Execution Tracing"]
+ G["Model Gateway"] --> T
+ T --> D["SQLite and JSONL"]
+ D --> E["Research Evaluation"]
+ G --> R["9Router Proxy"]
+ R --> P["Providers"]
+ R --> U["Usage and Quota Monitor"]
+ R --> L["Console Log"]
+```
+
+
 ### 4.13. Technology Stack Overview
 
 ```mermaid
 flowchart TD
  I["Gradio / CLI / Python API"]
  C["Python 3.12 / LangGraph / Pydantic v2"]
- A["Model Gateway / LiteLLM / VLM"]
+ A["Model Gateway / 9Router or LiteLLM / VLM"]
  T["SymPy / NumPy / Calculator"]
  K["BM25 / Sentence Transformers / FAISS / SQLite"]
  R["pytest / pandas / Ruff / uv / GitHub Actions"]
@@ -668,7 +686,335 @@ Các dependency, phiên bản model, cấu hình concurrency và ngưỡng tài 
 
 ## 5. Agent Design
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** Schema, prompt và giới hạn thực thi cụ thể sẽ thiết kế ở các mục tương ứng.
+
+### 5.1. Nguyên tắc
+
+Deterministic-first, Agent-assisted. Kiểm tra định dạng, tính toán, truy vấn index, persistence, resource budget và metrics dùng code xác định khi phù hợp; Agent đảm nhiệm hiểu ngữ cảnh, lựa chọn phương pháp, sinh truy vấn, đánh giá lập luận. Không biến mọi chức năng thành Agent.
+
+### 5.2. Số lượng Agent
+
+Chọn phương án Specialized gồm 5 vai trò logic thay vì Minimal 3 hoặc Highly Specialized 8–12. Không phải 5 tiến trình, 5 model hay 5 microservice.
+
+| ID | Agent | Module | Trách nhiệm |
+|---|---|---|---|
+| AG01 | Perception | M08 | Hiểu đề và dữ kiện |
+| AG02 | Planner | M09 | Phân tích, lập kế hoạch |
+| AG03 | Retrieval | M10 | Truy xuất và đánh giá tri thức |
+| AG04 | Reasoner | M11 | Giải toán và sửa lời giải |
+| AG05 | Verifier | M12 | Kiểm chứng và định vị lỗi |
+
+
+```mermaid
+flowchart TD
+ O["Orchestrator / Router / Guard"] --> A["AG01 Perception"]
+ O --> B["AG02 Planner"]
+ O --> C["AG03 Retrieval"]
+ O --> D["AG04 Reasoner"]
+ O --> E["AG05 Verifier"]
+ A --> S["Structured Updates"]
+ B --> S
+ C --> S
+ D --> S
+ E --> S
+ S --> M["State Manager"]
+ M --> T["Shared State"]
+ T --> O
+```
+
+
+### 5.3. AG01 — Perception Agent
+
+Input: ProblemInput và bổ sung của người dùng. Output: ProblemRepresentation, uncertainty signals. Profile: MULTIMODAL hoặc DEFAULT. Công cụ đọc ảnh và chuẩn hóa được cấp quyền. FR01, FR02, FR08. Trích xuất văn bản, công thức, đối tượng/quan hệ hình học, bảng, đồ thị; tích hợp dữ kiện và provenance; phân biệt given, observed, inferred, assumption. Không suy ra góc vuông chỉ vì hình trông vuông.
+
+
+```mermaid
+flowchart TD
+ I["Text and Images"] --> P["Input Processing"]
+ P --> A["Perception"]
+ A --> T["Text and Formula Extraction"]
+ A --> V["Visual Understanding"]
+ T --> F["Fact Integration"]
+ V --> F
+ F --> U["Uncertainty Signals"]
+ F --> R["Problem Representation"]
+```
+
+
+Ví dụ tam giác ABC có ký hiệu vuông tại A, AB=3, AC=4, mục tiêu tính BC. Perception ghi nhận ba dữ kiện và nguồn ký hiệu/nhãn ảnh; không tự kết luận BC=5.
+
+### 5.4. AG02 — Planner Agent
+
+Input: ProblemRepresentation và state liên quan. Output: ReasoningPlan, RoutingRecommendation. Profile DEFAULT/ADVANCED; chưa cần tool tính toán riêng. FR03, FR07. Phân loại miền, mục tiêu, độ phức tạp; lập bước và dependency; đề xuất nhu cầu tri thức/tool, lightweight hoặc structured. Orchestrator và Guard quyết định cuối.
+
+
+```mermaid
+flowchart TD
+ I["Problem Representation"] --> A["Planner"]
+ A --> D["Domain and Task"]
+ A --> C["Complexity"]
+ D --> K["Knowledge Requirements"]
+ D --> T["Tool Requirements"]
+ C --> P["Structured Plan"]
+ K --> P
+ T --> P
+ P --> R["Routing Recommendation"]
+```
+
+
+Ví dụ kế hoạch: kiểm tra góc vuông, xác định Pythagoras, thiết lập BC²=AB²+AC², tính BC, kiểm tra độ dài.
+
+### 5.5. AG03 — Retrieval Agent
+
+Input: ProblemRepresentation, ReasoningPlan khi có, KnowledgeRequest. Output: KnowledgeBundle hoặc tín hiệu bất định. DEFAULT; truy cập dịch vụ BM25, dense retrieval, metadata filtering. FR04, FR08. Sinh query, đánh giá relevance và applicability; truy xuất lại có giới hạn. Không tự tạo nguồn. Pythagoras chỉ áp dụng khi đủ điều kiện tam giác vuông, xác định đúng cạnh huyền.
+
+
+```mermaid
+flowchart TD
+ P["Problem and Plan"] --> A["Retrieval"]
+ A --> Q["Generate Query"]
+ Q --> R["Retrieval Service"]
+ R --> K["Knowledge Candidates"]
+ K --> V{"Relevant and applicable?"}
+ V -->|Yes| O["Knowledge Bundle"]
+ V -->|Need evidence and budget| F["Refine Query"]
+ F --> R
+ V -->|Cannot establish| U["Uncertainty Signal"]
+```
+
+
+### 5.6. AG04 — Reasoner Agent
+
+Input: Problem, Plan/Knowledge nếu có, Previous Steps, Tool Results. Output: ReasoningStep, SolutionCandidate. DEFAULT/ADVANCED; SymPy, Calculator qua registry. FR05, FR06. Solve Mode sinh lời giải; Correction Mode sửa theo feedback và dependency. Không cần Corrector Agent riêng. Không thực thi Python tùy ý.
+
+
+```mermaid
+flowchart TD
+ P["Problem"] --> A["Reasoner"]
+ K["Knowledge when needed"] --> A
+ L["Plan when needed"] --> A
+ A --> S["Reasoning Step"]
+ S --> T{"Need computation?"}
+ T -->|Yes| C["Guard and Tool Registry"]
+ C --> M["SymPy or Calculator"]
+ M --> R["Tool Result"]
+ R --> A
+ T -->|No| N["Next Step or Candidate"]
+```
+
+
+Ví dụ BC²=3²+4², tool trả 5 khi tính căn bậc hai; Reasoner xác định BC=5 do độ dài dương.
+
+### 5.7. AG05 — Verifier Agent
+
+Input: đề gốc, Problem, Knowledge, SolutionCandidate, Tool Results. Output: VerificationReport, CorrectionFeedback. DEFAULT/ADVANCED khi cần ngữ nghĩa; SymPy, Calculator, deterministic rules. FR06, FR08. Năm lớp V1 Input, V2 Knowledge, V3 Reasoning, V4 Computational, V5 Answer. Kiểm tra điều kiện, dependency, tính toán, đáp án/đơn vị/độ đầy đủ. Phạm vi và phương pháp kiểm chứng phải rõ; LLM đồng ý không phải chứng minh hình thức.
+
+
+```mermaid
+flowchart TD
+ S["Solution Candidate"] --> D["Deterministic Verification"]
+ D --> A["Semantic Verification when needed"]
+ A --> E["Aggregate Evidence"]
+ E --> R{"Verification Status"}
+ R --> V["VERIFIED"]
+ R --> P["PARTIALLY_VERIFIED"]
+ R --> U["UNVERIFIED"]
+ R --> F["FAILED"]
+```
+
+
+### 5.8. Verification-guided Correction
+
+Dependency-aware Correction: giữ bước hợp lệ, sửa bước sai và đánh giá lại các bước phụ thuộc; nếu cần thì replan. Luôn bind báo cáo vào phiên bản lời giải và kiểm chứng lại. Ví dụ 3²+4²=23 sai, sửa thành 25 rồi tính lại BC=5. Lợi ích chi phí/chất lượng là giả thuyết cần thực nghiệm.
+
+
+```mermaid
+flowchart TD
+ S1["Step 1 valid"] --> S2["Step 2 valid"]
+ S2 --> S3["Step 3 incorrect"]
+ S3 --> S4["Step 4 affected"]
+ S3 --> V["Verifier Feedback"]
+ V --> C["Correct Step 3"]
+ C --> N["Recompute Step 4"]
+ N --> R["Re-verification"]
+```
+
+
+### 5.9. Thành phần không phải Agent
+
+Orchestrator, Adaptive Router, State Manager, Execution Guard, Tool Registry, Uncertainty Manager, Output Formatter, Benchmark Runner, Evaluator là thành phần điều phối hoặc dịch vụ. Router có thể dùng LLM hỗ trợ mà không cần Supervisor Agent riêng. Không có Uncertainty hoặc Synthesis Agent riêng trong MVP.
+
+### 5.10. Capability Matrix
+
+| Năng lực | AG01 | AG02 | AG03 | AG04 | AG05 |
+|---|---|---|---|---|---|
+| Hiểu ảnh và trích xuất | X | | | | |
+| Lập kế hoạch, đề xuất routing | | X | | | |
+| Truy xuất tri thức | | | X | | |
+| Đánh giá kiến thức | | | X | X | X |
+| SymPy, Calculator | | | | X | X |
+| Giải toán, sửa lời giải | | | | X | |
+| Kiểm chứng | | | | | X |
+| Báo cáo bất định | X | X | X | X | X |
+
+Verifier được đọc đề gốc, kể cả ảnh khi cần để kiểm tra perception; không thay thế vai trò trích xuất chính AG01.
+
+### 5.11. Agent Lifecycle
+
+
+```mermaid
+flowchart TD
+ A["Task Assignment"] --> B["Build Relevant Context"]
+ B --> C["Validate Input"]
+ C --> D["Execute Agent Logic"]
+ D --> E["Validate Output"]
+ E --> F{"Valid result?"}
+ F -->|Yes| G["Structured Update"]
+ F -->|No| H["Bounded Retry or Failure"]
+ H --> I["Orchestrator"]
+ G --> I
+ I --> J["State Manager"]
+ J --> K["Route Next Action"]
+```
+
+
+Agent không tự sửa state; Orchestrator kiểm tra update hợp lệ trước khi State Manager áp dụng. Failure được ghi nhận, không coi là kết quả hợp lệ.
+
+### 5.12. Agent Relationships
+
+Không gọi trực tiếp Agent khác; trao đổi thông qua Orchestrator và Shared State theo sơ đồ 5.2. Các tool call riêng cũng chịu quyền hạn và ngân sách chung.
+
+### 5.13. Agent Configuration
+
+Configuration-driven: agent_id, name, enabled, model_profile, prompt_version, allowed_tools, execution_modes. Ví dụ AG04 có solve/correction, calculate, simplify, solve_equation, check_equivalence. Đây là cấu hình minh họa, chưa phải schema chính thức. Ablation chỉ vô hiệu hóa thành phần theo cấu hình thực nghiệm hợp lệ, không bỏ ràng buộc an toàn.
+
+### 5.14. Quyết định cơ sở
+
+5 Agent, cùng tiến trình mặc định, LangGraph, Shared Structured State, Model Gateway dùng chung, quyền tool theo Agent, cấu hình hóa. Reasoner correction mode, một Verifier năm lớp.
+
+### 5.15. Agent Autonomy
+
+Chọn Controlled Autonomy. Fixed Pipeline giữ làm baseline; Autonomous Multi-Agent tự do không triển khai MVP.
+
+
+```mermaid
+flowchart LR
+ A["Perception"] --> B["Planner"]
+ B --> C["Retrieval"]
+ C --> D["Reasoner"]
+ D --> E["Verifier"]
+```
+
+
+
+
+```mermaid
+flowchart TD
+ O["Orchestrator"] --> R["Adaptive Router"]
+ R --> G["Execution Guard"]
+ G --> A["Selected Agent"]
+ A --> T["Allowed Tools"]
+ T --> A
+ A --> U["Structured Update"]
+ U --> S["State Manager"]
+ S --> O
+```
+
+
+### 5.16. Decision Authority
+
+Agent hiểu dữ kiện, chọn phương pháp trong nhiệm vụ, sinh query và đề xuất tool, truy xuất lại, sửa lỗi, route/model/stop. Orchestrator/Guard kiểm tra thực thi tool, chọn node/model theo policy, áp dụng state update và kết thúc. Không bên nào được vượt budget. Ví dụ AG04 trả status needs_knowledge và request type knowledge_retrieval, topic Định lý Thales, reason cần điều kiện áp dụng; Orchestrator kiểm tra trước khi gọi AG03.
+
+### 5.17. Communication Protocol
+
+Structured Message + Shared State thay hội thoại Agent tự do. Pydantic validation, traceable updates, giới hạn context.
+
+
+```mermaid
+sequenceDiagram
+ participant R as Reasoner
+ participant O as Orchestrator
+ participant S as Shared State
+ participant V as Verifier
+ R->>O: SolutionCandidate
+ O->>S: Validate and update
+ O->>V: VerificationTask
+ V->>O: VerificationReport
+ O->>S: Save error evidence
+ O->>R: CorrectionTask
+ R->>O: CorrectedSolution
+ O->>S: Update solution version
+ O->>V: Re-verification
+```
+
+
+### 5.18. Context Isolation
+
+Context Builder chỉ cấp phần state cần thiết, không gửi toàn bộ state mặc định.
+
+
+```mermaid
+flowchart TD
+ S["Shared State"] --> B["Context Builder"]
+ B --> A["AG01 Original Input and supplements"]
+ B --> P["AG02 Problem and objectives"]
+ B --> K["AG03 Knowledge Request and relevant facts"]
+ B --> R["AG04 Problem / Plan / Knowledge / Steps / Tools"]
+ B --> V["AG05 Original Input / Candidate / Evidence"]
+```
+
+
+Giảm token, nhiễu và quyền truy cập thừa; Verifier đọc đề gốc khi thích hợp.
+
+### 5.19. Independent Verification
+
+Không truyền mức tự tin của Reasoner mặc định; cung cấp đề gốc, representation, candidate, bước giải, căn cứ và tool results để kiểm tra lại. Không đưa ground truth vào bất kỳ Agent nào. Dùng model khác cho Verifier là lựa chọn thực nghiệm, không bắt buộc; cùng model có nguy cơ lỗi tương quan. Không đồng nhất việc tách vai trò với độc lập thống kê.
+
+### 5.20. Agent Model Policy
+
+Free-first cho development, model cụ thể chọn qua benchmark nhỏ và capability test (vision, JSON/schema, tool calling, latency, quota). Gemma, Nemotron, Qwen là ứng viên, không cam kết chất lượng hay tính miễn phí lâu dài. 9Router là proxy tùy chọn và monitoring hạ tầng; LiteLLM adapter gọi trực tiếp provider khi cần. MATHK sở hữu Agent Routing, Reasoning Level, Model Profile, correction, budget. 9Router sở hữu provider routing theo cấu hình đã kiểm chứng. Retry/fallback nhiều tầng phải tuân thủ ngân sách tổng.
+
+
+```mermaid
+flowchart TD
+ A["Agent Task"] --> M["MATHK Model Policy"]
+ M --> G["Model Gateway"]
+ G --> R["9Router Adapter"]
+ G --> L["LiteLLM Adapter"]
+ R --> P["External Providers"]
+ L --> P
+ R --> U["Infrastructure Monitoring"]
+ G --> T["MATHK Execution Tracing"]
+```
+
+
+| Chính sách | Development | Research |
+|---|---|---|
+| Free-first | Có | Theo config |
+| Model cố định | Tùy chọn | Theo experiment config |
+| Fallback | Có giới hạn | Mặc định tắt |
+| Adaptive Model Routing | Cho phép | Bật/tắt có kiểm soát |
+| Token Saver | Tùy chọn | Mặc định tắt |
+| Trace | Có | Bắt buộc |
+| Actual model tracking | Khi có metadata | Xác minh bắt buộc |
+
+Nếu không xác minh model thực tế qua proxy, gọi trực tiếp provider cho thực nghiệm cần kiểm soát. Không nhầm Adaptive Agent Routing với Adaptive Model Routing. Không tự chuyển sang API trả phí ngoài ngân sách được phép.
+
+### 5.21. Agent Registry
+
+Registry quản lý ID, capability, version, model profile, tool permissions, input/output schemas, execution modes. Agent mới cần tích hợp graph và kiểm tra routing; đăng ký không đồng nghĩa tự chạy.
+
+
+```mermaid
+flowchart TD
+ O["Orchestrator"] --> R["Agent Registry"]
+ R --> A["AG01 Perception"]
+ R --> B["AG02 Planner"]
+ R --> C["AG03 Retrieval"]
+ R --> D["AG04 Reasoner"]
+ R --> E["AG05 Verifier"]
+ R -.-> F["Future Agents"]
+```
 
 ## 6. State Management
 
