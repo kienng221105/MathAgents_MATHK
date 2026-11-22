@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.7
+**Phiên bản:** 0.8
 
 **Trạng thái:** Đang thảo luận
 
@@ -393,7 +393,47 @@ Orchestrator, Router, State Manager, Execution Guard; Planner, Reasoner, Verifie
 
 ## 8. Phase 4 — Agentic RAG
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 8.1. Mục tiêu
+Data/Knowledge Engineering, Retrieval Optimization, Context Engineering. Phân biệt relevance và applicability; kiểm tra nhanh kiến thức BM25/dense đã biết, tập trung agentic retrieval và điều kiện áp dụng.
+```mermaid
+flowchart TD
+ A["Reasoning State"] --> B["Retrieval Agent"]
+ B --> C["Query Generation"]
+ C --> D["BM25"]
+ C --> E["Dense Retrieval"]
+ D --> F["Hybrid Fusion"]
+ E --> F
+ F --> G["Applicability Check"]
+ G --> H["Knowledge Bundle"]
+ H --> I["Context Builder"]
+ I --> J["Reasoner"]
+```
+Luồng dữ liệu logic; Orchestrator/Guard điều phối, không gọi trực tiếp agent khác.
+
+### 8.2. Mini Labs
+| ID | Chủ đề | Trọng tâm |
+|---|---|---|
+| P4-L01 | Knowledge Representation | Schema tri thức toán học |
+| P4-L02 | Data Processing | Làm sạch, chuẩn hóa, deduplication |
+| P4-L03 | Sparse Retrieval | BM25, lexical matching |
+| P4-L04 | Dense Retrieval | Embedding, BGE-M3 ứng viên, FAISS |
+| P4-L05 | Hybrid Retrieval | RRF, metadata filtering |
+| P4-L06 | Knowledge Applicability | Điều kiện áp dụng định lý |
+| P4-L07 | Context Optimization | Top-k, token budget, noise |
+| P4-L08 | Agentic RAG | Skip retrieval, query refinement có giới hạn |
+| P4-L09 | RAG Evaluation | Retrieval quality và answer quality |
+
+### 8.3. Thí nghiệm
+BM25 vs dense vs hybrid; raw text vs structured knowledge; có/không applicability check; no RAG vs static RAG vs agentic RAG; top-k/token budget; embedding quality/RAM/latency/cost. Đo Recall@k, Precision@k, MRR, nDCG, Applicability Accuracy, Answer Accuracy, tokens, cost. Dùng tập dev, kiểm soát model/budget và tránh leakage; guard bắt buộc duy trì.
+
+### 8.4. Deliverables
+Knowledge Base THCS có nguồn hợp lệ, phiên bản; SQLite Knowledge Store; BM25/FAISS/hybrid; applicability checker; Retrieval Agent; Context Builder nâng cao; RAG benchmark và baselines. MVP B — Grounded Multi-Agent.
+
+### 8.5. Completion Gates
+Truy xuất kiến thức phù hợp, kiểm tra điều kiện, giữ provenance và giới hạn vòng retrieval. Người học phân tích ảnh hưởng data/retrieval/context tới suy luận; AI triển khai theo đặc tả, người học review và thực nghiệm. Test/CI/docs/checkpoint, learning gate. 9 lab, 15–20 giờ.
+
 
 ## 9. Phase 5 — Verification & Adaptive Routing
 
