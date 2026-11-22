@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.7  
+**Phiên bản:** 0.8  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -1648,7 +1648,306 @@ Centralized Adaptive Router, deterministic-first hybrid, 5 nhóm feature, 4 rout
 
 ## 8. Multimodal Processing
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** Hiện thực FR01/FR02; schema minh họa chưa phải hợp đồng triển khai cuối cùng.
+
+### 8.1. Phạm vi
+
+Toán THCS: văn bản/công thức, đối tượng và quan hệ hình học, đồ thị hàm số, bảng/biểu đồ, nhãn và giá trị. Chữ viết tay, PDF, phân tách nhiều bài và liên kết phức tạp giữa ảnh/trang thuộc P1. Không mở rộng nhận thức hình ảnh tổng quát.
+
+### 8.2. Multimodal Architecture
+
+So sánh OCR-first (mất thông tin trực quan), VLM-only (khó truy vết), VLM-first + Structured Representation (chọn). OCR-first giữ làm baseline. Original Context được bảo toàn.
+
+
+```mermaid
+flowchart LR
+ A["Image"] --> B["OCR"]
+ B --> C["Extracted Text"]
+ C --> D["Text LLM"]
+```
+
+
+
+
+```mermaid
+flowchart LR
+ A["Image"] --> V["VLM"]
+ V --> R["Answer"]
+```
+
+
+
+
+```mermaid
+flowchart TD
+ A["Original Image"] --> B["Image Preprocessing"]
+ B --> C["Perception Agent with VLM"]
+ C --> D["Structured Facts"]
+ A --> E["Original Context"]
+ D --> F["Hybrid Representation"]
+ E --> F
+ F --> G["Reasoning Engine"]
+ F --> H["Verifier"]
+```
+
+
+### 8.3. Multimodal Processing Pipeline
+
+| ID | Giai đoạn | Chức năng |
+|---|---|---|
+| MP01 | Input Validation | Kiểm tra đầu vào |
+| MP02 | Preprocessing | Chuẩn hóa văn bản/ảnh |
+| MP03 | Perception | Hiểu đa phương thức |
+| MP04 | Extraction | Đối tượng, dữ kiện, quan hệ |
+| MP05 | Integration | Liên kết dữ liệu |
+| MP06 | Validation | Kiểm tra nhất quán |
+| MP07 | Representation | Biểu diễn toán học |
+
+Các giai đoạn logic, không phải Agent mới.
+
+
+```mermaid
+flowchart TD
+ I["User Input"] --> V["Input Validation"]
+ V --> M{"Input Modality"}
+ M -->|Text| T["Text Normalization"]
+ M -->|Image| P["Image Preprocessing"]
+ M -->|Mixed| X["Text and Image Processing"]
+ T --> A["Perception when needed"]
+ P --> A
+ X --> A
+ A --> E["Extract Objects and Facts"]
+ E --> R["Recognize Relations"]
+ R --> F["Fact Integration"]
+ F --> C["Consistency Validation"]
+ C --> S["Problem Representation"]
+ C --> U["Uncertainty Signals"]
+ S --> O["Adaptive Router"]
+ U --> O
+```
+
+
+### 8.4. Input Processing
+
+Single-problem Reasoning, cho phép câu hỏi nhỏ liên quan. Plain text, biểu thức, LaTeX, một/nhiều ảnh, mixed input P0; handwriting, PDF, multiple problem segmentation P1.
+
+```json
+{
+  "problem_id": "PROB-001",
+  "text": "Cho hình vẽ. Tính độ dài BC.",
+  "assets": [{"asset_id": "IMG-001", "type": "image", "mime_type": "image/png"}],
+  "modality": "mixed"
+}
+```
+
+### 8.5. Image Preprocessing
+
+Pillow-first. File validation, EXIF orientation, resize theo giới hạn provider bắt buộc; format conversion khi cần; quality assessment cơ bản; contrast, deskew, noise removal tùy chọn; region cropping khi cần. OpenCV nếu có bằng chứng cần thiết. Không mặc định grayscale/binarization vì màu có thể chứa thông tin toán học. Bảo toàn ảnh gốc; chưa cần object detection riêng.
+
+
+```mermaid
+flowchart TD
+ A["Original Image"] --> V["Validate File"]
+ V --> O["Normalize Orientation"]
+ O --> Q["Quality Assessment"]
+ Q --> R["Resize or Convert when needed"]
+ R --> P["Optional Enhancement or Crop"]
+ P --> M["VLM Input"]
+ A --> S["Original Asset Storage"]
+```
+
+
+### 8.6. Visual Mathematical Understanding
+
+**Geometry:** nhận diện điểm, đoạn, đường, góc, tam giác, đường tròn; incidence, parallelism, perpendicularity, equality, midpoint, intersection, collinearity, circle relations, triangle relations khi đủ căn cứ. Không suy luận vuông/song song/bằng nhau chỉ vì tỷ lệ hình. Ví dụ tam giác ABC có ký hiệu vuông tại A, nhãn AB=3, AC=4, objective BC; Perception trích xuất, không chứng minh hoặc giải thay Reasoner.
+
+
+```mermaid
+flowchart TD
+ I["Geometry Diagram"] --> E["Entities A B C and segments"]
+ I --> L["Labels AB = 3 and AC = 4"]
+ I --> R["Right-angle marker at A"]
+ E --> F["Structured Geometry Facts"]
+ L --> F
+ R --> F
+```
+
+
+**Graph:** hệ trục, thang đo, nhãn, đường biểu diễn, điểm đánh dấu/giao điểm. Giá trị đọc gần đúng phải ghi rõ, không biến thành giá trị chính xác.
+
+**Table and Chart:** nhãn, đơn vị, hàng/cột, giá trị. Ví dụ điểm 5–10 với tần số lần lượt 2,4,8,10,6,2; Perception trích xuất bảng, Reasoner/Calculator tính toán.
+
+
+```mermaid
+flowchart LR
+ G["Graph or Chart or Table"] --> E["Axes / Labels / Units"]
+ G --> V["Marked or Approximate Values"]
+ E --> F["Structured Data"]
+ V --> F
+ F --> R["Reasoner and Calculator"]
+```
+
+
+### 8.7. Hybrid Problem Representation
+
+
+```mermaid
+flowchart TD
+ A["Problem Representation"] --> O["Original Context"]
+ A --> S["Structured Context"]
+ O --> T["Original Text"]
+ O --> I["Original Images"]
+ S --> E["Mathematical Entities"]
+ S --> F["Mathematical Facts"]
+ S --> R["Mathematical Relations"]
+ S --> G["Objectives"]
+ S --> C["Constraints and Assumptions"]
+ S --> U["Uncertainty Signals"]
+```
+
+
+Original context giữ nguồn; structured context biểu diễn entities, facts, relations, objectives, constraints, assumptions, uncertainty. Ví dụ entities A/B/C, facts length(AB)=3, length(AC)=4, perpendicular(AB,AC) origin observed; objective calculate length(BC). Mỗi fact schema đầy đủ có provenance theo 6.8.
+
+### 8.8. Visual Evidence and Provenance
+
+Mỗi dữ kiện quan sát có Asset ID, loại evidence, mô tả, ROI khi xác định được. E01 nhãn AB=3, E02 nhãn AC=4, E03 ký hiệu góc vuông. Bounding box tùy chọn, provenance bắt buộc. Không tạo tọa độ giả khi VLM không định vị đáng tin cậy.
+
+
+```mermaid
+flowchart TD
+ A["IMG-001"] --> E1["E01 Length label AB"]
+ A --> E2["E02 Length label AC"]
+ A --> E3["E03 Right-angle marker"]
+ E1 --> F1["F01 AB = 3"]
+ E2 --> F2["F02 AC = 4"]
+ E3 --> F3["F03 AB perpendicular AC"]
+```
+
+
+### 8.9. Text–Image Fusion
+
+
+```mermaid
+flowchart TD
+ T["Text Facts"] --> F["Fact Fusion"]
+ I["Image Facts"] --> F
+ F --> E["Entity Alignment"]
+ E --> D["Duplicate Detection"]
+ D --> C["Conflict Detection"]
+ C --> S["Unified Problem Representation"]
+ C --> U["Uncertainty Signals"]
+```
+
+
+| Văn bản | Ảnh | Xử lý |
+|---|---|---|
+| AB=3 | AB=3 | Hợp nhất, giữ hai nguồn |
+| AB=3 | AC=4 | Bổ sung |
+| AB=3 | AB=5 | Báo mâu thuẫn |
+| AB=3 | Không nhãn AB | Giữ văn bản |
+| Không nói góc vuông | Ký hiệu góc vuông | Bổ sung fact |
+
+Không mặc định ưu tiên văn bản/ảnh nếu hai nguồn rõ ràng mâu thuẫn.
+
+### 8.10. Multiple-image Processing
+
+
+```mermaid
+flowchart TD
+ A["IMG-001 Problem Statement"] --> P["Per-image Representation"]
+ B["IMG-002 Diagram"] --> Q["Per-image Representation"]
+ P --> E["Entity Alignment and Fact Fusion"]
+ Q --> E
+ E --> U["Unified Problem"]
+```
+
+
+P0 tiếp nhận và dùng nhiều ảnh trong cùng bài; liên kết phức tạp giữa ảnh/trang P1. Không tự đồng nhất hai đối tượng cùng nhãn ở hai ảnh.
+
+### 8.11. Visual Uncertainty Handling
+
+| ID | Loại |
+|---|---|
+| VU01 | Ảnh mờ/độ phân giải thấp |
+| VU02 | Ký hiệu toán không rõ |
+| VU03 | Nhãn mơ hồ |
+| VU04 | Quan hệ chưa xác định |
+| VU05 | Giá trị đồ thị gần đúng |
+| VU06 | Mâu thuẫn text–image |
+| VU07 | Đề bị cắt |
+| VU08 | Thiếu liên kết giữa ảnh |
+
+Các mã nhóm con của Uncertainty Handling, không thay phân loại Requirements. Ví dụ 3/8, dấu cộng/trừ, số mũ 2/3, song song/vuông góc.
+
+### 8.12. Targeted Re-perception
+
+
+```mermaid
+flowchart TD
+ V["Verifier detects visual inconsistency"] --> R["Adaptive Router"]
+ R --> C["Select affected evidence"]
+ C --> P["Targeted Re-perception"]
+ P --> F["Updated or uncertain fact"]
+ F --> S["State Manager"]
+ S --> D["Dependency Invalidation"]
+ D --> N["Affected Solution Steps"]
+ N --> Q["Correction and Re-verification"]
+```
+
+
+Ví dụ F01 đọc nhầm AB=8 thay AB=3, AC=4, góc A vuông; lời giải ban đầu sqrt(80) xấp xỉ 8,94. Nếu đối chiếu ảnh xác nhận AB=3, tăng Problem Version, sửa fact, vô hiệu hóa bước phụ thuộc, tạo Solution Version mới BC=5 và kiểm chứng lại. Nếu không xác minh được thì báo bất định. So sánh full-image với targeted re-perception là hướng thực nghiệm, chưa có kết quả.
+
+### 8.13. VLM Integration and 9Router
+
+
+```mermaid
+flowchart TD
+ A["Perception Agent"] --> M["MULTIMODAL Profile"]
+ M --> G["Model Gateway"]
+ G --> R["9Router Adapter"]
+ G --> L["Direct Provider Adapter"]
+ R --> V["Vision Language Model"]
+ L --> V
+ V --> S["Structured Extraction"]
+ S --> C["Schema and Evidence Validation"]
+```
+
+
+| ID | Capability Test |
+|---|---|
+| CT01 | Ảnh thực tế qua endpoint |
+| CT02 | Văn bản và công thức |
+| CT03 | Quan hệ hình học |
+| CT04 | Đồ thị/biểu đồ/bảng |
+| CT05 | Structured schema |
+| CT06 | Nhiều ảnh |
+| CT07 | Phát hiện thông tin không rõ |
+| CT08 | Token, latency, quota |
+
+Chọn model qua benchmark/capability test, không dựa tên Vision hoặc Multimodal.
+
+### 8.14. Custom Computer Vision Training
+
+Không yêu cầu trong MVP. VLM API chính, OCR baseline/hỗ trợ; object detection, segmentation tạm hoãn; fine-tuning VLM ngoài MVP; nhận diện tổng quát ngoài phạm vi; geometry symbolic parser có thể mở rộng.
+
+### 8.15. Multimodal Evaluation
+
+| ID | Configuration | Input |
+|---|---|---|
+| MM01 | Text-only | Phần văn bản |
+| MM02 | OCR-assisted | Văn bản OCR từ ảnh |
+| MM03 | Direct VLM | Ảnh trực tiếp |
+| MM04 | MATHK Hybrid | Ảnh gốc + structured facts |
+
+Cùng tập bài phù hợp, không rò rỉ mô tả quan hệ ảnh vào text-only. MM03/MM04 cùng VLM và kiểm soát thành phần khác khi cô lập structured representation. Metrics: Mathematical Fact Accuracy, Entity Extraction F1, Relation Extraction F1, Formula Exact Match, Visual Hallucination Rate, Uncertainty Detection F1, Answer Accuracy, Re-perception Success Rate, Token Usage, Latency. Không chỉ đo đáp án cuối.
+
+### 8.16. Technology Stack
+
+Pillow, OpenCV optional, PyMuPDF P1, VLM API, Model Gateway 9Router/LiteLLM, Pydantic, custom Python schemas, fact fusion Python + VLM khi cần, structured provenance, local file storage, OCR baseline chọn sau thử nghiệm. Không cần GPU server.
+
+### 8.17. Quyết định
+
+VLM-first + Hybrid Representation; single-problem; Pillow-first; geometry objects/relations/facts; structured graph/table extraction; text-image fusion; multiple images; provenance bắt buộc/ROI tùy chọn; uncertainty; targeted re-perception; capability benchmark; không custom CV training MVP; MM01–04. Nhận thức trực quan phải kiểm tra, truy vết và sửa được, không chỉ gửi ảnh nhận đáp án.
 
 ## 9. Knowledge Base & Agentic RAG
 
