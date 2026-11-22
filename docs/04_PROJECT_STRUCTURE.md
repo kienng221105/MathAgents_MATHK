@@ -1,10 +1,10 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 1.2
+**Phiên bản:** 1.2.1
 
 **Trạng thái:** Đã chốt
 
-Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design v0.16.2](03_SYSTEM_DESIGN.md).
+Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design](03_SYSTEM_DESIGN.md).
 
 **Đồng bộ Deployment v1.0:** Laptop mục tiêu 8 GB RAM, Full API Inference (LLM/VLM/embedding/reranker nếu dùng); BM25/FAISS, math tools, orchestration và storage chạy local. Không cần local AI model hoặc GPU; cloud thuê tạm chỉ tùy chọn. Xem [Deployment](07_DEPLOYMENT.md).
 
@@ -290,7 +290,7 @@ data/
 SQLite nghiệp vụ, checkpoint riêng, FAISS rebuildable, local assets/logs. Không DB server MVP.
 
 ### 5.8. Experiment Organization
-Duy nhất experiments/ tại root, thay thế đề xuất data/experiments/ (bao gồm cấu trúc dự kiến tại mục 13.12 System Design v0.16.1; tài liệu 04 chốt vị trí cuối cùng).
+Duy nhất experiments/ tại root, đồng bộ mục 13.12 System Design.
 ```text
 experiments/
   configs/
@@ -436,7 +436,7 @@ Python logging + structured trace; DEBUG chi tiết, INFO bình thường, WARNI
 
 ### 7.7. Code Quality
 Python 3.12, 4 spaces, 88 ký tự, Ruff lint/format/import sorting, mypy tăng nghiêm ngặt dần, pytest, uv; config tại pyproject.toml.
-Lệnh: uv sync; uv run ruff check .; uv run ruff format .; uv run mypy src/mathk; uv run pytest. Học và cấu hình tại Phase 0.
+Lệnh: uv sync --locked (khi tái dựng từ lockfile); uv run ruff check .; uv run ruff format .; uv run mypy src/mathk; uv run pytest. Học và cấu hình tại Phase 0.
 
 ### 7.8. Commits
 Conventional Commits: feat, fix, docs, test, refactor, chore, ci, perf; scope khi phù hợp. Commit theo thay đổi có ý nghĩa, không đợi hết phase.
