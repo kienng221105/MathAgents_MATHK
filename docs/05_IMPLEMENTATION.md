@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.6
+**Phiên bản:** 0.7
 
 **Trạng thái:** Đang thảo luận
 
@@ -347,7 +347,49 @@ Agent giải toán trong phạm vi hỗ trợ, gọi tool có kiểm soát, xử
 
 ## 7. Phase 3 — Multi-Agent Orchestration
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 7.1. Mục tiêu
+Làm chủ kiến trúc multi-agent, orchestration, state, phân chia trách nhiệm và kiểm soát thực thi; đánh giá khi nào multi-agent đáng chi phí hơn single-agent. Retrieval và Perception hoàn thiện ở phase sau.
+```mermaid
+flowchart TD
+ U["Input"] --> O["Orchestrator"]
+ O <--> R["Router"]
+ O <--> S["State Manager / Shared State"]
+ O --> G["Execution Guard"]
+ G --> P["Planner"]
+ G --> A["Reasoner"]
+ G --> V["Verifier"]
+ P --> O
+ A --> O
+ V --> O
+ O --> F["Final Result"]
+```
+Agent đề xuất update; State Manager kiểm tra và áp dụng, không ghi trực tiếp shared state.
+
+### 7.2. Mini Labs
+| ID | Chủ đề | Trọng tâm |
+|---|---|---|
+| P3-L01 | Multi-Agent Architecture | Phân chia trách nhiệm |
+| P3-L02 | Orchestration Patterns | Sequential, conditional, parallel |
+| P3-L03 | Shared State | Ownership, versioning |
+| P3-L04 | Agent Communication | Structured messages, contracts |
+| P3-L05 | LangGraph | Graph, nodes, edges, transitions |
+| P3-L06 | Routing | Static và state-aware |
+| P3-L07 | Guardrails | Permission, budget, termination |
+| P3-L08 | Checkpointing | Persistence, interrupt, resume |
+| P3-L09 | Observability | Trace, bottleneck, error analysis |
+| P3-L10 | Multi-Agent Evaluation | Quality–cost trade-off |
+
+### 7.3. Thí nghiệm
+Single vs multi-agent; sequential vs conditional; full state vs selected state (giữ dữ kiện bắt buộc); model đồng nhất vs chuyên biệt; lỗi agent/timeout/checkpoint resume; sequential vs bounded parallel trên tác vụ độc lập (parallel P1). Đo accuracy, token, calls, latency, cost, failure/recovery rate. Tập dev, kiểm soát model và budget theo mục tiêu so sánh, không bỏ guard.
+
+### 7.4. Deliverables
+Orchestrator, Router, State Manager, Execution Guard; Planner, Reasoner, Verifier cơ bản; LangGraph workflow; SQLite persistence/checkpoint; execution trace; model allocation theo config; static multi-agent baseline. Verification nâng cao và adaptive correction thuộc Phase 5.
+
+### 7.5. Completion Gates
+Điều phối nhiều agent, shared state nhất quán, kiểm soát budget, xử lý lỗi và resume. Người học giải thích kiến trúc, bottleneck, quality-cost trade-off. Coding Agent triển khai, người học đặc tả/review/thực nghiệm. Test/CI/docs/commit và learning gate. 10 lab, 18–25 giờ.
+
 
 ## 8. Phase 4 — Agentic RAG
 
