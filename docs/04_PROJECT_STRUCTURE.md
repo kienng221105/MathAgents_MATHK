@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.6
+**Phiên bản:** 0.7
 
 **Trạng thái:** Đang thảo luận
 
@@ -402,7 +402,52 @@ Người học đọc, tự code lab/module, debug/test, giải thích; mentor g
 
 ## 7. Naming & Coding Conventions
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 7.1. Naming
+PEP 8: package lowercase; file/function/variable/config key snake_case; class/Protocol PascalCase; constant UPPER_SNAKE_CASE; exception PascalCase + Error; test_ + hành vi; lab số thứ tự + tên. Tên rõ nghĩa nghiệp vụ.
+
+### 7.2. Ngôn ngữ
+Tên code, commit, error code, structured logs bằng tiếng Anh. Comment, docstring, tài liệu, mini lab và UI mặc định bằng tiếng Việt. Paper tiếng Anh. Thuật ngữ kỹ thuật giữ tiếng Anh kèm giải thích tiếng Việt.
+**Toàn bộ prompt bằng tiếng Việt**: system prompt, agent instructions, user prompt templates, few-shot examples, tool descriptions, verification và routing prompts. Tên Tool, JSON Schema, Enum bằng tiếng Anh; công thức LaTeX. Giữ ngôn ngữ prompt nhất quán giữa baseline để hạn chế biến gây nhiễu.
+
+### 7.3. Comment và Docstring
+Giải thích lý do, ràng buộc, quyết định thay vì lặp lại code. Docstring ưu tiên public API, class/interface quan trọng, thuật toán phức tạp.
+
+### 7.4. Type Hints
+Ưu tiên function signatures và contracts. Type hints và mypy kiểm tra tĩnh; Pydantic validate runtime tại ranh giới. Schema hợp lệ không đảm bảo toán đúng.
+
+### 7.5. Error Handling
+Technical error: exception, bounded retry hoặc safe stop; execution rejection: structured result (permission/schema/budget); mathematical uncertainty: uncertainty handling, không coi là lỗi phần mềm. Không except Exception: pass; xử lý tại ranh giới phù hợp.
+```mermaid
+flowchart TD
+ E["Error or uncertainty"] --> T["Technical error"]
+ E --> R["Execution rejection"]
+ E --> U["Mathematical uncertainty"]
+ T --> A["Bounded retry or safe stop"]
+ R --> B["Structured rejection"]
+ U --> C["Uncertainty handling"]
+```
+
+### 7.6. Logging
+Python logging + structured trace; DEBUG chi tiết, INFO bình thường, WARNING có thể phục hồi, ERROR thao tác thất bại, CRITICAL nghiêm trọng. Không secrets/private data/full context mặc định. Trace sự kiện quan sát được, không giả lập private reasoning.
+
+### 7.7. Code Quality
+Python 3.12, 4 spaces, 88 ký tự, Ruff lint/format/import sorting, mypy tăng nghiêm ngặt dần, pytest, uv; config tại pyproject.toml.
+Lệnh: uv sync; uv run ruff check .; uv run ruff format .; uv run mypy src/mathk; uv run pytest. Học và cấu hình tại Phase 0.
+
+### 7.8. Commits
+Conventional Commits: feat, fix, docs, test, refactor, chore, ci, perf; scope khi phù hợp. Commit theo thay đổi có ý nghĩa, không đợi hết phase.
+
+### 7.9. Pre-commit Checklist
+- [ ] Code đúng trách nhiệm module.
+- [ ] Naming rõ nghĩa.
+- [ ] Type hints interface quan trọng.
+- [ ] Ruff và type check pass.
+- [ ] Test liên quan pass.
+- [ ] Không secrets/private data.
+- [ ] Cập nhật docs nếu thiết kế thay đổi.
+
 
 ## 8. Cấu trúc mở rộng theo Phase
 
