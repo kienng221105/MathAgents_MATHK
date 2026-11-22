@@ -1,8 +1,8 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.8
+**Phiên bản:** 1.0
 
-**Trạng thái:** Đang thảo luận
+**Trạng thái:** Đã chốt
 
 Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design v0.16.1](03_SYSTEM_DESIGN.md).
 
@@ -288,7 +288,7 @@ data/
 SQLite nghiệp vụ, checkpoint riêng, FAISS rebuildable, local assets/logs. Không DB server MVP.
 
 ### 5.8. Experiment Organization
-Duy nhất experiments/ tại root, thay thế đề xuất data/experiments/.
+Duy nhất experiments/ tại root, thay thế đề xuất data/experiments/ (bao gồm cấu trúc dự kiến tại mục 13.12 System Design v0.16.1; tài liệu 04 chốt vị trí cuối cùng).
 ```text
 experiments/
   configs/
