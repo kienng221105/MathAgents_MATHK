@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.5  
+**Phiên bản:** 0.6  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -1018,7 +1018,323 @@ flowchart TD
 
 ## 6. State Management
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.** Các schema bên dưới mang tính thiết kế logic; field và kiểu dữ liệu cụ thể sẽ hoàn thiện khi triển khai.
+
+### 6.1. State, Context, Memory và Storage
+
+State là trạng thái phiên giải hiện tại; Context là tập thông tin cấp cho một lần thực thi Agent; Memory là thông tin duy trì qua tương tác; Storage là lưu trữ lâu dài; Checkpoint là bản ghi tại ranh giới thực thi để phục hồi. Không yêu cầu Long-term Personal Memory trong MVP.
+
+### 6.2. State Architecture
+
+So sánh Independent Agent State (khó đồng bộ), Global Mutable State (khó bảo đảm toàn vẹn) và Controlled Shared State (chọn). Agent đọc snapshot cần thiết, trả structured update; State Manager kiểm soát thay đổi.
+
+
+```mermaid
+flowchart LR
+ A["Agent A"] --> S1["State A"]
+ B["Agent B"] --> S2["State B"]
+ C["Agent C"] --> S3["State C"]
+ A <--> B
+ B <--> C
+```
+
+
+
+
+```mermaid
+flowchart TD
+ A["Agent A"] <--> S["Global Mutable State"]
+ B["Agent B"] <--> S
+ C["Agent C"] <--> S
+```
+
+
+
+
+```mermaid
+flowchart TD
+ S["Shared State"] --> C["Context Builder"]
+ C --> A["Selected Agent"]
+ A --> U["Structured Update"]
+ U --> V["State Validation"]
+ V --> M["State Manager"]
+ M --> S
+```
+
+
+### 6.3. Shared State Structure
+
+10 nhóm logic, không phải 10 database hoặc tiến trình.
+
+| ID | Group | Dữ liệu dự kiến |
+|---|---|---|
+| ST01 | Session | session_id, run_id, status, timestamps, config |
+| ST02 | Input | Văn bản gốc, tham chiếu ảnh, bổ sung |
+| ST03 | Problem | Facts, objects, relations, objectives, assumptions |
+| ST04 | Planning | Domain, complexity, plan, dependencies |
+| ST05 | Knowledge | Query, references, applicability, retrieval status |
+| ST06 | Reasoning | Steps, dependencies, candidate answer, version |
+| ST07 | Tool | Request, arguments, result, error |
+| ST08 | Verification | Reports, errors, affected steps, scope |
+| ST09 | Uncertainty | Signals, severity, evidence, clarification |
+| ST10 | Execution | Current node, routes, budgets, counters, failures |
+
+
+```mermaid
+flowchart TD
+ S["MATHK Shared State"] --> A["ST01 Session"]
+ S --> B["ST02 Input"]
+ S --> C["ST03 Problem"]
+ S --> D["ST04 Planning"]
+ S --> E["ST05 Knowledge"]
+ S --> F["ST06 Reasoning"]
+ S --> G["ST07 Tool"]
+ S --> H["ST08 Verification"]
+ S --> I["ST09 Uncertainty"]
+ S --> J["ST10 Execution"]
+```
+
+
+### 6.4. State Ownership
+
+| State | Thành phần tạo hoặc đề xuất cập nhật |
+|---|---|
+| ST01 | Orchestrator |
+| ST02 | Input Processing |
+| ST03 | AG01 |
+| ST04 | AG02 |
+| ST05 | AG03 |
+| ST06 | AG04 |
+| ST07 | Tool Execution System |
+| ST08 | AG05 |
+| ST09 | Tất cả Agent và Uncertainty Manager |
+| ST10 | Router, Orchestrator, Execution Guard |
+
+Ownership không cấp quyền ghi trực tiếp. Reasoner không tự nâng trạng thái kiểm chứng. State Manager áp dụng cập nhật hợp lệ.
+
+### 6.5. State Access Matrix
+
+| State | AG01 | AG02 | AG03 | AG04 | AG05 |
+|---|---|---|---|---|---|
+| Input | R / W* | — | — | R* | R |
+| Problem | W | R | R | R | R |
+| Planning | — | W | R | R | R* |
+| Knowledge | — | R* | W | R | R |
+| Reasoning | — | R* | R* | W | R |
+| Tool | — | — | — | R | R |
+| Verification | R* | R* | R* | R | W |
+| Uncertainty | A | A | A | A | A |
+| Execution | R* | R* | R* | R* | R* |
+
+R đọc, W đề xuất cập nhật, A bổ sung tín hiệu, * khi cần cho nhiệm vụ. W bao gồm đọc dữ liệu liên quan thuộc phạm vi sở hữu. AG01 chỉ đề xuất xử lý đầu vào, không sửa bản gốc; Input Processing sở hữu ST02. Session/Execution thuộc tầng điều phối; Tool State do Tool Execution System quản lý.
+
+### 6.6. State Lifecycle
+
+
+```mermaid
+stateDiagram-v2
+ [*] --> CREATED
+ CREATED --> RUNNING
+ RUNNING --> WAITING_USER
+ WAITING_USER --> RUNNING
+ RUNNING --> PAUSED
+ PAUSED --> RUNNING
+ RUNNING --> COMPLETED
+ RUNNING --> FAILED
+ RUNNING --> ABSTAINED
+ RUNNING --> CANCELLED
+ WAITING_USER --> CANCELLED
+ PAUSED --> CANCELLED
+ COMPLETED --> [*]
+ FAILED --> [*]
+ ABSTAINED --> [*]
+ CANCELLED --> [*]
+```
+
+
+CREATED: tạo phiên; RUNNING: thực thi; WAITING_USER: chờ bổ sung; PAUSED: tạm dừng có thể tiếp tục; COMPLETED: hoàn tất đầu ra; FAILED: lỗi không hoàn tất; ABSTAINED: không kết luận vì thiếu căn cứ; CANCELLED: hủy. Execution Status độc lập Verification Status; COMPLETED có thể PARTIALLY_VERIFIED.
+
+### 6.7. State Update Protocol
+
+
+```mermaid
+sequenceDiagram
+ participant O as Orchestrator
+ participant C as Context Builder
+ participant A as Agent
+ participant V as State Validator
+ participant S as State Manager
+ O->>C: Build agent context
+ C->>A: Relevant state snapshot
+ A->>O: Structured update
+ O->>V: Validate update
+ alt Valid update
+ V->>S: Apply update
+ S-->>O: New state version
+ else Invalid update
+ V-->>O: Validation error
+ O->>O: Retry or safe stop
+ end
+```
+
+
+Ví dụ envelope minh họa:
+
+```json
+{
+  "update_id": "UPD-001",
+  "agent_id": "AG04",
+  "base_state_version": 7,
+  "status": "success",
+  "changes": {"reasoning": {"new_steps": ["STEP-003"]}},
+  "uncertainty_signals": [],
+  "requested_action": "verification"
+}
+```
+
+Kiểm tra schema, quyền, base version, Business Rules và tham chiếu. Không chấp nhận ghi đè toàn state bằng JSON tùy ý. ID bước trong ví dụ đại diện cho dữ liệu bước hợp lệ phải được cung cấp hoặc tham chiếu tới bản ghi tồn tại.
+
+### 6.8. Mathematical Fact Representation
+
+Fact có ID, type, expression, origin, source/evidence, status, dependencies. GIVEN (đề cung cấp), OBSERVED (ảnh/biểu đồ), INFERRED (suy ra), ASSUMPTION (giả định công khai). Lưu nguồn và lịch sử bổ sung/đính chính, không âm thầm sửa bản gốc.
+
+Ví dụ tam giác ABC vuông tại A, AB=3, AC=4; objective tính BC.
+
+```json
+{
+  "fact_id": "F03",
+  "type": "geometric_relation",
+  "expression": "perpendicular(AB, AC)",
+  "origin": "observed",
+  "source": {
+    "type": "image",
+    "asset_id": "IMG-001",
+    "evidence": "right_angle_marker"
+  },
+  "status": "active",
+  "dependencies": []
+}
+```
+
+### 6.9. Dependency Graph
+
+Mỗi bước có ID và tham chiếu facts, knowledge hoặc steps mà nó phụ thuộc. Directed Acyclic Graph cho một phiên bản lời giải, khác Execution Graph có vòng lặp. Khi có lỗi, đánh giá lại bước lỗi và các hậu duệ phụ thuộc; giữ bước khác nếu vẫn hợp lệ.
+
+
+```mermaid
+flowchart TD
+ F1["F01 AB = 3"] --> S1["S01 Apply Pythagoras"]
+ F2["F02 AC = 4"] --> S1
+ F3["F03 Right angle at A"] --> S1
+ K["Theorem reference"] --> S1
+ S1 --> S2["S02 BC squared = 3 squared + 4 squared"]
+ S2 --> S3["S03 BC squared = 23 - Incorrect"]
+ S3 --> S4["S04 BC = sqrt 23 - Affected"]
+ S3 --> V["Verifier detects error"]
+ V --> C["Correct S03 to 25"]
+ C --> N["Recompute S04 to 5"]
+ N --> R["Re-verify"]
+```
+
+
+Trong chuỗi 4 bước minh họa, lỗi S03 yêu cầu xử lý lại S03/S04, có thể giữ S01/S02 sau kiểm tra tính hợp lệ. DAG thực tế có thể phân nhánh; không vô hiệu hóa mọi bước đứng sau theo thứ tự một cách máy móc.
+
+### 6.10. State Versioning
+
+State Version tăng mỗi cập nhật thành công; Problem Version thay đổi khi dữ kiện/mục tiêu đổi; Solution Version thay đổi khi tạo lại hoặc sửa lời giải. Verification Report gắn đúng Problem Version và Solution Version; không tái dùng VERIFIED cho lời giải mới. Lưu history/checkpoint xuống disk thay giữ mọi bản sao RAM.
+
+
+```mermaid
+flowchart TD
+ P["Problem v1"] --> S1["Solution v1"]
+ S1 --> V1["Verification v1 FAILED"]
+ V1 --> C["Correction"]
+ C --> S2["Solution v2"]
+ S2 --> V2["Verification v2"]
+ P --> P2["Problem v2 after clarification"]
+ P2 --> S3["New or updated solution"]
+```
+
+
+### 6.11. In-memory and Persistent State
+
+Current State và Agent Context tạm thời trong RAM, checkpoint SQLite, version history persistent storage, ảnh local files, trace JSONL, KB SQLite, FAISS vector index. State lưu asset ID, đường dẫn nội bộ và metadata thay Base64 ảnh; Context Builder tải ảnh khi cần.
+
+
+```mermaid
+flowchart TD
+ subgraph RAM ["In-memory"]
+ G["LangGraph Runtime"] --> S["Current Shared State"]
+ S --> C["Context Builder"]
+ end
+ S --> P["Checkpoint and Persistence"]
+ subgraph DISK ["Persistent Storage"]
+ P --> D[("SQLite")]
+ P --> F["Local File Storage"]
+ P --> L["JSONL Trace"]
+ end
+ D --> R["Resume or Recovery"]
+ R --> S
+```
+
+
+### 6.12. Checkpoint and Resume
+
+Reasoning Checkpoint phục hồi phiên giải; Experiment Checkpoint tiếp tục benchmark từ bài chưa hoàn thành. Lưu tại ranh giới Agent hoặc bước quan trọng đã commit state. Resume kiểm tra workflow/schema/config/version và tình trạng tác vụ, không mặc định gọi lại API cũ. Thiết kế consistency và recovery chi tiết ở mục 13 và 16.
+
+
+```mermaid
+flowchart TD
+ A["Start Session"] --> B["Perception"]
+ B --> C["Checkpoint 1"]
+ C --> D["Planning and Retrieval"]
+ D --> E["Checkpoint 2"]
+ E --> F["Reasoning"]
+ F --> G["Checkpoint 3"]
+ G --> H["Verification"]
+ H --> I["Final Checkpoint"]
+ F -.->|Interrupted| R["Recovery"]
+ R --> E
+```
+
+
+### 6.13. Context Budget Management
+
+Chọn field theo Agent/nhiệm vụ, ưu tiên dữ kiện gốc và mục tiêu, điều kiện/ràng buộc/giả định, bước liên quan, kết quả tool và căn cứ, feedback sửa lỗi, cuối cùng lịch sử ít liên quan. Không cắt mất giả thiết cần thiết. Nếu context không đủ ngân sách sau lọc, đổi chiến lược hoặc báo bất định.
+
+
+```mermaid
+flowchart TD
+ S["Shared State"] --> F["Required Field Selection"]
+ F --> P["Priority and Relevance Filtering"]
+ P --> B["Token Budget Check"]
+ B --> D{"Fits budget?"}
+ D -->|Yes| C["Agent Context"]
+ D -->|No| T{"Can remove irrelevant data?"}
+ T -->|Yes| P
+ T -->|No| A["Alternative strategy or uncertainty"]
+```
+
+
+### 6.14. Technology
+
+| Thành phần | Công nghệ |
+|---|---|
+| Graph State | LangGraph |
+| Domain Schemas | Pydantic v2 |
+| Graph State Container | TypedDict |
+| State Manager / Context Builder | Custom Python |
+| Validation | Pydantic + Business Rules |
+| Dependency Traversal | Python |
+| Checkpoint | LangGraph Checkpointer + SQLite |
+| Persistence | SQLAlchemy |
+| History / Trace | SQLite + JSONL |
+
+TypedDict làm container graph, Pydantic cho dữ liệu nghiệp vụ. Không cần Redis, Kafka, Graph Database. Cơ chế phối hợp checkpointer và repository sẽ xác định ở mục 13.
+
+### 6.15. Quyết định
+
+Controlled Shared State, 10 nhóm logic, validated structured updates, ownership theo module, agent-specific context, structured facts và provenance, DAG, State/Problem/Solution versioning, active state RAM, SQLite/local files, Reasoning và Experiment Checkpoint, configurable context budget, không Long-term Personal Memory trong MVP. Mathematical Fact Representation và Dependency-aware State Management tạo nền tảng cho Verification-guided Correction; hiệu quả cần kiểm chứng, không khẳng định novelty trước nghiên cứu.
 
 ## 7. Adaptive Routing
 
