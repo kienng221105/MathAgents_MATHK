@@ -1,6 +1,6 @@
 # MATHK — Documentation
 
-**Phiên bản:** 0.6
+**Phiên bản:** 0.7
 
 **Trạng thái:** Đang thảo luận
 
@@ -268,7 +268,42 @@ ChatGPT soạn/quản lý AGENTS.md, Codex không tự sửa nội quy. Codex t�
 
 ## 7. Learning Documentation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 7.1. Mục tiêu
+Gắn với 73 Mini Labs và 40 năng lực trong Implementation Roadmap; hiểu, thiết kế và đánh giá hệ thống thay vì viết code từng dòng.
+
+### 7.2. Mini Lab
+Ví dụ labs/phase_00/06_model_gateway/ gồm README.md (lý thuyết, sơ đồ, mục tiêu, hướng dẫn), exercise.py (code Codex), test_exercise.py (kiểm chứng), notes.md (kết quả và nhận xét). Chỉ tạo file cần thiết.
+
+### 7.3. Learning Content Template
+Problem, Core Concepts, Architecture, Code Walkthrough theo khối logic, Experiment, Trade-offs, Knowledge Check, MATHK Integration.
+
+### 7.4. Learning Workflow
+```mermaid
+flowchart TD
+ A["ChatGPT giải thích"] --> B["Owner phân tích và dự đoán"]
+ B --> C["ChatGPT giao task"]
+ C --> D["Codex xây dựng Mini Lab"]
+ D --> E["Owner chạy và quan sát"]
+ E --> F["ChatGPT phân tích kết quả"]
+ F --> G["Owner giải thích và đề xuất thiết kế"]
+ G --> H{"Learning Gate"}
+ H -->|Chưa đạt| A
+ H -->|Đạt| I["Cập nhật Competency"]
+ I --> J["Tích hợp MATHK"]
+```
+Owner chuyển tiếp prompt/report; không bắt buộc viết lab từ đầu.
+
+### 7.5. Competency Tracking
+L0 chưa học; L1 hiểu/giải thích; L2 đọc code/dự đoán/thực nghiệm; L3 thiết kế/giao việc/review; L4 phân tích trade-off/debug/vận dụng. Đánh giá dựa trên bằng chứng, không số dòng code hoặc số lab đã chạy.
+
+### 7.6. Learning Checkpoint
+Sau lab/task ghi kiến thức và competency, thực nghiệm, kết quả/nhận xét của Owner, điểm chưa hiểu, quyết định áp dụng, mức đạt và bằng chứng, bước học tiếp. Lưu docs/progress/phase_XX.md và cập nhật CURRENT_STATUS.md.
+
+### 7.7. Ownership
+ChatGPT thiết kế bài học, giải thích, đánh giá năng lực và lưu checkpoint; Codex viết code thực nghiệm; Owner + Codex chạy, Owner + ChatGPT phân tích. System-first, AI-assisted, Experiment-driven, Competency-based; quản lý song song tiến độ kỹ thuật và học tập.
+
 
 ## 8. Architecture & API Documentation
 
