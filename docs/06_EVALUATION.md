@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.5
+**Phiên bản:** 0.6
 
 **Trạng thái:** Đang thảo luận
 
@@ -175,7 +175,57 @@ P0–1 configuration/tools; P2 model/prompt/reasoner/context; P3 agent/orchestra
 
 ## 5. End-to-End Evaluation
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 5.1. Mục tiêu
+Đánh giá toàn hệ thống từ đề bài đến kết quả, bổ sung cho component evaluation.
+
+### 5.2. Pipeline
+```mermaid
+flowchart TD
+ A["Benchmark Dataset"] --> B["Benchmark Runner"]
+ B --> C["MATHK Engine"]
+ C --> D["SolveResult"]
+ C --> E["Execution Trace"]
+ D --> F["Answer Evaluator"]
+ D --> G["Solution Evaluator"]
+ D --> H["Uncertainty Evaluator"]
+ E --> I["Resource Evaluator"]
+ F --> J["Aggregator"]
+ G --> J
+ H --> J
+ I --> J
+ J --> K["Evaluation Report"]
+ A -->|Ground Truth| F
+ A -->|Ground Truth| G
+ A -->|Ground Truth| H
+```
+Cùng Application API với CLI/Gradio; runner chỉ gửi input hợp lệ, không ground truth.
+
+### 5.3. Kịch bản
+| ID | Kịch bản |
+|---|---|
+| EE01 | Văn bản đơn giản |
+| EE02 | Suy luận nhiều bước |
+| EE03 | Cần Mathematical Tools |
+| EE04 | Cần truy xuất kiến thức |
+| EE05 | Hình học có ảnh |
+| EE06 | Text-image mixed |
+| EE07 | Candidate ban đầu sai cần sửa |
+| EE08 | Thiếu dữ kiện |
+| EE09 | Mâu thuẫn hoặc mơ hồ |
+| EE10 | Vượt khả năng hoặc ngân sách |
+Các nhóm có thể giao nhau.
+
+### 5.4. Phân loại
+Correct, Partially Correct, Incorrect, Appropriate Clarification, Appropriate Abstention, Inappropriate Abstention, Technical Failure, Undetermined. Tách đánh giá đáp án, lời giải, trạng thái thực thi và kiểm chứng; đáp án đúng không bảo đảm lập luận đúng.
+
+### 5.5. Báo cáo
+Tổng thể và theo lớp/chủ đề/độ khó/modality/reasoning requirements/sufficiency. Công bố mẫu số và trạng thái thiếu. Ví dụ giả lập 400 bài: 302 đúng, 18 đúng một phần, 36 sai, 40 xử lý bất định phù hợp, 4 lỗi kỹ thuật. Giả sử 360 bài giải được, accuracy 302/360 = 83.9%, technical failure 4/400 = 1%; 3.2 calls trung bình chỉ minh họa. Không phải kết quả MATHK.
+
+### 5.6. Milestones
+MVP A text solver; B grounded multi-agent; C adaptive multimodal multi-agent; D full research benchmark. Dev trong phát triển; held-out chỉ đánh giá chính thức sau freeze.
+
 
 ## 6. Baseline & Ablation Study
 
