@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.2
+**Phiên bản:** 0.3
 
 **Trạng thái:** Đang thảo luận
 
@@ -76,7 +76,82 @@ Theo phase và năng lực. Ví dụ labs/phase_03/README.md và 01_agent_loop, 
 
 ## 3. Package & Module Structure
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 3.1. Package đích
+Tên file định hướng, tạo theo nhu cầu từng Phase.
+
+| Package | File/thư mục dự kiến |
+|---|---|
+| domain | problem.py, solution.py, knowledge.py, verification.py, execution.py |
+| application | engine.py, requests.py, results.py |
+| tools | calculator.py, symbolic.py, parser.py, registry.py, executor.py |
+| agents | base.py (khi cần), perception.py, planner.py, retrieval.py, reasoner.py, verifier.py |
+| orchestration | graph.py, router.py, state.py, guard.py, context.py |
+| knowledge | store.py, indexing.py, retrieval.py, applicability.py |
+| verification | checks.py, dependency.py, correction.py |
+| uncertainty | signals.py, manager.py, policy.py |
+| multimodal | images.py, preprocessing.py, fusion.py |
+| infrastructure | models/, persistence/, tracing/ |
+| interfaces | cli.py, gradio_app.py, input.py, renderer.py |
+| evaluation | runner.py, evaluator.py, metrics.py, datasets.py, reporting.py |
+
+Root: config.py, __init__.py, __main__.py.
+
+### 3.2. Trách nhiệm
+Presentation/Application: interfaces, application. Control Plane: orchestration, uncertainty. Execution Plane: agents, tools, knowledge, verification, multimodal. Infrastructure: models, persistence, tracing. Domain cung cấp data contracts; evaluation độc lập với suy luận. Sơ đồ trách nhiệm không phải chiều import.
+```mermaid
+flowchart TD
+ P["Presentation and Application"] --> C["Control Plane"]
+ C --> E["Execution Plane"]
+ E --> I["Infrastructure"]
+ D["Domain Contracts"] -.-> C
+ D -.-> E
+ R["Evaluation"] --> P
+```
+
+### 3.3. Module Traceability
+| Module | Package |
+|---|---|
+| M01 Input Processing | interfaces |
+| M02 Output Presentation | interfaces |
+| M03 Application Interface | application, interfaces |
+| M04 Reasoning Engine | orchestration |
+| M05 Adaptive Router | orchestration |
+| M06 State Manager | orchestration, domain |
+| M07 Execution Guard | orchestration |
+| M08 Multimodal Perception | agents, multimodal |
+| M09 Problem Analysis and Planning | agents |
+| M10 Knowledge Retrieval | agents, knowledge |
+| M11 Mathematical Reasoning | agents |
+| M12 Verification and Correction | agents, verification |
+| M13 Uncertainty Management | uncertainty |
+| M14 Model Gateway | infrastructure/models |
+| M15 Mathematical Tool System | tools |
+| M16 Knowledge Store | knowledge |
+| M17 Persistence | infrastructure/persistence |
+| M18 Configuration | config.py, configs/ |
+| M19 Benchmark Runner | evaluation |
+| M20 Evaluation | evaluation |
+| M21 Execution Tracing | infrastructure/tracing |
+
+### 3.4. Agent vs Capability
+Agent suy luận/đề xuất; Orchestrator điều phối; Capability/Tool thực hiện tác vụ chuyên môn. Verifier Agent không chứa toàn bộ thuật toán kiểm chứng. verification/checks.py, tools/symbolic.py, domain/verification.py tách biệt để test không cần LLM. Tool execution vẫn qua registry/guard.
+```mermaid
+flowchart TD
+ A["Verifier Agent"] --> B["Model Gateway"]
+ A --> C["Verification Capability"]
+ C --> D["Mathematical Check"]
+ C --> E["Dependency Check"]
+ C --> F["Domain Check"]
+```
+
+### 3.5. Ví dụ
+2x+6=14: interfaces nhận đề, application tạo request, orchestration chọn tuyến và guard budget, reasoner đề xuất tool, tools tính x=4, verifier kiểm chứng qua verification và dữ kiện gốc, interfaces render. Infrastructure hỗ trợ model/storage/trace; domain cung cấp contracts. Không bắt buộc gọi đủ năm agent.
+
+### 3.6. Tránh Overengineering
+Chỉ tạo BaseAgent khi có hành vi chung cần tái sử dụng; không tách file nhỏ cùng trách nhiệm; không biến mọi chức năng thành agent/tool; tránh utils tổng hợp; abstraction khi cần tái sử dụng, kiểm thử hoặc thay thế. Phase 2 có thể chỉ cần reasoner.py, Phase 3 mới trích xuất interface chung.
+
 
 ## 4. Dependency Rules
 
