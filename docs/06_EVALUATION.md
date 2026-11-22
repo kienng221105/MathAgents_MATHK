@@ -1,12 +1,14 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 
 **Trạng thái:** Đã chốt
 
 **Cấu trúc:** Đã duyệt toàn bộ 10 mục.
 
 Tham chiếu: [Requirements](01_REQUIREMENTS.md), [System Design — mục 15](03_SYSTEM_DESIGN.md), [Implementation Roadmap](05_IMPLEMENTATION.md), [Research](02_RESEARCH.md).
+
+**Đồng bộ Deployment v1.0:** Laptop mục tiêu 8 GB RAM, Full API Inference (LLM/VLM/embedding/reranker nếu dùng); BM25/FAISS, math tools, orchestration và storage chạy local. Không cần local AI model hoặc GPU; cloud thuê tạm chỉ tùy chọn. Xem [Deployment](07_DEPLOYMENT.md).
 
 ## 1. Evaluation Objectives & Strategy
 
