@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.9
+**Phiên bản:** 0.10
 
 **Trạng thái:** Đang thảo luận
 
@@ -402,7 +402,69 @@ Không chạy tool trái phép, lộ secret, lặp vô hạn, vượt giới h�
 
 ## 9. Experiment Protocol & Reproducibility
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 9.1. Mục tiêu
+Chuẩn hóa thực nghiệm để truy vết, so sánh công bằng và tái lập trong điều kiện công bố.
+
+### 9.2. Lifecycle
+```mermaid
+flowchart TD
+ A["Hypothesis"] --> B["Experiment Config"]
+ B --> C["Validate and Freeze"]
+ C --> D["Execute Benchmark"]
+ D --> E["Save Raw Results"]
+ E --> F["Evaluation"]
+ F --> G["Statistical Analysis"]
+ G --> H["Report"]
+ D --> I["Checkpoint"]
+ I -->|Resume| D
+```
+Experiment ID riêng; lưu kết quả gốc trước khi chấm để có thể chấm lại không gọi LLM.
+
+### 9.3. Configuration
+| Nhóm | Metadata |
+|---|---|
+| Identity | ID, giả thuyết |
+| Architecture | Agent, routing, workflow |
+| Model | ID, parameters, fallback policy |
+| Prompt | Version |
+| Data | Dataset, split, KB, index version |
+| Resource | Token/cost/execution budget |
+| Evaluation | Metrics, evaluator version |
+| Environment | Git commit, dependencies, phần cứng |
+| Execution | Seed nếu hỗ trợ, số lần chạy |
+YAML và Pydantic để quản lý và validate.
+
+### 9.4. Protocol
+Development -> Pilot (baseline/cost) -> Configuration Freeze -> Official Held-out Experiment -> Analysis -> Reporting. Không tune trên held-out rồi báo cáo lại như đánh giá độc lập.
+
+### 9.5. Statistical Analysis
+Cùng tập bài; mean/median/std khi phù hợp; confidence interval và paired statistical test phù hợp dữ liệu; phân biệt statistical và practical significance; biến thiên giữa các lần chạy nếu ngân sách cho phép. Số lần chạy/phép kiểm định chốt sau RQ và khảo sát dữ liệu, trước official experiment.
+
+### 9.6. Tổ chức
+```text
+experiments/
+├── configs/
+│   ├── baseline_direct.yaml
+│   ├── baseline_single_agent.yaml
+│   ├── static_multi_agent.yaml
+│   └── adaptive_multi_agent.yaml
+├── results/
+│   └── {experiment_id}/
+│       ├── manifest.json
+│       ├── raw_results.jsonl
+│       ├── metrics.json
+│       └── summary.csv
+└── exports/
+    ├── tables/
+    └── figures/
+```
+Theo Project Structure; checkpoint/runtime riêng, tuân thủ chính sách Git và privacy.
+
+### 9.7. Công nghệ
+Python runner, Pydantic/YAML config, SQLite/JSONL kết quả và checkpoint, NumPy/pandas xử lý, SciPy khi cần, Matplotlib biểu đồ, Git/uv.lock versioning. Không MLflow/W&B/external tracking trong MVP. Reproducibility không bảo đảm LLM output giống hệt; lưu actual model, giới hạn provider, randomness và raw results.
+
 
 ## 10. Acceptance Criteria & Reporting
 
