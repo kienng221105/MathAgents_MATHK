@@ -1,0 +1,11 @@
+[project]
+name = "mathk"
+version = "0.1.0"
+description = "MATHK Python foundation"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
