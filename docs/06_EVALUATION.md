@@ -1,6 +1,6 @@
 # MATHK — Evaluation
 
-**Phiên bản:** 0.3
+**Phiên bản:** 0.4
 
 **Trạng thái:** Đang thảo luận
 
@@ -94,7 +94,36 @@ flowchart LR
 
 ## 3. Evaluation Metrics
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 3.1. Nhóm Metrics
+| ID | Nhóm | Chỉ số chính |
+|---|---|---|
+| MG01 | Mathematical | Answer Accuracy, Solution Correctness, Step Correctness |
+| MG02 | Multimodal | Fact Accuracy, Entity/Relation F1, Visual Hallucination Rate |
+| MG03 | Retrieval | Recall@k, Precision@k, MRR, nDCG, Applicability Accuracy |
+| MG04 | Tool Use | Tool Selection Accuracy, Execution Success, Parameter Validity |
+| MG05 | Verification | Detection F1, Localization F1, Correction Success, Error Introduction |
+| MG06 | Routing | Agent Calls, LLM Calls, Quality–Cost Trade-off |
+| MG07 | Uncertainty | Detection F1, Action Accuracy, Coverage, Selective Accuracy |
+| MG08 | Efficiency | Tokens, Cost, Latency, RAM, Technical Failure Rate |
+Chọn theo thí nghiệm, giữ các metric bổ sung trong System Design mục 15.
+
+### 3.2. Trọng tâm
+Answer Accuracy, Correction Success Rate, Error Introduction Rate, Quality–Cost Trade-off.
+
+### 3.3. Đáp án
+Số: exact/tolerance phù hợp; biểu thức: symbolic equivalence; phương trình/bất phương trình: tập/miền nghiệm; đại lượng: giá trị và đơn vị; chứng minh: human rubric. Giữ điều kiện xác định; undetermined chuyển human review.
+
+### 3.4. Rubric lời giải
+Năm tiêu chí 0–2: dữ kiện, kiến thức, lập luận, phép tính, tính đầy đủ; tổng dự kiến 10. Critical errors ghi riêng, không bù bằng các bước khác. Quy tắc NA và ngưỡng chốt trước test.
+
+### 3.5. Verification & Correction
+Correction Success = wrong-to-right / initially wrong; Error Introduction = right-to-wrong / initially right; Accuracy Gain là chênh lệch điểm phần trăm. Ví dụ giả lập 100 bài: 60 đúng ban đầu, sửa 50% số sai, làm sai 10% số đúng thì còn 74 đúng (+14 pp). Mẫu số 0 ghi undefined. So sánh trên cùng initial candidates khi phù hợp.
+
+### 3.6. Tổng hợp
+Báo cáo toàn benchmark và theo nhóm; phân biệt sai toán, lỗi kỹ thuật, từ chối phù hợp; công bố mẫu số, số mẫu chưa đánh giá, metadata thiếu. Không gộp thành overall score tùy ý; Pareto analysis. Công thức chi tiết và ngưỡng xác định khi triển khai evaluation framework, freeze trước held-out test.
+
 
 ## 4. Component-level Evaluation
 
