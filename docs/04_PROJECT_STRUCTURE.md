@@ -1,6 +1,6 @@
 # MATHK — Project Structure
 
-**Phiên bản:** 0.5
+**Phiên bản:** 0.6
 
 **Trạng thái:** Đang thảo luận
 
@@ -320,7 +320,85 @@ flowchart TD
 
 ## 6. Testing & Mini Lab Structure
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 6.1. Testing Strategy
+Testing Pyramid: nhiều unit test nhanh, integration test và ít system/E2E test hơn. Regression, fault injection và property-based testing áp dụng tại các cấp thích hợp.
+```mermaid
+flowchart BT
+ U["Unit Tests"] --> I["Integration Tests"]
+ I --> E["System and E2E Tests"]
+```
+
+### 6.2. Testing vs Evaluation
+Software testing kiểm tra hành vi theo thiết kế, pass/fail, chạy thường xuyên; AI evaluation đo chất lượng, metrics và phân phối kết quả qua benchmark. Tách tests/ khỏi evaluation/ và experiments/. Pass toàn bộ test không đảm bảo chất lượng AI.
+
+### 6.3. Testing Directory Structure
+```text
+tests/
+  unit/
+    test_config.py
+    test_calculator.py
+    test_symbolic.py
+    test_registry.py
+    test_router.py
+    test_guard.py
+    test_verification.py
+  integration/
+    test_agent_tool.py
+    test_workflow.py
+    test_retrieval.py
+    test_checkpoint.py
+  system/
+    test_text_solving.py
+    test_multimodal_solving.py
+    test_clarification.py
+  fixtures/{problems,images}/
+  fakes/{fake_model.py,fake_agent.py}
+  conftest.py
+```
+Phase 0 chỉ cần tests/test_config.py; mở rộng khi cần.
+
+### 6.4. Agent Tests
+Structured output: thiếu trường/sai kiểu; tool: sai tên/tham số; guard: permission/schema/budget; orchestration: thứ tự, termination; routing: state-based decisions; shared state: version; context: facts/budget; RAG: bounded retrieval; verification: lỗi tính; correction: bảo toàn bước đúng; checkpoint: resume; uncertainty: không bịa dữ kiện; gateway: timeout/429/invalid output. Fake/mock không cần API thật.
+
+### 6.5. Stack
+pytest (0), unittest.mock (1–2), Hypothesis (1), pytest-cov (1–2), Ruff (0), mypy (0–2), GitHub Actions (0). Không ép coverage 100%; ưu tiên nghiệp vụ, quyền hạn, budget và lỗi quan trọng.
+
+### 6.6. CI
+Push/PR: setup Python/uv, install locked dependencies, Ruff, type check, tests. Không gọi API thật, không yêu cầu secrets, không chạy toàn bộ benchmark mặc định. External tests opt-in.
+```mermaid
+flowchart TD
+ P["Push or PR"] --> S["Python and uv"]
+ S --> D["Locked dependencies"]
+ D --> R["Ruff"]
+ R --> M["Type check"]
+ M --> T["Tests"]
+ T --> O["CI result"]
+```
+
+### 6.7. Mini Labs
+labs/phase_03/README.md và 03_orchestration/{README.md,exercise.py,test_exercise.py,notes.md}. README lý thuyết/ví dụ/yêu cầu, exercise do người học viết, test kiểm chứng, notes tự giải thích. Không bắt buộc đủ mọi file.
+
+### 6.8. Learning Workflow
+```mermaid
+flowchart TD
+ A["Theory"] --> B["Mini Example"]
+ B --> C["Exercise"]
+ C --> D["Code Review"]
+ D --> E["Integration"]
+ E --> F["Testing"]
+ F --> G["Reflection"]
+ G --> H["Commit"]
+```
+Có thể quay lại bước trước khi chưa hiểu; mentor gợi ý trước lời giải.
+
+### 6.9. Competency Matrix
+L0 chưa học; L1 hiểu/giải thích; L2 tự làm lab; L3 tích hợp/test; L4 thiết kế, trade-off, chuyển giao sang dự án khác. Năng lực cốt lõi mục tiêu L3 hướng L4. Ví dụ prompt engineering, structured output, tool calling, agent loop, orchestration, state, guardrails, context, agentic RAG, routing, checkpoint, evaluation. Ma trận đầy đủ tại 05_IMPLEMENTATION.md; đánh giá bằng minh chứng, không chỉ đánh dấu.
+
+### 6.10. Vai trò
+Người học đọc, tự code lab/module, debug/test, giải thích; mentor giảng, thiết kế bài, hướng dẫn kiến trúc, review, gợi ý lỗi, câu hỏi phỏng vấn. AI coding hỗ trợ nhưng ưu tiên tự triển khai năng lực cốt lõi.
+
 
 ## 7. Naming & Coding Conventions
 
