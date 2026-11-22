@@ -1,9 +1,11 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.16.1  
+**Phiên bản:** 0.16.2  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
+
+**Đồng bộ Deployment v1.0:** Laptop mục tiêu 8 GB RAM, Full API Inference (LLM/VLM/embedding/reranker nếu dùng); BM25/FAISS, math tools, orchestration và storage chạy local. Không cần local AI model hoặc GPU; cloud thuê tạm chỉ tùy chọn. Xem [Deployment](07_DEPLOYMENT.md).
 
 ## 1. Architecture Drivers — Cơ sở thiết kế
 
@@ -441,7 +443,7 @@ Kiểm soát tài nguyên, cấu hình và ghi log ở mức tối thiểu từ 
 
 ## 4. Technology Stack
 
-**Trạng thái: Đã chốt.** Công nghệ phục vụ kiến trúc đã duyệt, Local-first và máy phát triển 16 GB RAM. Ưu tiên chiều sâu AI, khả năng kiểm soát thực nghiệm và đơn giản hóa hạ tầng. Không cố định phiên bản dependency cụ thể ngoài dòng phiên bản đã chọn trước kiểm thử tương thích.
+**Trạng thái: Đã chốt.** Công nghệ phục vụ kiến trúc đã duyệt, Local-first và máy phát triển 8 GB RAM, Full API Inference. Ưu tiên chiều sâu AI, khả năng kiểm soát thực nghiệm và đơn giản hóa hạ tầng. Không cố định phiên bản dependency cụ thể ngoài dòng phiên bản đã chọn trước kiểm thử tương thích.
 
 ### 4.1. Tổng hợp công nghệ
 
@@ -453,7 +455,7 @@ Kiểm soát tài nguyên, cấu hình và ghi log ở mức tối thiểu từ 
 | Validation | Pydantic v2 |
 | Symbolic & Numerical Math | SymPy, NumPy, math, decimal, fractions |
 | Multimodal | Pillow + VLM qua Model Gateway |
-| Retrieval | BM25, Sentence Transformers, FAISS, RRF |
+| Retrieval | BM25, Embedding API, FAISS, RRF |
 | Embedding | Embedding Gateway; BGE-M3 là ứng viên |
 | Persistence | SQLite, SQLAlchemy 2.x, Alembic, sqlite3 |
 | Interface | Python API, CLI, Gradio |
@@ -558,7 +560,7 @@ flowchart TD
 
 ### 4.8. Knowledge Retrieval & Agentic RAG
 
-BM25 làm sparse retrieval; Sentence Transformers và FAISS cho dense retrieval; RRF cho fusion. BGE-M3 là ứng viên, không mặc định tối ưu cho toán tiếng Việt. Embedding Gateway hỗ trợ chạy local hoặc API. Index và query phải dùng embedding tương thích; đổi model cần xây lại index tương ứng. Agentic Retrieval Logic do MATHK xây dựng, quyết định truy xuất và kiểm tra applicability trong giới hạn. Không đồng nhất Hybrid Retrieval với Agentic RAG.
+BM25 làm sparse retrieval; Embedding API và FAISS cho dense retrieval; RRF cho fusion. BGE-M3 là ứng viên, không mặc định tối ưu cho toán tiếng Việt. Embedding Gateway sử dụng API trong MVP. Index và query phải dùng embedding tương thích; đổi model cần xây lại index tương ứng. Agentic Retrieval Logic do MATHK xây dựng, quyết định truy xuất và kiểm tra applicability trong giới hạn. Không đồng nhất Hybrid Retrieval với Agentic RAG.
 
 ```mermaid
 flowchart TD
@@ -663,7 +665,7 @@ flowchart TD
  C["Python 3.12 / LangGraph / Pydantic v2"]
  A["Model Gateway / 9Router or LiteLLM / VLM"]
  T["SymPy / NumPy / Calculator"]
- K["BM25 / Sentence Transformers / FAISS / SQLite"]
+ K["BM25 / Embedding API / FAISS / SQLite"]
  R["pytest / pandas / Ruff / uv / GitHub Actions"]
  I --> C
  C --> A
@@ -676,9 +678,9 @@ Sơ đồ nhóm trách nhiệm, không phải dependency graph bắt buộc.
 
 ### 4.14. Resource Management & Deployment Constraints
 
-Máy phát triển 16 GB RAM. LLM qua API, local-first cho các thành phần khác. Lazy Loading, Shared Model Instance trong một tiến trình, Embedding Gateway, Configurable Concurrency, Bounded State và Resource Monitoring bằng psutil. Benchmark tuần tự hoặc giới hạn đồng thời; Docker tùy chọn, không bắt buộc chạy Docker Desktop trong phát triển. Embedding index tính trước và lưu; embedding truy vấn dùng model tương thích. Giữ BGE-M3 là ứng viên, cân nhắc embedding nhẹ hoặc API nếu RAM/latency không phù hợp.
+Máy phát triển 8 GB RAM. Full API inference cho LLM/VLM/embedding và reranker nếu dùng; các thành phần khác local-first. Lazy loading, bounded state, concurrency 1 cho lightweight, psutil, benchmark tuần tự hoặc giới hạn đồng thời. Docker tùy chọn. Index tính trước; query dùng embedding API tương thích. BGE-M3 chỉ là ứng viên nếu có API phù hợp.
 
-Ước tính trước kiểm thử: Core không RAG khoảng 0,5–1 GB; full stack với embedding API khoảng 0,8–1,8 GB; BGE-M3 local khoảng 3–5,5 GB RAM riêng ứng dụng, benchmark có thể cao hơn. Đây không phải benchmark hoặc giới hạn cam kết, chưa gồm hệ điều hành/IDE/browser/Docker. Kiểm tra tiêu thụ thực tế ở MVP-A và khi tích hợp Retrieval; không cộng cơ học RAM các thư viện cùng tiến trình.
+Ước tính trước kiểm thử: Core không RAG khoảng 0,5–1 GB; full stack với embedding API khoảng 0,8–1,8 GB RAM riêng ứng dụng. Chưa gồm OS/IDE/browser/Docker; không phải benchmark hay cam kết. Đo thực tế tại MVP A và khi tích hợp retrieval.
 
 Các dependency, phiên bản model, cấu hình concurrency và ngưỡng tài nguyên cụ thể sẽ khóa sau kiểm thử. Không mở rộng sang PostgreSQL, vector database server, MCP, hạ tầng phân tán hoặc GPU server bắt buộc trong MVP.
 
@@ -2252,7 +2254,7 @@ Recall@K, Precision@K, MRR, nDCG, applicability accuracy; nhãn relevance và ap
 
 Kiểm soát model/tools/other components khi cô lập biến. Answer Accuracy, Solution Correctness, Theorem Application Accuracy, Knowledge Citation Accuracy, tokens/calls/latency. Không chứa lời giải/đáp án benchmark trong KB; chống leakage. Ablation chỉ thay thành phần thử nghiệm, không tắt yêu cầu an toàn bắt buộc.
 ### 9.20. Stack
-Pydantic v2, custom Python, SQLite, SQLAlchemy, BM25, FAISS, Sentence Transformers/API, BGE-M3 candidate, RRF, Python/SymPy/LLM condition matching, AG03+LangGraph, local files, custom evaluation. Không Elasticsearch/Qdrant/Milvus/Neo4j/fine-tuning embedding trong MVP.
+Pydantic v2, custom Python, SQLite, SQLAlchemy, BM25, FAISS, Embedding API, BGE-M3 candidate, RRF, Python/SymPy/LLM condition matching, AG03+LangGraph, local files, custom evaluation. Không Elasticsearch/Qdrant/Milvus/Neo4j/fine-tuning embedding trong MVP.
 ### 9.21. Quyết định
 Hybrid Mathematical Knowledge; Structured Knowledge Units KT01–06, semi-automatic human-reviewed construction, condition–conclusion, BM25+dense+RRF, bounded Agentic RAG, relevance/applicability và 4 statuses, Knowledge Bundle, condition matching, SQLite/FAISS, corpus/unit/index versioning, tiếng Việt, dự kiến 200–500 units; không bắt buộc KG hay Web Search Agent; retrieval/end-to-end evaluation. Applicability-aware Agentic RAG là hướng thiết kế cần kiểm chứng, không tuyên bố novelty.
 
@@ -3265,7 +3267,7 @@ Separate evaluation; EL01–04, development/held-out, config-driven EG01–07, E
 **Trạng thái: Đã chốt.** NFR02–04, NFR09, NFR11–12, BR11, TAC04–08, TAC10.
 
 ### 16.1. Objectives
-Security, reliability, resource management; local-first trên laptop RAM 16 GB, ưu tiên API miễn phí, không bắt buộc GPU server.
+Security, reliability, resource management; local-first trên laptop RAM 8 GB, ưu tiên API miễn phí, không bắt buộc GPU server.
 
 ### 16.2. Security Architecture
 M07 kiểm soát quyền và ngân sách; không Security Agent riêng.
@@ -3398,14 +3400,14 @@ sequenceDiagram
 COMPLETED, WAITING_USER, PAUSED, ABSTAINED, FAILED, CANCELLED. Separate verification state; budget exhaustion không cấp VERIFIED. Bảo toàn phần hợp lệ và cảnh báo.
 
 ### 16.17. Memory
-Lazy loading, batch reads, shared embedding instance, bounded context, release resources. API agents là logical roles không phải 5 local LLM.
+Lazy loading, batch reads, shared embedding API client, bounded context, release resources. API agents là logical roles không phải 5 local LLM.
 ```mermaid
 flowchart TD
  R["RAM - Active State Context Embedding"] <--> D["Disk - SQLite Assets Index Logs Dataset"]
 ```
 
 ### 16.18. Resource Profiles
-RP01 Lightweight: API LLM, API embedding hoặc BM25, concurrency 1, basic trace/checkpoint khi cần. RP02 Standard: API LLM, local/API embedding, bounded concurrency, structured trace/checkpoint. RP03 Research: pinned models/config, fixed concurrency, required metadata/checkpoint. Không bỏ safety/mandatory verification hoặc thay experiment conditions.
+RP01 Lightweight: API LLM, API embedding hoặc BM25, concurrency 1, basic trace/checkpoint khi cần. RP02 Standard: API LLM, API embedding, bounded concurrency, structured trace/checkpoint. RP03 Research: pinned models/config, fixed concurrency, required metadata/checkpoint. Không bỏ safety/mandatory verification hoặc thay experiment conditions.
 
 ### 16.19. Concurrency
 Sequential-first dependency flow; inter-agent parallel P1. Benchmark 1 worker trước, configurable bounded concurrency sau đo RAM/quota/SQLite writes. Không Celery/RabbitMQ/Kafka.
