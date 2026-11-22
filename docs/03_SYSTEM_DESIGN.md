@@ -1,7 +1,7 @@
 # 03 — SYSTEM DESIGN
 
 **Dự án:** MATHK  
-**Phiên bản:** 0.16.3  
+**Phiên bản:** 0.16.4  
 **Trạng thái:** Đang thảo luận  
 **Requirements Baseline:** v1.0 (558b25e2d1789f0ae526a4d1211be2febd0eadd6); tài liệu trực quan v1.1 (29cf094b81ae8f81bb69ba6c05e6cd0987183140)
 
@@ -436,8 +436,8 @@ flowchart LR
 |---|---|
 | MVP-A | Input, Engine, Reasoning, Model Gateway, Math Tools, Output, benchmark và tracing cơ bản |
 | MVP-B | Planning, Retrieval, Verification, Correction, Shared State |
-| MVP-C | Perception, Adaptive Router, Uncertainty Handling, toàn bộ P0 |
-| MVP-D | Đánh giá, baseline, ablation, phân tích lỗi |
+| MVP-C | Perception, Adaptive Router, Uncertainty Handling, toàn bộ P0 chức năng Reasoning Engine |
+| MVP-D | Hoàn thiện P0 benchmark/thực nghiệm, đánh giá, baseline, ablation, phân tích lỗi |
 
 Kiểm soát tài nguyên, cấu hình và ghi log ở mức tối thiểu từ MVP-A, mở rộng dần.
 
@@ -2898,10 +2898,10 @@ flowchart TD
 ```
 
 ### 13.14. Ground Truth Isolation
-Benchmark Runner cấp problem input only cho engine; ground truth chỉ Runner/Evaluator, không Agent/Verifier/Shared State/Context hay KB dưới dạng đáp án test. Cách ly kiến trúc và luồng dữ liệu, không phải OS security boundary.
+Benchmark Runner cấp problem input only cho engine; ground truth chỉ Evaluator; Runner chỉ nhận dữ liệu đề bài được phép, không Agent/Verifier/Shared State/Context hay KB dưới dạng đáp án test. Cách ly kiến trúc và luồng dữ liệu, không phải OS security boundary.
 ```mermaid
 flowchart TD
- D["Dataset"] --> B["Benchmark Runner"]
+ D["Dataset"] -->|"Problem fields only"| B["Benchmark Runner"]
  B --> Q["Problem Input Only"]
  Q --> E["MATHK Engine"]
  E --> P["Prediction"]
