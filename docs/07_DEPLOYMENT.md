@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.8
+**Phiên bản:** 0.9
 
 **Trạng thái:** Đang thảo luận
 
@@ -318,7 +318,59 @@ Kiểm tra config/key cần thiết, storage writable, index compatibility, prof
 
 ## 8. CI/CD & Release Management
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 8.1. Chiến lược
+GitHub Actions, uv.lock, pytest, Ruff, mypy, Git Tags/GitHub Releases; CD chưa bắt buộc.
+
+### 8.2. CI Pipeline
+```mermaid
+flowchart TD
+ A["Push / Pull Request"] --> B["Setup Python + uv"]
+ B --> C["Install Locked Dependencies"]
+ C --> D["Ruff Check"]
+ D --> E["Type Checking"]
+ E --> F["Unit Tests"]
+ F --> G["Integration Tests"]
+ G --> H{"All Passed?"}
+ H -->|Yes| I["CI Passed"]
+ H -->|No| J["Review and Fix"]
+ J --> A
+```
+Linux runner chính, Windows compatibility test theo nhu cầu.
+
+### 8.3. Chi phí
+Push/PR chạy lint, type check, unit test, mock API integration; không gọi LLM/VLM/embedding API thật hoặc full benchmark mặc định. Real API test chủ động, budget riêng.
+
+### 8.4. Human-in-the-loop
+```mermaid
+flowchart TD
+ A["Thiết kế và yêu cầu"] --> B["Codex triển khai"]
+ B --> C["Review Code và Tests"]
+ C --> D["Chạy kiểm thử"]
+ D --> E{"Đạt yêu cầu?"}
+ E -->|Không| B
+ E -->|Có| F["Commit and Push"]
+ F --> G["GitHub Actions"]
+ G --> H["Checkpoint"]
+```
+Người học thiết kế, hiểu, đánh giá; Codex triển khai; CI không thay review.
+
+### 8.5. Release
+| Version | Milestone | Phase |
+|---|---|---|
+| v0.1.0 | MVP A — Text Solver | 0–2 |
+| v0.2.0 | MVP B — Grounded Multi-Agent | 3–4 |
+| v0.3.0 | MVP C — Adaptive Multimodal | 5–6 |
+| v1.0.0 | MVP D — Research Prototype | 7 |
+Version phần mềm độc lập tài liệu. Release ghi commit, changelog, sample config, test results, limitations.
+
+### 8.6. Release Gate
+CI pass, milestone acceptance, versioned dependencies/config, docs và learning checkpoint cập nhật, không secrets/dữ liệu nhạy cảm.
+
+### 8.7. CD
+Local-first, phát hành/triển khai chủ động; không Jenkins/Kubernetes/MLflow hoặc MLOps phức tạp trong MVP.
+
 
 ## 9. Monitoring & Maintenance
 
