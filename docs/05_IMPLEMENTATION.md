@@ -1,6 +1,6 @@
 # MATHK — Implementation Roadmap
 
-**Phiên bản:** 0.8
+**Phiên bản:** 0.9
 
 **Trạng thái:** Đang thảo luận
 
@@ -437,7 +437,47 @@ Truy xuất kiến thức phù hợp, kiểm tra điều kiện, giữ provenanc
 
 ## 9. Phase 5 — Verification & Adaptive Routing
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 9.1. Mục tiêu
+Nâng cao độ tin cậy và tối ưu chi phí qua kiểm chứng, sửa lỗi chọn lọc và điều phối thích ứng. Trọng tâm nghiên cứu MATHK.
+```mermaid
+flowchart TD
+ A["Problem"] --> R["Adaptive Router"]
+ R --> S["Reasoning"]
+ S --> V["Hybrid Verification"]
+ V --> D{"Kết quả kiểm chứng"}
+ D -->|Đạt| F["Final Answer"]
+ D -->|Có lỗi| C["Targeted Correction"]
+ C --> R
+ D -->|Thiếu dữ kiện| U["Uncertainty Handling"]
+ U --> Q["Clarify / Abstain"]
+```
+Luồng logic qua Orchestrator, mọi vòng thực thi/sửa lỗi chịu guard và budget. Không đồng nhất hoàn thành với kiểm chứng thành công.
+
+### 9.2. Mini Labs
+| ID | Chủ đề | Trọng tâm |
+|---|---|---|
+| P5-L01 | LLM Verification | Khả năng và giới hạn tự kiểm chứng |
+| P5-L02 | Symbolic Verification | Kiểm chứng bằng SymPy |
+| P5-L03 | Hybrid Verification | Kết hợp LLM và thuật toán |
+| P5-L04 | Dependency Graph | Phụ thuộc giữa các bước |
+| P5-L05 | Error Localization | Lỗi gốc và lỗi lan truyền |
+| P5-L06 | Targeted Correction | Sửa cục bộ, bảo toàn bước đúng |
+| P5-L07 | Uncertainty Management | Thiếu dữ kiện, mâu thuẫn |
+| P5-L08 | Adaptive Routing | Điều phối theo trạng thái và độ khó |
+| P5-L09 | Cost Optimization | Model, token, calls, budget |
+| P5-L10 | Pareto Analysis | Chất lượng và tài nguyên |
+
+### 9.3. Thí nghiệm
+No Verification vs LLM-only vs Hybrid; Full Regeneration vs Dependency-based Correction; Static vs Rule-based vs State-aware vs Hybrid routing; LLM-only vs Hybrid uncertainty detection; các mức budget và model routing. Accuracy, Error Localization F1, Correction Success Rate, Introduced Error Rate, LLM Calls, Token Usage, Latency, Cost. Giữ cùng initial solution/model/budget khi phù hợp với giả thuyết; tập dev, không mặc định phương pháp đề xuất vượt baseline; guard bắt buộc duy trì.
+
+### 9.4. Deliverables
+Hybrid Verification Engine, Reasoning Dependency Graph, Error Localization/Correction Engine, Uncertainty Manager, Verification-guided Adaptive Router, Execution Budget Management nâng cao, bộ thí nghiệm verification/routing/cost-quality. Tuân thủ System Design mục 7, 11, 12.
+
+### 9.5. Completion Gates
+Phát hiện, định vị, sửa lỗi trong phạm vi hỗ trợ; tái kiểm chứng sau sửa, hạn chế tính lại không cần thiết, điều phối theo trạng thái, xử lý bất định, dừng đúng budget. Người học phân tích thực nghiệm, giải thích kiến trúc và trade-off dựa trên dữ liệu; AI triển khai theo đặc tả, người học review. Test/CI/docs/checkpoint và learning gate. 10 lab, 20–30 giờ.
+
 
 ## 10. Phase 6 — Multimodal Reasoning
 
