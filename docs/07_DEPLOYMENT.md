@@ -1,6 +1,6 @@
 # MATHK — Deployment
 
-**Phiên bản:** 0.6
+**Phiên bản:** 0.7
 
 **Trạng thái:** Đang thảo luận
 
@@ -209,7 +209,71 @@ Lưu snapshot cấu hình hiệu lực đã loại secrets, config hash, model I
 
 ## 6. Data & Persistence
 
-*Chưa chốt.*
+**Trạng thái: Đã chốt.**
+
+### 6.1. Storage
+SQLite cho session/problem/solution/KB; LangGraph SQLite checkpoint; FAISS vector index; JSONL trace; JSON/JSONL dataset; JSONL/JSON/CSV experiment results; local files cho ảnh.
+
+### 6.2. Kiến trúc
+```mermaid
+flowchart TD
+ A["MATHK Engine"] --> B["Repository Interfaces"]
+ B --> C["SQLAlchemy"]
+ C --> D[("mathk.sqlite")]
+ A --> E["LangGraph Checkpointer"]
+ E --> F[("checkpoints.sqlite")]
+ A --> G["Local File Storage"]
+ G --> H["Assets / Traces"]
+ A --> I["Retrieval Pipeline"]
+ I --> J["Embedding API"]
+ I --> K[("FAISS Index")]
+ I --> D
+```
+
+### 6.3. Cấu trúc
+```text
+data/
+  knowledge/
+    sources/
+    processed/
+  datasets/
+    raw/
+    processed/
+  runtime/
+    mathk.sqlite
+    checkpoints.sqlite
+    assets/
+    indexes/
+    traces/
+experiments/
+  configs/
+  results/
+  exports/
+```
+Theo 04_PROJECT_STRUCTURE.md.
+
+### 6.4. Embedding Index
+```mermaid
+flowchart TD
+ A["Knowledge Base"] --> B["Batch Processing"]
+ B --> C["Embedding API"]
+ C --> D["Vector Validation"]
+ D --> E["Build FAISS Index"]
+ E --> F["Validate and Save"]
+ F --> G["Index + Manifest"]
+ G --> H["Runtime Retrieval"]
+```
+Rebuild khi KB hoặc embedding config thay đổi; không embed toàn KB mỗi lần startup. Manifest gồm model ID, dimension, normalization, KB version, checksum và metadata theo System Design.
+
+### 6.5. Backup
+GitHub cho code; versioned KB backup; consistent SQLite backup; FAISS backup/rebuild; experiment backup theo ID; checkpoint theo workflow; dọn temp. Xác minh artifacts đã đồng bộ trước giải phóng cloud thuê.
+
+### 6.6. RAM 8 GB
+Không load toàn dataset; bounded embedding batches; load index cần thiết; JSONL tuần tự; lịch sử SQLite, bounded shared state; cách ly ground truth.
+
+### 6.7. Stack
+SQLite, SQLAlchemy, Alembic, FAISS CPU, local files, Embedding API. Không vector DB server, Redis, PostgreSQL, MongoDB, cloud storage bắt buộc trong MVP. Giữ hybrid retrieval và agentic RAG, không load embedding model local.
+
 
 ## 7. Application Deployment
 
