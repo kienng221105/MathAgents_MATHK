@@ -24,6 +24,8 @@ Thứ tự ưu tiên tăng dần: YAML → environment → `overrides` truyền 
 
 `.env.example` chỉ liệt kê biến mẫu; loader không tự đọc `.env`. Không đặt secret trong YAML hoặc explicit overrides: loader này không đọc credentials. Xem [P0-L03](labs/phase_00/03_data_contracts/README.md) và [P0-L04](labs/phase_00/04_configuration/README.md) để thực hành. Chạy `uv run pytest` để kiểm tra contract.
 
+Lab [P0-L05](labs/phase_00/05_llm_api_anatomy/README.md) minh họa request, response, usage và latency bằng mock offline, không cần API key.
+
 ## Giới hạn hiện tại
 
 CLI chỉ xác nhận Foundation hoạt động và chưa sử dụng config. Chưa triển khai model gateway, agent, RAG, công cụ toán, API hay CI; không cần API key để chạy các lệnh trên.
